@@ -1,0 +1,16 @@
+id,track_id,track_state,start_date,stop_reason,start_reason,synced
+1,2015354546,3,1742355856028,LowSpeedTimeout,ManualStart,1
+2,2002117233,2,1742356237140,GpsTimeout,MotionDetected,1
+3,1457788001,2,1742357753705,GpsTimeout,MotionDetected,1
+4,1126893599,2,1742361714614,Interrupted,ManualStart,1
+5,2131383969,2,1742361845246,GpsTimeout,ManualStart,1
+6,358018672,2,1742382007635,GpsTimeout,ManualStart,0
+7,773023776,2,1742386916907,StopTrackingManually,ManualStart,0
+8,478021182,2,1742387661033,Interrupted,ManualStart,0
+9,921407784,2,1742387789355,Interrupted,ManualStart,0
+10,196542710,2,1742387891203,GpsTimeout,ManualStart,0
+11,346524936,2,1742388228547,Interrupted,ManualStart,0
+12,1018456600,3,1742388393714,LowSpeedTimeout,ManualStart,0
+13,565024602,2,1742391146855,LowSpeedTimeout,MotionDetected,0
+14,315396716,2,1742399816600,GpsTimeout,MotionDetected,0
+15,1949307084,2,1742439656569,LowSpeedTimeout,GeofenceDetected,0
