@@ -7,17 +7,6 @@ This module provides a machine learning pipeline for predicting driving safety s
 
 ---
 
-## 📂 Folder Structure
-
-```
-
-mlp\_score\_model/
-├── config.yaml                  # Configuration for model and features
-├── driving\_safety\_score\_model.py  # Full pipeline class with training + inference
-├── merged\_output.csv           # Sample dataset used for training/testing
-└── README.md                   # This documentation
-
-````
 
 ---
 
