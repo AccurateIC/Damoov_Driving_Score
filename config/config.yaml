@@ -1,0 +1,31 @@
+data_path: "merged_output.csv"
+
+model:
+  hidden_layer_sizes: [100, 50]
+  activation: relu
+  solver: adam
+  max_iter: 200
+  random_state: 42
+
+train_test_split:
+  test_size: 0.2
+  random_state: 42
+
+features:
+  numeric:
+    - latitude
+    - longitude
+    - speed_kmh
+    - midSpeed
+    - total_meters
+    - acceleration
+    - deceleration
+    - acceleration_x_original
+    - acceleration_y_original
+    - acceleration_z_original
+    - accel_mag
+    - jerk
+    - hard_brake
+    - hard_accel
+    - screen_on
+    - screen_blocked
