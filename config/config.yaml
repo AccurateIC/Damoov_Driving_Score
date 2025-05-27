@@ -1,4 +1,4 @@
-data_path: "merged_output.csv"
+data_path: "csv/merged_output.csv"
 
 model:
   hidden_layer_sizes: [100, 50]
@@ -29,3 +29,17 @@ features:
     - hard_accel
     - screen_on
     - screen_blocked
+
+
+nn_model:
+  layer1: 128
+  layer2: 64
+  dropout1: 0.2
+  dropout2: 0.1
+  optimizer: adam
+  epochs: 50
+  batch_size: 32
+  patience: 5
+
+
+target: "safe_score"
