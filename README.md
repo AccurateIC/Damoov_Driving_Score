@@ -1,123 +1,144 @@
 
-
 ```markdown
-# MLP-Based Driving Safety Score Model
+# 🚘 Driving Safety Score Prediction
 
-This module provides a machine learning pipeline for predicting driving safety scores using an MLP (Multi-Layer Perceptron) regressor. It is a self-contained feature within the Damoov_Diving_Score repository.
+This module provides two machine learning pipelines for predicting **driver safety scores** from telematics data using:
 
----
+- 🧠 `MLPRegressor` (Scikit-learn)
+- ⚙️ `Keras Sequential Neural Network` (TensorFlow)
 
-
----
-
-## 🧠 Features
-
-- Cleans and preprocesses telematics data
-- Extracts time, acceleration, and behavioral features
-- Trains a robust `MLPRegressor` using scikit-learn
-- Evaluates the model using RMSE and R² metrics
-- Supports single-row inference with time profiling
-- Fully configurable via `config.yaml`
+These models are designed to process numerical driving data like speed, acceleration, braking, and event-derived features (e.g., jerk, hard braking) and produce a **numerical safety score** between 5–100.
 
 ---
 
-## ⚙️ Configuration (`config.yaml`)
+## 📁 Project Structure
+
+```
+
+mlp\_score\_model/
+├── config/
+│   └── config.yaml              # Centralized configuration
+├── csv/
+│   └── merged\_output.csv       # Input driving dataset
+├── src/
+│   ├── MLP-driving-score.py    # MLPRegressor pipeline
+│   └── NN-driving-score.py     # Keras-based NN pipeline
+└── README.md
+
+````
+
+---
+
+## 🧠 Models Overview
+
+| Model               | Framework       | Description                                      |
+|--------------------|------------------|--------------------------------------------------|
+| `MLPRegressor`      | Scikit-learn     | Lightweight multi-layer perceptron for tabular data |
+| `Keras Neural Net`  | TensorFlow (Keras) | Deep configurable neural network with dropout, early stopping |
+
+---
+
+## ⚙️ Configuration (`config/config.yaml`)
 
 ```yaml
-data_path: "merged_output.csv"
-
-model:
-  hidden_layer_sizes: [100, 50]
-  activation: relu
-  solver: adam
-  max_iter: 200
-  random_state: 42
+data_path: "csv/merged_output.csv"
+target: "safe_score"
 
 train_test_split:
   test_size: 0.2
   random_state: 42
 
-features:
-  numeric:
-    - latitude
-    - longitude
-    - speed_kmh
-    - midSpeed
-    - total_meters
-    - acceleration
-    - deceleration
-    - acceleration_x_original
-    - acceleration_y_original
-    - acceleration_z_original
-    - accel_mag
-    - jerk
-    - hard_brake
-    - hard_accel
-    - screen_on
-    - screen_blocked
+nn_model:
+  layer1: 128
+  layer2: 64
+  dropout1: 0.2
+  dropout2: 0.1
+  optimizer: adam
+  epochs: 50
+  batch_size: 32
+  patience: 5
 ````
+
+> ✅ Shared config enables consistent training and experimentation across models.
 
 ---
 
 ## 🚀 How to Run
 
-```bash
-cd mlp_score_model
-python driving_safety_score_model.py
-```
-
-This will:
-
-* Load and clean the data
-* Train the MLP model
-* Evaluate it
-* Perform a timed prediction on a single sample row
-
----
-
-## 🧪 Example Output
-
-```
-🚀 Starting full pipeline...
-✅ Training completed in 2.12 seconds
-Test RMSE: 2.85
-Test R²:   0.89
-Predicted safe_score: 82.37
-Inference time: 1.17 ms
-✅ Total execution time: 4.23 seconds
-```
-
----
-
-## 📦 Dependencies
-
-You can install all required libraries with:
+### ▶️ Run MLPRegressor Pipeline
 
 ```bash
-pip install pandas numpy scikit-learn pyyaml
+python src/MLP-driving-score.py
+```
+
+### ▶️ Run Keras Neural Network Pipeline
+
+```bash
+python src/NN-driving-score.py
+```
+
+Each pipeline:
+
+* Loads the dataset
+* Cleans and scales input
+* Trains the model
+* Evaluates with `MAE`, `R²`
+* Performs real-time single-row inference with timing
+
+
+---
+
+## 📦 Installation
+
+Install dependencies using:
+
+```bash
+pip install pandas numpy scikit-learn tensorflow pyyaml
+```
+
+Or use:
+
+```bash
+pip install -r requirements.txt  # if provided
 ```
 
 ---
 
-## 🧩 Integration
+## 📌 Model Comparison Summary
 
-To integrate into other systems:
+| Feature                 | MLPRegressor | Keras NN           |
+| ----------------------- | ------------ | ------------------ |
+| Library                 | scikit-learn | TensorFlow         |
+| Deep customization      | ❌            | ✅                  |
+| Dropout & EarlyStopping | ❌            | ✅                  |
+| Real-time inference     | ✅            | ✅                  |
+| Ideal for tabular data  | ✅            | ✅                  |
+| Performance             | Medium       | High (with tuning) |
 
-```python
-from driving_safety_score_model import DrivingSafetyScoreModel
+---
 
-model = DrivingSafetyScoreModel("config.yaml")
-model.run_all()
-```
+## 📈 Future Enhancements
 
-You can also use `predict_single_row()` for real-time inference.
+* ⏳ Add LSTM for time-sequential driving sessions
+* 🔍 Feature importance and explainability (SHAP, LIME)
+* 💾 Save/load models (`.pkl` or `.h5`)
+* 🌐 API endpoint for real-time score predictions (FastAPI/Streamlit)
+
+---
+
+## 🤝 Contributing
+
+Pull requests, suggestions, and improvements are welcome! Please fork the repo and submit a PR under a descriptive branch name.
 
 ---
 
 ## 📄 License
 
-This feature inherits the license of the main Damoov\_Diving\_Score repository.
+This project is licensed under the same terms as the main [Damoov\_Diving\_Score](https://github.com/AccurateIC/Damoov_Diving_Score) repository.
 
 ---
 
+## 🙋 Author
+
+Developed and maintained by **Prathamesh**
 
