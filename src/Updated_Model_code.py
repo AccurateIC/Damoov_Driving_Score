@@ -13,7 +13,15 @@ from xgboost import XGBRegressor
 from catboost import CatBoostRegressor
 
 # Path to your SQLite DB
-SQLITE_PATH = "D:/Downloadss/result/data.sqlite"
+import yaml
+
+def load_config(path="config.yaml"):
+    with open(path, 'r') as file:
+        return yaml.safe_load(file)
+
+config = load_config()
+SQLITE_PATH = config['database']['sqlite_path']
+
 
 def load_and_preprocess_data():
     # Read the table from SQLite
@@ -22,16 +30,15 @@ def load_and_preprocess_data():
     conn.close()
 
     # Original preprocessing logic
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
-    df.dropna(subset=['timestamp'], inplace=True)
-    df['hour'] = df['timestamp'].dt.hour
-    df['dayofweek'] = df['timestamp'].dt.dayofweek
+    #df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
+    #df.dropna(subset=['timestamp'], inplace=True)
+    #df['hour'] = df['timestamp'].dt.hour
+    #df['dayofweek'] = df['timestamp'].dt.dayofweek
 
     features = [
         "latitude", "longitude",
         "speed_kmh", "acceleration", "deceleration",
-        "acceleration_y", "screen_on", "screen_blocked",
-        "hour", "dayofweek"
+        "acceleration_y", "screen_on", "screen_blocked"
     ]
     target = "safe_score"
 
