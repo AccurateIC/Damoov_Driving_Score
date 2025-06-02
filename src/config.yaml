@@ -1,0 +1,45 @@
+acceleration:
+  threshold: 0.047
+  min_speed: 20
+  min_duration: 0.5
+  max_gap: 3
+
+deceleration:
+  threshold: 0.466
+  min_speed: 20
+  min_duration: 0.5
+  max_gap: 3
+
+cornering:
+  accy_threshold: 0.18
+  min_speed: 20
+  min_duration: 0.6
+  max_gap: 3
+
+speeding:
+  speed_limit: 40
+  min_duration: 3
+  max_gap: 5
+
+phone_usage:
+  min_duration: 3
+  max_gap: 20
+
+
+weights:
+  speeding: 0.30
+  phone_usage: 0.25
+  acceleration: 0.15
+  cornering: 0.10
+  braking: 0.20
+
+database:
+  sqlite_path: "D:/Downloadss/result/data.sqlite"
+
+
+files:
+  main_data: "D:/Downloadss/Cleaned_SampleTable.csv"
+  sample_data: "D:/Downloadss/SampleTable.csv"
+  events_start: "D:/Downloadss/EventsStartPointTable.csv"
+  events_stop: "D:/Downloadss/EventsStopPointTable.csv"
+  trip_distances_output: "D:/Downloadss/trip_distances_from_spherical_formula.csv"
