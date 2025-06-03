@@ -27,6 +27,48 @@ SELECTED_COLS = [
 ]
 BASELINE_PATH = "baseline_stats.json"
 
+# --- DRIFT DETECTION FUNCTION ---
+def detect_drift(df, baseline_cols):
+    baseline_df = df.sample(frac=0.6, random_state=42)
+    future_df = df.drop(baseline_df.index)
+
+    print(f"\n🔍 Baseline Data Shape: {baseline_df.shape}")
+    print(f"🔍 Future Data Shape: {future_df.shape}")
+
+    drift_results = {}
+
+    for col in baseline_cols:
+        if df[col].nunique() <= 2:
+            contingency_table = pd.crosstab(baseline_df[col].fillna(-1), future_df[col].fillna(-1))
+            if contingency_table.empty:
+                drift_results[col] = {
+                    "test": "chi2",
+                    "p_value": None,
+                    "note": "Empty contingency table - no variation"
+                }
+                continue
+
+            chi2, p, _, _ = chi2_contingency(contingency_table)
+            drift_results[col] = {
+                "test": "chi2",
+                "p_value": p
+            }
+        else:
+            ks_stat, p = ks_2samp(baseline_df[col].dropna(), future_df[col].dropna())
+            drift_results[col] = {
+                "test": "ks_test",
+                "ks_stat": float(ks_stat),
+                "p_value": float(p)
+            }
+
+    print("\n📈 Drift Detection Results:")
+    for col, res in drift_results.items():
+        print(f"➡️ {col}: {res}")
+
+    return drift_results
+
+
+
 def main():
     # --- LOAD DATA ---
     conn = sqlite3.connect(SQLITE_PATH)
@@ -82,25 +124,25 @@ def main():
         plt.title(f"Countplot of {col}")
         plt.tight_layout()
         plt.show()
-
-    # --- CREATE BASELINE PROFILE FOR DRIFT DETECTION ---
+        # --- CREATE BASELINE PROFILE FOR DRIFT DETECTION ---
     baseline = {}
     for col in SELECTED_COLS:
         baseline[col] = {
-            "mean": df[col].mean(),
-            "std": df[col].std(),
-            "min": df[col].min(),
-            "max": df[col].max(),
-            "median": df[col].median(),
+            "mean": float(df[col].mean()),
+            "std": float(df[col].std()),
+            "min": float(df[col].min()),
+            "max": float(df[col].max()),
+            "median": float(df[col].median()),
             "missing": int(df[col].isnull().sum()),
             "non_missing": int(df[col].notnull().sum())
         }
 
-    # Save baseline to JSON
+# Save baseline to JSON
     with open(BASELINE_PATH, "w") as f:
         json.dump(baseline, f, indent=2)
-
     print(f"\n✅ Baseline saved to '{BASELINE_PATH}'")
+
+    drift_results = detect_drift(df, SELECTED_COLS)
 
     # --- OPTIONAL: DRIFT CHECK ON FUTURE DATA ---
     # Example usage for future data drift check:
