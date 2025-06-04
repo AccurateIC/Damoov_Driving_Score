@@ -1,120 +1,199 @@
-import os
-import pandas as pd
+
+import pickle
+import sqlite3
+import logging
 import numpy as np
-import joblib
-from collections import deque
-from scipy.stats import ks_2samp
+import pandas as pd
+from typing import Any, Dict, List, Optional, Tuple
+
+from dataclasses import dataclass
+from scipy import stats
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error, r2_score
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('drift_detection.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-class ManualDriftDetector:
-    def __init__(self, window_size=50, p_value_threshold=0.01):
-        self.reference_window = deque(maxlen=window_size)
-        self.test_window = deque(maxlen=window_size)
-        self.p_value_threshold = p_value_threshold
+# ============================= CONFIG =============================
+@dataclass
+class DriftConfig:
+    drift_threshold: float = 0.1
+    retraining_threshold: float = 0.15
+    polling_interval: int = 3600
+    min_data_points: int = 1000
+    numerical_features: List[str] = None
+    categorical_features: List[str] = None
+    target_column: str = 'target'
+    model_path: str = './models/'
+    data_path: str = './data/'
 
-    def update(self, new_data_dict):
-        self.test_window.append(new_data_dict)
+# ============================= DATABASE =============================
+class DatabasePoller:
+    def __init__(self, db_path: str, table_name: str):
+        self.db_path = db_path
+        self.table_name = table_name
+        self.last_poll_timestamp = None
 
-        if len(self.test_window) < self.test_window.maxlen:
-            return {}, False
+    def connect(self):
+        return sqlite3.connect(self.db_path)
 
-        drift_flags = {}
-        drift_detected = False
+    def get_new_data(self):
+        conn = self.connect()
+        try:
+            query = f"""
+                SELECT * FROM {self.table_name} 
+                WHERE timestamp >= datetime('now', '-1 day')
+                ORDER BY timestamp DESC
+            """ if self.last_poll_timestamp is None else f"""
+                SELECT * FROM {self.table_name} 
+                WHERE timestamp > '{self.last_poll_timestamp}'
+                ORDER BY timestamp DESC
+            """
+            df = pd.read_sql_query(query, conn)
+            if not df.empty:
+                self.last_poll_timestamp = df['timestamp'].max()
+            return df
+        finally:
+            conn.close()
 
-        if len(self.reference_window) == self.reference_window.maxlen:
-            ref_df = pd.DataFrame(self.reference_window)
-            test_df = pd.DataFrame(self.test_window)
+# ============================= STATISTICAL TESTS =============================
+class StatisticalDriftDetector:
+    def __init__(self, config: DriftConfig):
+        self.config = config
 
-            for col in test_df.columns:
-                if col in ref_df:
-                    stat, p_value = ks_2samp(ref_df[col], test_df[col])
-                    drift_flags[col] = p_value < self.p_value_threshold
-                    if drift_flags[col]:
-                        drift_detected = True
+    def kolmogorov_smirnov_test(self, ref, curr):
+        try:
+            return stats.ks_2samp(ref, curr)
+        except:
+            return 0.0, 1.0
 
-        # Slide reference window
-        self.reference_window = deque(self.test_window, maxlen=self.test_window.maxlen)
-        self.test_window.clear()
+    def chi_squared_test(self, ref, curr):
+        try:
+            ref_counts, curr_counts = ref.value_counts(), curr.value_counts()
+            categories = list(set(ref_counts.index) | set(curr_counts.index))
+            ref_vals = [ref_counts.get(cat, 0) for cat in categories]
+            curr_vals = [curr_counts.get(cat, 0) for cat in categories]
+            return stats.chisquare(curr_vals, ref_vals)
+        except:
+            return 0.0, 1.0
 
-        return drift_flags, drift_detected
+    def wasserstein_distance(self, ref, curr):
+        try:
+            return stats.wasserstein_distance(ref, curr)
+        except:
+            return 0.0
 
+# ============================= DRIFT DETECTOR =============================
+class DriftDetector:
+    def __init__(self, config: DriftConfig):
+        self.config = config
+        self.statistical_detector = StatisticalDriftDetector(config)
+        self.reference_data = None
+        self.drift_history = []
 
-class DrivingScorePipeline:
-    def __init__(self, model_path='model.pkl'):
-        self.model_path = model_path
-        self.drift_detector = ManualDriftDetector()
-        self.model = self._load_model()
-        self.data_store = []
+    def set_reference_data(self, data: pd.DataFrame):
+        self.reference_data = data.copy()
 
-    def _load_model(self):
-        if os.path.exists(self.model_path):
-            print("📦 Model loaded.")
-            return joblib.load(self.model_path)
-        else:
-            print("🔧 Initializing new model.")
-            return RandomForestRegressor(n_estimators=100)
+    def detect_drift(self, current_data: pd.DataFrame) -> Dict[str, Any]:
+        drift_results = {"feature_drifts": {}, "drift_detected": False}
+        if len(current_data) < self.config.min_data_points:
+            return {"drift_detected": False, "reason": "insufficient_data"}
 
-    def calculate_driving_score(self, data):
-        # Replace with actual formulation logic
-        score = max(0, 100 - (abs(data["accelerationLateral"]) * 10 + abs(data["accelerationVertical"]) * 5))
-        return min(score, 100)
+        drift_score = 0
+        count = 0
 
-    def preprocess_and_train(self, data):
-        df = pd.DataFrame(data)
-        X = df.drop(columns=["driving_score"])
-        y = df["driving_score"]
+        for col in self.config.numerical_features or []:
+            if col in current_data and col in self.reference_data:
+                ref, curr = self.reference_data[col].dropna(), current_data[col].dropna()
+                score = self.statistical_detector.wasserstein_distance(ref, curr)
+                drift_results["feature_drifts"][col] = score
+                drift_score += score
+                count += 1
 
-        X = X.select_dtypes(include=np.number).fillna(0)
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+        for col in self.config.categorical_features or []:
+            if col in current_data and col in self.reference_data:
+                ref, curr = self.reference_data[col].dropna(), current_data[col].dropna()
+                _, p_value = self.statistical_detector.chi_squared_test(ref, curr)
+                score = 1 - p_value
+                drift_results["feature_drifts"][col] = score
+                drift_score += score
+                count += 1
 
-        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2)
-        self.model.fit(X_train, y_train)
-        y_pred = self.model.predict(X_test)
-        print("✅ Model retrained. R² Score:", r2_score(y_test, y_pred))
+        if count:
+            drift_results["overall_drift_score"] = drift_score / count
+            drift_results["drift_detected"] = drift_results["overall_drift_score"] > self.config.drift_threshold
+        return drift_results
 
-        joblib.dump(self.model, self.model_path)
+# ============================= MODEL RETRAINER =============================
+class ModelRetrainer:
+    def __init__(self, config: DriftConfig):
+        self.config = config
+        self.current_model = None
+        self.model_version = 0
 
-    def process_instance(self, raw_data):
-        driving_score = self.calculate_driving_score(raw_data)
-        raw_data["driving_score"] = driving_score
-        self.data_store.append(raw_data)
+    def load_current_model(self):
+        try:
+            with open(f"{self.config.model_path}current_model.pkl", 'rb') as f:
+                self.current_model = pickle.load(f)
+            return self.current_model
+        except:
+            return None
 
-        features_only = {k: v for k, v in raw_data.items() if k != "driving_score"}
-        drift_flags, drift_detected = self.drift_detector.update(features_only)
+    def retrain_model(self, data: pd.DataFrame):
+        features = (self.config.numerical_features or []) + (self.config.categorical_features or [])
+        if not all(f in data for f in features + [self.config.target_column]):
+            raise ValueError("Missing columns in data")
 
-        if drift_detected:
-            print("⚠️ Drift Detected in Features:", [k for k, v in drift_flags.items() if v])
-            self.preprocess_and_train(self.data_store)
-        else:
-            print("✅ No significant drift.")
+        X, y = data[features].copy(), data[self.config.target_column]
+        for col in self.config.categorical_features or []:
+            X[col] = pd.Categorical(X[col]).codes
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-        return driving_score
-
-
-# Example simulation
-if __name__ == "__main__":
-    import random
-    import time
-
-    pipeline = DrivingScorePipeline()
-
-    for i in range(200):
-        sample = {
-            "accelerationLateral": random.gauss(0, 1),
-            "accelerationVertical": random.gauss(0, 0.5),
-            "speedMedian": random.uniform(30, 70)
+        model = RandomForestRegressor()
+        model.fit(X_train, y_train)
+        self.model_version += 1
+        path = f"{self.config.model_path}model_v{self.model_version}.pkl"
+        with open(path, 'wb') as f:
+            pickle.dump(model, f)
+        with open(f"{self.config.model_path}current_model.pkl", 'wb') as f:
+            pickle.dump(model, f)
+        return {
+            "model_version": self.model_version,
+            "mse": mean_squared_error(y_test, model.predict(X_test)),
+            "r2": r2_score(y_test, model.predict(X_test)),
+            "model_path": path
         }
 
-        # Simulate drift after 100 samples
-        if i > 100:
-            sample["accelerationLateral"] += 3
+# ============================= MONITOR =============================
+class DriftMonitoringSystem:
+    def __init__(self, config: DriftConfig, db_path: str, table_name: str):
+        self.config = config
+        self.db_poller = DatabasePoller(db_path, table_name)
+        self.detector = DriftDetector(config)
+        self.retrainer = ModelRetrainer(config)
 
-        score = pipeline.process_instance(sample)
-        print(f"[{i}] Driving Score: {score}")
-        time.sleep(0.05)
+    def initialize(self, ref_data: pd.DataFrame):
+        self.detector.set_reference_data(ref_data)
+        self.retrainer.load_current_model()
 
+    def run_cycle(self):
+        data = self.db_poller.get_new_data()
+        if data.empty:
+            return {"new_data": False}
+
+        drift = self.detector.detect_drift(data)
+        result = {"new_data": True, "drift": drift}
+        if drift["drift_detected"] and drift.get("overall_drift_score", 0) > self.config.retraining_threshold:
+            full_data = pd.concat([self.detector.reference_data, data], ignore_index=True)
+            result["retrained"] = self.retrainer.retrain_model(full_data)
+            self.detector.set_reference_data(full_data)
+        return result
