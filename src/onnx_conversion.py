@@ -17,7 +17,7 @@ from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import FloatTensorType
 from onnxmltools.convert import convert_xgboost
 from onnxmltools.convert.common.data_types import FloatTensorType
-import onnx
+#import onnx
 
 DATA_PATH = "D:/Downloadss/merged_output.csv"
 

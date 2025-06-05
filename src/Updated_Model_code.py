@@ -20,20 +20,22 @@ def load_config(path="config.yaml"):
         return yaml.safe_load(file)
 
 config = load_config()
+SQLITE_PATH = "D:/Downloadss/result/data.sqlite"
 SQLITE_PATH = config['database']['sqlite_path']
-
 
 def load_and_preprocess_data():
     # Read the table from SQLite
     conn = sqlite3.connect(SQLITE_PATH)
     df = pd.read_sql_query("SELECT * FROM merged_output", conn)
     conn.close()
+   # df = pd.read_sql("D:/Downloadss/result/data.sqlite")
 
     # Original preprocessing logic
     #df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
     #df.dropna(subset=['timestamp'], inplace=True)
     #df['hour'] = df['timestamp'].dt.hour
-    #df['dayofweek'] = df['timestamp'].dt.dayofweek
+    #df['dayofweek'] = df['timestamp'].dt.
+    
 
     features = [
         "latitude", "longitude",
@@ -119,4 +121,4 @@ def main():
     run_xgboost(X_train, y_train, X_val, y_val, X_test, y_test)
 
 if __name__ == "__main__":
-    main() 
+    main()

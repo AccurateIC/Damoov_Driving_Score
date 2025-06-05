@@ -14,7 +14,7 @@ from utils import load_config
 
 # === Load config ===
 config = load_config()
-db_path = "D:/Downloadss/raxel_traker_db_200325 (1).db"
+db_path = "csv/raxel_traker_db_200325 (1).db"
 
 # === Step 1: Load CSVs and save to database if needed ===
 conn = sqlite3.connect(db_path)

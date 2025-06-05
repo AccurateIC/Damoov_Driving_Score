@@ -5,7 +5,7 @@ acceleration:
   max_gap: 3
 
 deceleration:
-  threshold: 0.466
+  dec_threshold: 0.466
   min_speed: 20
   min_duration: 0.5
   max_gap: 3
@@ -27,19 +27,19 @@ phone_usage:
 
 
 weights:
-  speeding: 0.30
-  phone_usage: 0.25
-  acceleration: 0.15
-  cornering: 0.10
-  braking: 0.20
+  speeding_weight: 0.20
+  phone_usage_weight: 0.20
+  acceleration_weight: 0.20
+  cornering_weight: 0.20
+  braking_weight: 0.20
 
 database:
-  sqlite_path: "D:/Downloadss/raxel_traker_db_200325 (1).db"
+  sqlite_path: "csv/raxel_traker_db_200325 (1).db"
 
 
 files:
-  main_data: "D:/Downloadss/Cleaned_SampleTable.csv"
-  sample_data: "D:/Downloadss/SampleTable.csv"
-  events_start: "D:/Downloadss/EventsStartPointTable.csv"
-  events_stop: "D:/Downloadss/EventsStopPointTable.csv"
-  trip_distances_output: "D:/Downloadss/trip_distances_from_spherical_formula.csv"
+  main_data: "csv/Cleaned_SampleTable.csv"
+  sample_data: "csv/SampleTable.csv"
+  events_start: "csv/EventsStartPointTable.csv"
+  events_stop: "csv/EventsStopPointTable.csv"
+  trip_distances_output: "csv/trip_distances_from_spherical_formula.csv"
