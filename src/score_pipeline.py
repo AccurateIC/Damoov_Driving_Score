@@ -107,3 +107,11 @@ def run_score_pipeline(db_path, config):
 
     score_df = pd.DataFrame(trip_scores)
     print(score_df)
+
+    # === Merge scores into SampleTable and update existing rows ===
+    updated_df = pd.merge(main_df, score_df, on='unique_id', how='left')
+
+    with sqlite3.connect(db_path) as conn:
+    # Overwrite SampleTable with new columns
+     updated_df.to_sql("SampleTable", conn, if_exists="replace", index=False)
+    print("✅ SampleTable updated with scoring results.")
