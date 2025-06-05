@@ -34,7 +34,7 @@ weights:
   braking: 0.20
 
 database:
-  sqlite_path: "D:/Downloadss/result/data.sqlite"
+  sqlite_path: "D:/Downloadss/raxel_traker_db_200325 (1).db"
 
 
 files:
