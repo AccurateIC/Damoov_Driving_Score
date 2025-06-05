@@ -2,8 +2,9 @@
 from score_pipeline import run_score_pipeline
 import yaml
 from pathlib import Path
+from apscheduler.schedulers.blocking import BlockingScheduler
 
-if __name__ == "__main__":
+def job():
     # Get root path (assuming this file is in src/)
     base_dir = Path(__file__).resolve().parent.parent
     config_path = base_dir / "config.yaml"
@@ -14,6 +15,11 @@ if __name__ == "__main__":
 
     # Resolve db_path relative to project root
     db_path = base_dir / config['database']['sqlite_path']
-
-    # Run pipeline
     run_score_pipeline(str(db_path), config)
+
+if __name__ == "__main__":
+
+    scheduler = BlockingScheduler()
+    scheduler.add_job(job, 'interval', minutes=1)  # ⏱ Run every 3 hours
+    print("Polling started. Checking for new data every 3 hours...")
+    scheduler.start()
