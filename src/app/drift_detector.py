@@ -1,18 +1,19 @@
-
+import os
 import pickle
 import sqlite3
 import logging
 import numpy as np
 import pandas as pd
-from typing import Any, Dict, List, Optional, Tuple
-
+import matplotlib.pyplot as plt
+import seaborn as sns
+from typing import Any, Dict, List, Tuple
 from dataclasses import dataclass
 from scipy import stats
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Configure logging
+# ========== LOGGING ==========
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -23,58 +24,54 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ============================= CONFIG =============================
+# ========== CONFIG ==========
 @dataclass
 class DriftConfig:
     drift_threshold: float = 0.1
     retraining_threshold: float = 0.15
-    polling_interval: int = 3600
     min_data_points: int = 1000
     numerical_features: List[str] = None
     categorical_features: List[str] = None
-    target_column: str = 'target'
-    model_path: str = './models/'
-    data_path: str = './data/'
+    target_column: str = 'safety_score'
+    model_path: str = 'models/'
+    data_path: str = 'csv/raxel_traker_db_200325 (1).db'
 
-# ============================= DATABASE =============================
-class DatabasePoller:
-    def __init__(self, db_path: str, table_name: str):
+# ========== UTILITIES ==========
+def ensure_output_dir(path="drift_results"):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+# ========== DATABASE FETCHER ==========
+class DatabaseBatchFetcher:
+    def __init__(self, db_path: str, table_name: str, batch_size: int = 1000):
         self.db_path = db_path
         self.table_name = table_name
-        self.last_poll_timestamp = None
+        self.batch_size = batch_size
 
     def connect(self):
         return sqlite3.connect(self.db_path)
 
-    def get_new_data(self):
+    def get_batches(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         conn = self.connect()
         try:
-            query = f"""
-                SELECT * FROM {self.table_name} 
-                WHERE timestamp >= datetime('now', '-1 day')
+            df = pd.read_sql_query(f"""
+                SELECT * FROM {self.table_name}
                 ORDER BY timestamp DESC
-            """ if self.last_poll_timestamp is None else f"""
-                SELECT * FROM {self.table_name} 
-                WHERE timestamp > '{self.last_poll_timestamp}'
-                ORDER BY timestamp DESC
-            """
-            df = pd.read_sql_query(query, conn)
-            if not df.empty:
-                self.last_poll_timestamp = df['timestamp'].max()
-            return df
+                LIMIT {self.batch_size * 2}
+            """, conn)
+            if len(df) < self.batch_size * 2:
+                return pd.DataFrame(), pd.DataFrame()
+            current_batch = df.iloc[:self.batch_size].copy()
+            reference_batch = df.iloc[self.batch_size:self.batch_size * 2].copy()
+            return reference_batch, current_batch
         finally:
             conn.close()
 
-# ============================= STATISTICAL TESTS =============================
+# ========== DRIFT DETECTOR ==========
 class StatisticalDriftDetector:
     def __init__(self, config: DriftConfig):
         self.config = config
-
-    def kolmogorov_smirnov_test(self, ref, curr):
-        try:
-            return stats.ks_2samp(ref, curr)
-        except:
-            return 0.0, 1.0
 
     def chi_squared_test(self, ref, curr):
         try:
@@ -92,13 +89,11 @@ class StatisticalDriftDetector:
         except:
             return 0.0
 
-# ============================= DRIFT DETECTOR =============================
 class DriftDetector:
     def __init__(self, config: DriftConfig):
         self.config = config
         self.statistical_detector = StatisticalDriftDetector(config)
         self.reference_data = None
-        self.drift_history = []
 
     def set_reference_data(self, data: pd.DataFrame):
         self.reference_data = data.copy()
@@ -133,67 +128,107 @@ class DriftDetector:
             drift_results["drift_detected"] = drift_results["overall_drift_score"] > self.config.drift_threshold
         return drift_results
 
-# ============================= MODEL RETRAINER =============================
-class ModelRetrainer:
-    def __init__(self, config: DriftConfig):
-        self.config = config
-        self.current_model = None
-        self.model_version = 0
-
-    def load_current_model(self):
-        try:
-            with open(f"{self.config.model_path}current_model.pkl", 'rb') as f:
-                self.current_model = pickle.load(f)
-            return self.current_model
-        except:
-            return None
-
-    def retrain_model(self, data: pd.DataFrame):
-        features = (self.config.numerical_features or []) + (self.config.categorical_features or [])
-        if not all(f in data for f in features + [self.config.target_column]):
-            raise ValueError("Missing columns in data")
-
-        X, y = data[features].copy(), data[self.config.target_column]
-        for col in self.config.categorical_features or []:
-            X[col] = pd.Categorical(X[col]).codes
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-        model = RandomForestRegressor()
-        model.fit(X_train, y_train)
-        self.model_version += 1
-        path = f"{self.config.model_path}model_v{self.model_version}.pkl"
-        with open(path, 'wb') as f:
-            pickle.dump(model, f)
-        with open(f"{self.config.model_path}current_model.pkl", 'wb') as f:
-            pickle.dump(model, f)
-        return {
-            "model_version": self.model_version,
-            "mse": mean_squared_error(y_test, model.predict(X_test)),
-            "r2": r2_score(y_test, model.predict(X_test)),
-            "model_path": path
-        }
-
-# ============================= MONITOR =============================
 class DriftMonitoringSystem:
     def __init__(self, config: DriftConfig, db_path: str, table_name: str):
         self.config = config
-        self.db_poller = DatabasePoller(db_path, table_name)
-        self.detector = DriftDetector(config)
-        self.retrainer = ModelRetrainer(config)
+        self.db_fetcher = DatabaseBatchFetcher(db_path, table_name)
 
-    def initialize(self, ref_data: pd.DataFrame):
-        self.detector.set_reference_data(ref_data)
-        self.retrainer.load_current_model()
+    def run_cycle(self) -> Dict[str, Any]:
+        ref_data, curr_data = self.db_fetcher.get_batches()
+        if ref_data.empty or curr_data.empty:
+            return {"drift_detected": False, "reason": "insufficient_data"}
 
-    def run_cycle(self):
-        data = self.db_poller.get_new_data()
-        if data.empty:
-            return {"new_data": False}
+        detector = DriftDetector(self.config)
+        detector.set_reference_data(ref_data)
+        drift = detector.detect_drift(curr_data)
+        return {
+            "drift": drift,
+            "reference_data": ref_data,
+            "current_data": curr_data
+        }
 
-        drift = self.detector.detect_drift(data)
-        result = {"new_data": True, "drift": drift}
-        if drift["drift_detected"] and drift.get("overall_drift_score", 0) > self.config.retraining_threshold:
-            full_data = pd.concat([self.detector.reference_data, data], ignore_index=True)
-            result["retrained"] = self.retrainer.retrain_model(full_data)
-            self.detector.set_reference_data(full_data)
-        return result
+# ========== VISUALIZATION ==========
+def plot_data_drift(reference_data: pd.DataFrame, current_data: pd.DataFrame, drift_result: Dict[str, Any], config: DriftConfig):
+    sns.set(style="whitegrid")
+    num_features = config.numerical_features or []
+    cat_features = config.categorical_features or []
+
+    for col in num_features:
+        if col in reference_data and col in current_data:
+            plt.figure(figsize=(10, 5))
+            sns.kdeplot(reference_data[col].dropna(), label="Reference", shade=True)
+            sns.kdeplot(current_data[col].dropna(), label="Current", shade=True)
+            plt.title(f'Distribution Comparison for {col}\nDrift Score: {drift_result["feature_drifts"].get(col, 0):.4f}')
+            plt.xlabel(col)
+            plt.ylabel('Density')
+            plt.legend()
+            plt.tight_layout()
+            plt.show()
+
+    for col in cat_features:
+        if col in reference_data and col in current_data:
+            plt.figure(figsize=(10, 5))
+            ref_counts = reference_data[col].value_counts(normalize=True)
+            curr_counts = current_data[col].value_counts(normalize=True)
+            all_categories = sorted(set(ref_counts.index) | set(curr_counts.index))
+            ref_vals = [ref_counts.get(cat, 0) for cat in all_categories]
+            curr_vals = [curr_counts.get(cat, 0) for cat in all_categories]
+
+            df_plot = pd.DataFrame({
+                "Category": all_categories,
+                "Reference": ref_vals,
+                "Current": curr_vals
+            })
+
+            df_plot = pd.melt(df_plot, id_vars=["Category"], var_name="Dataset", value_name="Proportion")
+            sns.barplot(data=df_plot, x="Category", y="Proportion", hue="Dataset")
+            plt.title(f'Category Distribution for {col}\nDrift Score: {drift_result["feature_drifts"].get(col, 0):.4f}')
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            plt.show()
+
+    drift_scores = drift_result["feature_drifts"]
+    if drift_scores:
+        plt.figure(figsize=(10, 5))
+        sns.barplot(x=list(drift_scores.values()), y=list(drift_scores.keys()), orient="h")
+        plt.axvline(x=config.drift_threshold, color="red", linestyle="--", label="Drift Threshold")
+        plt.title("Feature Drift Scores")
+        plt.xlabel("Drift Score")
+        plt.ylabel("Features")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+# ========== MAIN EXECUTION ==========
+if __name__ == "__main__":
+    config = DriftConfig(
+        drift_threshold=0.1,
+        retraining_threshold=0.15,
+        numerical_features=[
+            'acceleration_x_original', 'acceleration_y_original', 'acceleration_z_original',
+            'acceleration', 'deceleration', 'midSpeed'
+        ],
+        categorical_features=['weather'],
+        target_column='safety_score',
+        model_path='models/',
+        data_path='csv/raxel_traker_db_200325 (1).db'
+    )
+
+    drift_system = DriftMonitoringSystem(config, db_path=config.data_path, table_name='SampleTable')
+    result = drift_system.run_cycle()
+
+    output_dir = ensure_output_dir()
+
+    if "reference_data" in result and "current_data" in result:
+        result["reference_data"].to_csv(os.path.join(output_dir, "reference_data.csv"), index=False)
+        result["current_data"].to_csv(os.path.join(output_dir, "current_data.csv"), index=False)
+
+    with open(os.path.join(output_dir, "drift_result.pkl"), "wb") as f:
+        pickle.dump(result["drift"], f)
+
+    print("Drift Detection Result:")
+    print(result["drift"])
+
+    if result["drift"].get("drift_detected"):
+        plot_data_drift(result["reference_data"], result["current_data"], result["drift"], config)
+
