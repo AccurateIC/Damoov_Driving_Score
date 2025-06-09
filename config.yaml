@@ -1,3 +1,4 @@
+
 acceleration:
   threshold: 0.047
   min_speed: 20
@@ -34,11 +35,12 @@ weights:
   braking_weight: 0.20
 
 database:
-  sqlite_path: "D:/Downloadss/raxel_traker_db_200325 (1).db"
+  sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
+
 
 files:
-  main_data: "D:/Downloadss/Cleaned_SampleTable.csv"
-  sample_data: "D:/Downloadss/SampleTable.csv"
-  events_start: "D:/Downloadss/EventsStartPointTable.csv"
-  events_stop: "D:/Downloadss/EventsStopPointTable.csv"
-  trip_distances_output: "D:/Downloadss/trip_distances_from_spherical_formula.csv"
+  main_data: "csv/Cleaned_SampleTable.csv"
+  sample_data: "csv/SampleTable.csv"
+  events_start: "csv/EventsStartPointTable.csv"
+  events_stop: "csv/EventsStopPointTable.csv"
+  trip_distances_output: "csv/trip_distances_from_spherical_formula.csv"
