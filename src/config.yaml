@@ -34,7 +34,7 @@ weights:
   braking_weight: 0.20
 
 database:
-  sqlite_path: "csv/raxel_traker_db_200325 (1).db"
+  sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
 
 
 files:
