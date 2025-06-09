@@ -35,10 +35,10 @@ def calculate_trip_distances(start_df, stop_df):
 def run_score_pipeline(db_path, config):
     conn = sqlite3.connect(db_path)
 
-    main_df = pd.read_sql_query("SELECT * FROM Cleaned_SampleTable", conn)
+    main_df = pd.read_sql_query("SELECT * FROM SampleTable", conn)
     start_df = pd.read_sql_query("SELECT * FROM EventsStartPointTable", conn)
     stop_df = pd.read_sql_query("SELECT * FROM EventsStopPointTable", conn)
-    main_df['timestamp'] = pd.to_datetime(main_df['timestamp'], unit='s')
+    main_df['timestamp'] = pd.to_datetime(main_df['timestamp'])
 
     trip_distances_df = calculate_trip_distances(start_df, stop_df)
     trip_distance_dict = dict(zip(trip_distances_df['UNIQUE_ID'], trip_distances_df['distance_km']))
