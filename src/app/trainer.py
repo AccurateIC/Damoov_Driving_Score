@@ -1,7 +1,7 @@
 import xgboost as xgb
 import numpy as np
 from sklearn.model_selection import train_test_split
-from src.model import save_onnx_model
+from src.app.model import save_onnx_model
 
 class OnlineTrainer:
     def __init__(self, model):
