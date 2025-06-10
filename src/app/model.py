@@ -1,110 +1,97 @@
-from skl2onnx.common.data_types import FloatTensorType
-from onnxmltools.convert import convert_xgboost
-import onnx
-
-# Ensure that onnx is installed (pip install onnx)
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import os
 import time
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
-from xgboost import XGBRegressor
-#from catboost import CatBoostRegressor
-
-# ONNX-related imports
-from skl2onnx import convert_sklearn
-from skl2onnx.common.data_types import FloatTensorType
-from onnxmltools.convert import convert_xgboost
-from onnxmltools.convert.common.data_types import FloatTensorType
-import onnx
-
 import sqlite3
+import numpy as np
+import pandas as pd
+from dataclasses import dataclass
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from xgboost import XGBRegressor
 
-DB_PATH = "csv/raxel_traker_db_200325 (1).db"  # <-- Set your database path here
-TABLE_NAME = "SampleTable"  # <-- Replace with your actual table name
+# ONNX conversion
+from skl2onnx.common.data_types import FloatTensorType
+from skl2onnx import convert_sklearn
+from onnxmltools.convert import convert_xgboost
 
-def load_and_preprocess_data():
-    # Connect to SQLite DB
-    conn = sqlite3.connect(DB_PATH)
-
-    # Load data into DataFrame
-    df = pd.read_sql_query(f"SELECT * FROM {TABLE_NAME}", conn)
-
-    # Close connection
-    conn.close()
-
-    # Process timestamp and add features
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    df.dropna(subset=['timestamp'], inplace=True)
-    df['hour'] = df['timestamp'].dt.hour
-    df['dayofweek'] = df['timestamp'].dt.dayofweek
-
-    # Define features and target
-    features = [
-        "latitude", "longitude",
-        "speed_kmh", "acceleration", "deceleration",
-        "acceleration_y", "screen_on", "screen_blocked",
-        "hour", "dayofweek"
-    ]
-    target = "safe_score"
-
-    # Final dataset
-    df = df[features + [target]].dropna()
-    return df[features], df[target]
+@dataclass
+class XGBConfig:
+    db_path: str
+    table_name: str
+    target_column: str = "safe_score"
+    onnx_export_path: str = "XGBoost.onnx"
 
 
-def evaluate_model(model, X_test, y_test, model_name="Model"):
-    start_time = time.time()
-    y_pred = model.predict(X_test)
-    end_time = time.time()
-    print(f"\n✅ {model_name} Results:")
-    print("R² Score:", r2_score(y_test, y_pred))
-    print("MAE:", mean_absolute_error(y_test, y_pred))
-    print("RMSE:", np.sqrt(mean_squared_error(y_test, y_pred)))
-    print(f"Total inference time: {end_time - start_time:.6f} seconds")
-    print(f"Average time per data point: {(end_time - start_time) / len(X_test):.8f} seconds")
+class XGBoostModelTrainer:
+    def __init__(self, config: XGBConfig):
+        self.config = config
+        self.features = [
+            "latitude", "longitude",
+            "speed_kmh", "acceleration", "deceleration",
+            "acceleration_y", "screen_on", "screen_blocked",
+            "hour", "dayofweek"
+        ]
+        self.model = None
+        self.scaler = StandardScaler()
 
-def export_to_onnx(model, X_sample, name):
-    try:
-        initial_type = [('float_input', FloatTensorType([None, X_sample.shape[1]]))]
-        onnx_model = convert_sklearn(model, initial_types=initial_type)
-        with open(f"{name}.onnx", "wb") as f:
-            f.write(onnx_model.SerializeToString())
-        print(f"✅ Exported {name} to {name}.onnx")
-    except Exception as e:
-        print(f"❌ Failed to export {name} to ONNX: {e}")
+    def load_data(self):
+        conn = sqlite3.connect(self.config.db_path)
+        df = pd.read_sql_query(f"SELECT * FROM {self.config.table_name}", conn)
+        conn.close()
 
+        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+        df.dropna(subset=['timestamp'], inplace=True)
+        df['hour'] = df['timestamp'].dt.hour
+        df['dayofweek'] = df['timestamp'].dt.dayofweek
 
-def run_xgboost(X_train, X_test, y_train, y_test):
-    model = XGBRegressor(n_estimators=300, max_depth=4, learning_rate=0.1,
-                         subsample=0.7, colsample_bytree=0.7, random_state=42)
-    model.fit(X_train, y_train)
-    evaluate_model(model, X_test, y_test, "XGBoost")
+        df = df[self.features + [self.config.target_column]].dropna()
+        return df[self.features], df[self.config.target_column]
 
-    # Export using onnxmltools
-    try:
-        initial_type = [('float_input', FloatTensorType([None, X_test.shape[1]]))]
-        onnx_model = convert_xgboost(model, initial_types=initial_type)
-        with open("XGBoost.onnx", "wb") as f:
-            f.write(onnx_model.SerializeToString())
-        print("✅ Exported XGBoost to XGBoost.onnx")
-    except Exception as e:
-        print(f"❌ Failed to export XGBoost to ONNX: {e}")
+    def train(self):
+        X, y = self.load_data()
+        X_scaled = self.scaler.fit_transform(X)
+        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-def main():
-    X, y = load_and_preprocess_data()
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+        self.model = XGBRegressor(n_estimators=300, max_depth=4, learning_rate=0.1,
+                                  subsample=0.7, colsample_bytree=0.7, random_state=42)
+        self.model.fit(X_train, y_train)
 
+        self.evaluate(X_test, y_test)
+        self.export_to_onnx(X_test)
 
-    run_xgboost(X_train, X_test, y_train, y_test)
+    def train_from_df(self, df: pd.DataFrame):
+        required_cols = self.features + [self.config.target_column]
+        df_clean = df[required_cols].dropna()
 
-if __name__ == "__main__":
-    main()
+        X = df_clean[self.features]
+        y = df_clean[self.config.target_column]
+        X_scaled = self.scaler.fit_transform(X)
+        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
+        self.model = XGBRegressor(n_estimators=300, max_depth=4, learning_rate=0.1,
+                                subsample=0.7, colsample_bytree=0.7, random_state=42)
+        self.model.fit(X_train, y_train)
+        self.evaluate(X_test, y_test)
+        self.export_to_onnx(X_test)
 
+    def evaluate(self, X_test, y_test):
+        start_time = time.time()
+        y_pred = self.model.predict(X_test)
+        end_time = time.time()
+
+        print(f"\n✅ XGBoost Results:")
+        print("R² Score:", r2_score(y_test, y_pred))
+        print("MAE:", mean_absolute_error(y_test, y_pred))
+        print("RMSE:", np.sqrt(mean_squared_error(y_test, y_pred)))
+        print(f"Total inference time: {end_time - start_time:.6f} seconds")
+        print(f"Average time per data point: {(end_time - start_time) / len(X_test):.8f} seconds")
+
+    def export_to_onnx(self, X_sample):
+        try:
+            initial_type = [('float_input', FloatTensorType([None, X_sample.shape[1]]))]
+            onnx_model = convert_xgboost(self.model, initial_types=initial_type)
+            with open(self.config.onnx_export_path, "wb") as f:
+                f.write(onnx_model.SerializeToString())
+            print(f"✅ Exported XGBoost model to {self.config.onnx_export_path}")
+        except Exception as e:
+            print(f"❌ Failed to export ONNX model: {e}")
