@@ -9,6 +9,7 @@ cursor = conn.cursor()
 
 # Fetch column info for 'SampleTable'
 cursor.execute("PRAGMA table_info(SampleTable);")
+
 columns = cursor.fetchall()
 
 print("Columns in SampleTable:")

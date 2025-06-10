@@ -34,4 +34,15 @@ weights:
   braking_weight: 0.20
 
 database:
-  sqlite_path: "csv/raxel_traker_db_200325 (1).db"
+  sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
+
+model_path: models/driving_model.pkl
+target_column: safety_score
+numerical_features:
+  - acceleration_x_original
+  - acceleration_y_original
+  - acceleration_z_original
+  - acceleration
+  - deceleration
+  - midSpeed
+

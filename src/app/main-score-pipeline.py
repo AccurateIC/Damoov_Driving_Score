@@ -20,3 +20,4 @@ if __name__ == "__main__":
     run_score_pipeline(str(db_path), config)
 
     print("✅ Scoring pipeline completed and SampleTable updated.")
+
