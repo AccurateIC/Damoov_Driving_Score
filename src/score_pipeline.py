@@ -2,6 +2,9 @@
 import pandas as pd
 import sqlite3
 from math import radians, sin, cos, acos
+from pathlib import Path
+import yaml
+
 from Formulation.scorers import (
     DamoovAccelerationScorer,
     DamoovDeccelerationScorer,
@@ -9,6 +12,11 @@ from Formulation.scorers import (
     SpeedingDetectorFixedLimit,
     PhoneUsageDetector
 )
+
+def load_config():
+    base_dir = Path(__file__).resolve().parent
+    with open(base_dir / "config.yaml", "r") as f:
+        return yaml.safe_load(f)
 
 def spherical_distance(lat1, lon1, lat2, lon2):
     R = 6371.0
@@ -26,7 +34,6 @@ def calculate_trip_distances(start_df, stop_df):
     end_points = stop_df.loc[stop_max].copy()
 
     merged = pd.merge(start_points, end_points[['UNIQUE_ID', 'end_lat', 'end_lon']], on='UNIQUE_ID')
-
     merged["distance_km"] = merged.apply(
         lambda row: spherical_distance(row["start_lat"], row["start_lon"], row["end_lat"], row["end_lon"]), axis=1
     )
@@ -42,8 +49,6 @@ def run_score_pipeline(db_path, config):
 
     trip_distances_df = calculate_trip_distances(start_df, stop_df)
     trip_distance_dict = dict(zip(trip_distances_df['UNIQUE_ID'], trip_distances_df['distance_km']))
-
-    conn.close()
 
     weights = config['weights']
     trip_scores = []
@@ -108,10 +113,17 @@ def run_score_pipeline(db_path, config):
     score_df = pd.DataFrame(trip_scores)
     print(score_df)
 
-    # === Merge scores into SampleTable and update existing rows ===
+    # Drop old scoring columns if they exist
+    main_df = main_df.drop(
+        columns=['safe_score', 'risk_factor', 'total_penalty', 'star_rating'],
+        errors='ignore'
+    )
+
+    # Merge with new scores
     updated_df = pd.merge(main_df, score_df, on='unique_id', how='left')
 
-    with sqlite3.connect(db_path) as conn:
-    # Overwrite SampleTable with new columns
-     updated_df.to_sql("SampleTable", conn, if_exists="replace", index=False)
-    print("✅ SampleTable updated with scoring results.")
+    # Replace full table with updated data (safe because we re-score all trips)
+    updated_df.to_sql("SampleTable", conn, if_exists="replace", index=False)
+    conn.close()
+
+    print("✅ SQLite SampleTable updated with new scores (all trips).")
