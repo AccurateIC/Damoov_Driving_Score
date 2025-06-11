@@ -26,10 +26,10 @@ phone_usage:
   max_gap: 20
 
 weights:
-  speeding_weight: 0.25
+  speeding_weight: 0.20
   phone_usage_weight: 0.20
   acceleration_weight: 0.20
-  cornering_weight: 0.15
+  cornering_weight: 0.20
   braking_weight: 0.20
 
 database:
