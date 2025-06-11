@@ -143,7 +143,6 @@ class SpeedingDetectorFixedLimit:
             self.events_df['penalty_speeding'] = 0.0
             return
 
-        # Assign coefficients based on over-speed
         self.events_df['coefficient'] = self.events_df['over_limit_by_avg'].apply(assign_coefficient)
         self.events_df['penalty_point'] = self.events_df['duration_s'] * self.events_df['coefficient']
 
