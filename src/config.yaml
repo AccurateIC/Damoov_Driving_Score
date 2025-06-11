@@ -25,17 +25,15 @@ phone_usage:
   min_duration: 3
   max_gap: 20
 
-
 weights:
-  speeding_weight: 0.20
+  speeding_weight: 0.25
   phone_usage_weight: 0.20
   acceleration_weight: 0.20
-  cornering_weight: 0.20
+  cornering_weight: 0.15
   braking_weight: 0.20
 
 database:
   sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
-
 
 files:
   main_data: "csv/Cleaned_SampleTable.csv"
