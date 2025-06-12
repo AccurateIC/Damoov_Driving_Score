@@ -9,6 +9,8 @@ import pandas as pd
 from typing import Any, Dict, List, Tuple
 from dataclasses import dataclass
 from river.drift import ADWIN
+from pydantic import BaseModel
+from typing import List
 
 from model import XGBoostModelTrainer, XGBConfig
 
@@ -30,7 +32,6 @@ class DriftConfig:
     retraining_threshold: float = 0.15
     min_data_points: int = 1000
     numerical_features: List[str] = None
-    categorical_features: List[str] = None
     target_column: str ='safe_score'
     model_path: str = 'models/driving_model.pkl'
     reference_db_path: str = 'csv/raxel_traker_db_200325 (1).db'
