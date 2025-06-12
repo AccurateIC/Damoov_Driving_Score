@@ -8,10 +8,16 @@ import json
 import yaml
 from datetime import datetime
 import logging
+import sys
+import os
+
+# Add src/app to the import path
+sys.path.append(os.path.join(os.path.dirname(__file__), "src", "app"))
+
 
 # Import your custom modules
 from score_pipeline import run_score_pipeline
-from drift_detector import DriftMonitoringSystem, DriftConfig
+from drift_detector import ADWINDriftMonitoring, DriftConfig
 from Formulation.scorers import (
     DamoovAccelerationScorer,
     DamoovDeccelerationScorer,
@@ -38,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # Load configuration
 def load_config():
-    with open("/home/chirag/Documents/Damoov/config.yaml", "r") as f:
+    with open("config.yaml", "r") as f:
         return yaml.safe_load(f)
 
 config = load_config()
@@ -115,8 +121,9 @@ async def health_check():
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
 
 # ============ SCORING ENDPOINTS ============
-
+from Formulation.distance_utils import calculate_trip_distance_from_points
 @app.post("/calculate-score", response_model=ScoreResponse)
+
 async def calculate_single_trip_score(trip_data: List[TripData]):
     """Calculate driving score for a single trip"""
     try:
@@ -125,8 +132,10 @@ async def calculate_single_trip_score(trip_data: List[TripData]):
         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
         
         # Assume trip distance (you can calculate this from GPS coordinates)
-        trip_distance = 10.0  # Default value, should be calculated
-        
+        trip_distance = calculate_trip_distance_from_points(df) # Default value, should be calculated
+        if trip_distance <= 0:
+           trip_distance = 1.0
+
         weights = config['weights']
         
         # Calculate individual scores
@@ -236,10 +245,10 @@ async def get_all_scores(limit: int = 100, offset: int = 0):
         raise HTTPException(status_code=500, detail=f"Error fetching scores: {str(e)}")
 
 # ============ DRIFT DETECTION ENDPOINTS ============
-
+"""
 @app.post("/check-drift", response_model=DriftResponse)
 async def check_drift(request: List[Dict[str, Any]]):
-    """Check for data drift in the provided dataset"""
+    
     try:
         # Convert to DataFrame
         current_data = pd.DataFrame(request)
@@ -249,15 +258,15 @@ async def check_drift(request: List[Dict[str, Any]]):
             drift_threshold=0.1,
             retraining_threshold=0.15,
             numerical_features=[
-                'acceleration', 'deceleration', 'speed_kmh', 'acceleration_y'
+            'acceleration_x_original', 'acceleration_y_original', 'acceleration_z_original',
+            'acceleration', 'deceleration', 'midSpeed'
             ],
-            categorical_features=['screen_on', 'screen_blocked'],
             target_column='safe_score',
-            data_path=config['database']['sqlite_path']
+            #data_path=config['database']['sqlite_path']
         )
         
         # Initialize drift monitoring system
-        drift_system = DriftMonitoringSystem(
+        drift_system = ADWINDriftMonitoring(
             drift_config, 
             db_path=config['database']['sqlite_path'], 
             table_name='SampleTable'
@@ -283,6 +292,52 @@ async def check_drift(request: List[Dict[str, Any]]):
             timestamp=datetime.now().isoformat()
         )
         
+    except Exception as e:
+        logger.error(f"Error in drift detection: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")
+""" 
+@app.post("/check-drift", response_model=DriftResponse)
+async def check_drift(request: List[Dict[str, Any]]):
+    """Check for data drift in the provided dataset"""
+    try:
+        # Convert to DataFrame
+        current_data = pd.DataFrame(request)
+
+        # Build drift config object
+        drift_config = DriftConfig(
+            drift_threshold=0.1,
+            retraining_threshold=0.15,
+            numerical_features=[
+                'acceleration_x_original', 'acceleration_y_original', 'acceleration_z_original',
+                'acceleration', 'deceleration', 'midSpeed'
+            ],
+            target_column='safe_score',
+            reference_db_path=config['database']['sqlite_path'],
+            current_db_path=config['database']['sqlite_path'],
+            table_name='SampleTable'
+        )
+
+        # Initialize drift monitoring system
+        drift_system = ADWINDriftMonitoring(drift_config)
+
+        # Run drift detection
+        result = drift_system.run()
+
+        if "drift_detected" not in result:
+            return DriftResponse(
+                drift_detected=False,
+                overall_drift_score=0.0,
+                feature_drifts={},
+                timestamp=datetime.now().isoformat()
+            )
+
+        return DriftResponse(
+            drift_detected=result.get("drift_detected", False),
+            overall_drift_score=result.get("average_drift_score", 0.0),
+            feature_drifts=result.get("feature_drifts", {}),
+            timestamp=datetime.now().isoformat()
+        )
+
     except Exception as e:
         logger.error(f"Error in drift detection: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")

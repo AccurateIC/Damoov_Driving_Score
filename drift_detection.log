@@ -22,3 +22,25 @@
 2025-06-10 15:48:07,313 - INFO - Retraining triggered due to detected drift.
 2025-06-10 15:50:14,038 - INFO - Drift Detected: True | Score: 4.1490
 2025-06-10 15:50:14,110 - INFO - Retraining triggered due to detected drift.
+2025-06-11 12:41:28,202 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 12:41:28,270 - INFO - Retraining triggered due to detected drift.
+2025-06-11 14:31:22,430 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 14:31:22,538 - INFO - Retraining triggered due to detected drift.
+2025-06-11 16:40:14,175 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 16:40:14,340 - INFO - Retraining triggered due to detected drift.
+2025-06-11 16:41:02,126 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 16:41:02,251 - INFO - Retraining triggered due to detected drift.
+2025-06-11 16:41:38,027 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 16:41:38,169 - INFO - Retraining triggered due to detected drift.
+2025-06-11 16:42:03,885 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 16:42:03,997 - INFO - Retraining triggered due to detected drift.
+2025-06-11 17:14:59,682 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-11 17:14:59,790 - INFO - Retraining triggered due to detected drift.
+2025-06-12 10:26:23,898 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-12 10:26:24,022 - INFO - Retraining triggered due to detected drift.
+2025-06-12 15:42:53,600 - ERROR - Error in drift detection: DriftConfig.__init__() got an unexpected keyword argument 'data_path'
+2025-06-12 15:43:19,624 - ERROR - Error in drift detection: DriftConfig.__init__() got an unexpected keyword argument 'data_path'
+2025-06-12 16:00:30,022 - ERROR - Error in drift detection: DriftConfig.__init__() got an unexpected keyword argument 'data_path'
+2025-06-12 16:03:43,990 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-06-12 16:03:44,851 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-06-12 16:15:28,499 - INFO - Drift Detected: True | Score: 4.1490

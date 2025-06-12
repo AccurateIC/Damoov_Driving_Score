@@ -8,6 +8,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from xgboost import XGBRegressor
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "src", "app"))
 
 # ONNX conversion
 from skl2onnx.common.data_types import FloatTensorType
@@ -95,3 +99,5 @@ class XGBoostModelTrainer:
             print(f"✅ Exported XGBoost model to {self.config.onnx_export_path}")
         except Exception as e:
             print(f"❌ Failed to export ONNX model: {e}")
+
+

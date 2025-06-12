@@ -106,6 +106,7 @@ class ADWINDriftMonitoring:
             "ref_data": ref,
             "curr_data": curr
         }
+    
 
 # ========== MAIN ==========
 if __name__ == "__main__":
@@ -114,7 +115,7 @@ if __name__ == "__main__":
             'acceleration_x_original', 'acceleration_y_original', 'acceleration_z_original',
             'acceleration', 'deceleration', 'midSpeed'
         ],
-        categorical_features=['weather']
+        
     )
 
     monitor = ADWINDriftMonitoring(config)
