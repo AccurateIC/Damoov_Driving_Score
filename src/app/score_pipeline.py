@@ -1,4 +1,4 @@
-""" previous code without min-max normalization
+"""
 import pandas as pd
 import sqlite3
 from math import radians, sin, cos, acos
@@ -184,7 +184,9 @@ def run_score_pipeline(db_path, config):
     main_df = pd.read_sql_query("SELECT * FROM SampleTable", conn)
     start_df = pd.read_sql_query("SELECT * FROM EventsStartPointTable", conn)
     stop_df = pd.read_sql_query("SELECT * FROM EventsStopPointTable", conn)
-    main_df['timestamp'] = pd.to_datetime(main_df['timestamp'])
+    main_df['timestamp'] = pd.to_datetime(main_df['timestamp'], errors='coerce')
+    main_df = main_df.dropna(subset=['timestamp'])
+
 
     trip_distances_df = calculate_trip_distances(start_df, stop_df)
     trip_distance_dict = dict(zip(trip_distances_df['UNIQUE_ID'], trip_distances_df['distance_km']))
@@ -255,6 +257,11 @@ def run_score_pipeline(db_path, config):
     # Create dataframe for normalization step
     score_df = pd.DataFrame(trip_scores)
 
+    if score_df.empty:
+        print("No valid trips to process after filtering. Exiting pipeline gracefully.")
+        conn.close()
+        return
+
     # Apply Min-Max Normalization AFTER aggregation
     min_penalty = score_df['penalty_per_km'].min()
     max_penalty = score_df['penalty_per_km'].max()
@@ -274,7 +281,7 @@ def run_score_pipeline(db_path, config):
     print(score_df)
 
     # Drop old scoring columns
-    main_df = main_df.drop(columns=['safe_score', 'risk_factor', 'total_penalty', 'star_rating'], errors='ignore')
+    main_df = main_df.drop(columns=['safe_score', 'risk_factor', 'total_penalty', 'star_rating', 'penalty_per_km'], errors='ignore')
 
     updated_df = pd.merge(main_df, score_df, on='unique_id', how='left')
     updated_df.to_sql("SampleTable", conn, if_exists="replace", index=False)
