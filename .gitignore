@@ -1,1 +1,19 @@
 venv/
+__pycache__/
+*.pyc
+# Virtual environments
+onnx_env/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# IDE settings (VSCode, PyCharm etc.)
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
