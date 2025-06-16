@@ -72,3 +72,6 @@
 >>>>>>> 7999eb1c0246625b03337eca128b43b8c82b4bf3
 2025-06-16 12:01:12,252 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
 2025-06-16 12:14:01,597 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-06-16 17:09:18,168 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-06-16 17:09:21,306 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-06-16 17:10:42,721 - ERROR - Error calculating score: math domain error
