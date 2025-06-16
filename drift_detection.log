@@ -48,3 +48,4 @@
 2025-06-12 16:43:29,175 - INFO - Retraining triggered due to detected drift.
 2025-06-12 17:34:32,463 - ERROR - Error fetching trip score: 404: Trip not found
 2025-06-13 11:44:18,180 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:40:29,291 - ERROR - Error in drift detection: Execution failed on sql 'SELECT * FROM SampleTable ORDER BY timestamp DESC LIMIT 1000': no such table: SampleTable
