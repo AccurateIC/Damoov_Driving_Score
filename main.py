@@ -298,12 +298,12 @@ async def check_drift(request: List[Dict[str, Any]]):
 """ 
 @app.post("/check-drift", response_model=DriftResponse)
 async def check_drift(request: List[Dict[str, Any]]):
-    """Check for data drift in the provided dataset"""
+    """Check for data drift using ADWINDriftMonitoring"""
     try:
-        # Convert to DataFrame
+        # Convert request JSON to DataFrame
         current_data = pd.DataFrame(request)
 
-        # Build drift config object
+        # Initialize drift detection configuration
         drift_config = DriftConfig(
             drift_threshold=0.1,
             retraining_threshold=0.15,
@@ -312,18 +312,19 @@ async def check_drift(request: List[Dict[str, Any]]):
                 'acceleration', 'deceleration', 'midSpeed'
             ],
             target_column='safe_score',
-            reference_db_path=config['database']['sqlite_path'],
-            current_db_path=config['database']['sqlite_path'],
+        )
+
+        # Initialize drift monitoring system with reference DB
+        drift_system = ADWINDriftMonitoring(
+            config=drift_config,
+            db_path=config['database']['sqlite_path'],
             table_name='SampleTable'
         )
 
-        # Initialize drift monitoring system
-        drift_system = ADWINDriftMonitoring(drift_config)
+        # Run the drift detection cycle
+        result = drift_system.run_cycle()
 
-        # Run drift detection
-        result = drift_system.run()
-
-        if "drift_detected" not in result:
+        if "drift" not in result:
             return DriftResponse(
                 drift_detected=False,
                 overall_drift_score=0.0,
@@ -331,10 +332,12 @@ async def check_drift(request: List[Dict[str, Any]]):
                 timestamp=datetime.now().isoformat()
             )
 
+        drift_result = result["drift"]
+
         return DriftResponse(
-            drift_detected=result.get("drift_detected", False),
-            overall_drift_score=result.get("average_drift_score", 0.0),
-            feature_drifts=result.get("feature_drifts", {}),
+            drift_detected=drift_result.get("drift_detected", False),
+            overall_drift_score=drift_result.get("overall_drift_score", 0.0),
+            feature_drifts=drift_result.get("feature_drifts", {}),
             timestamp=datetime.now().isoformat()
         )
 
@@ -342,20 +345,6 @@ async def check_drift(request: List[Dict[str, Any]]):
         logger.error(f"Error in drift detection: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")
 
-@app.get("/drift-status")
-async def get_drift_status():
-    """Get current drift detection status"""
-    try:
-        # This could be enhanced to read from a drift status file or database
-        return {
-            "last_check": datetime.now().isoformat(),
-            "status": "monitoring",
-            "drift_threshold": 0.1,
-            "retraining_threshold": 0.15
-        }
-    except Exception as e:
-        logger.error(f"Error getting drift status: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error getting drift status: {str(e)}")
 
 # ============ DATA MANAGEMENT ENDPOINTS ============
 
@@ -453,4 +442,6 @@ async def get_metrics():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True) 
+
+
