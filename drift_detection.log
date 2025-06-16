@@ -48,3 +48,21 @@
 2025-06-12 16:43:29,175 - INFO - Retraining triggered due to detected drift.
 2025-06-12 17:34:32,463 - ERROR - Error fetching trip score: 404: Trip not found
 2025-06-13 11:44:18,180 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:19:26,541 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:19:30,234 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:28:23,055 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:28:25,853 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:33:28,759 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:33:28,762 - INFO - Starting model retraining...
+2025-06-13 15:33:31,062 - INFO - Model vvv1.0.2 deployed.
+2025-06-13 15:33:31,739 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:33:31,741 - INFO - Starting model retraining...
+2025-06-13 15:33:33,901 - INFO - Model vvvv1.0.3 deployed.
+2025-06-13 15:34:26,592 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:34:29,131 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 15:37:11,706 - INFO - Drift Detected: True | Score: 4.1490
+2025-06-13 16:55:17,991 - ERROR - Error fetching trip score: 404: Trip not found
+2025-06-13 16:56:08,373 - ERROR - Error fetching trip score: 404: Trip not found
+2025-06-13 16:56:09,275 - ERROR - Error fetching trip score: 404: Trip not found
+2025-06-13 16:56:10,155 - ERROR - Error fetching trip score: 404: Trip not found
+2025-06-13 16:56:11,708 - ERROR - Error fetching trip score: 404: Trip not found
