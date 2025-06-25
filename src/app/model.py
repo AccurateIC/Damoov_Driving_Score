@@ -1,44 +1,42 @@
-import os
-import time
+
 import sqlite3
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
-from sklearn.preprocessing import StandardScaler
+from collections import Counter
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from xgboost import XGBRegressor
-import sys
-import os
-
-sys.path.append(os.path.join(os.path.dirname(__file__), "src", "app"))
-
-# ONNX conversion
-from skl2onnx.common.data_types import FloatTensorType
-from skl2onnx import convert_sklearn
-from onnxmltools.convert import convert_xgboost
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from hmmlearn.hmm import GaussianHMM
 
 @dataclass
-class XGBConfig:
+class Config:
     db_path: str
     table_name: str
+    sequence_length: int = 60
     target_column: str = "safe_score"
-    onnx_export_path: str = "XGBoost.onnx"
+    model_path: str = "lstm_model.h5"
+    hmm_states: int = 3
 
-
-class XGBoostModelTrainer:
-    def __init__(self, config: XGBConfig):
+class LSTM_HMM_Trainer:
+    def __init__(self, config: Config):
         self.config = config
         self.features = [
-            "latitude", "longitude",
-            "speed_kmh", "acceleration", "deceleration",
-            "acceleration_y", "screen_on", "screen_blocked",
-            "hour", "dayofweek"
+            "latitude", "longitude", "speed_kmh", "acceleration", "deceleration",
+            "acceleration_y", "screen_on", "screen_blocked", "hour", "dayofweek"
         ]
-        self.model = None
-        self.scaler = StandardScaler()
+        self.scaler = MinMaxScaler()
+        self.lstm_model = None
+        self.hmm_model = None
+        self.behavior_labels = {
+            0: "Calm Driver",
+            1: "Aggressive Driver",
+            2: "Distracted Driver"
+        }
 
-    def load_data(self):
+    def load_sequences(self, return_ids=False):
         conn = sqlite3.connect(self.config.db_path)
         df = pd.read_sql_query(f"SELECT * FROM {self.config.table_name}", conn)
         conn.close()
@@ -47,57 +45,70 @@ class XGBoostModelTrainer:
         df.dropna(subset=['timestamp'], inplace=True)
         df['hour'] = df['timestamp'].dt.hour
         df['dayofweek'] = df['timestamp'].dt.dayofweek
+        df = df.sort_values(by=['unique_id', 'timestamp'])
 
-        df = df[self.features + [self.config.target_column]].dropna()
-        return df[self.features], df[self.config.target_column]
+        sequences, scores, ids = [], [], []
 
-    def train(self):
-        X, y = self.load_data()
-        X_scaled = self.scaler.fit_transform(X)
-        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+        for unique_id, trip_data in df.groupby('unique_id'):
+            trip_data = trip_data[self.features + [self.config.target_column]].dropna()
+            if len(trip_data) < self.config.sequence_length:
+                continue
+            seq = trip_data[self.features].values[:self.config.sequence_length]
+            seq_scaled = self.scaler.fit_transform(seq)
+            score = trip_data[self.config.target_column].iloc[0]
+            sequences.append(seq_scaled)
+            scores.append(score)
+            if return_ids:
+                ids.append(unique_id)
 
-        self.model = XGBRegressor(n_estimators=300, max_depth=4, learning_rate=0.1,
-                                  subsample=0.7, colsample_bytree=0.7, random_state=42)
-        self.model.fit(X_train, y_train)
+        return np.array(sequences), np.array(scores), ids if return_ids else None
 
-        self.evaluate(X_test, y_test)
-        self.export_to_onnx(X_test)
+    def build_lstm_model(self, input_shape):
+        model = Sequential()
+        model.add(LSTM(64, input_shape=input_shape, return_sequences=True))
+        model.add(Dropout(0.3))
+        model.add(LSTM(32))
+        model.add(Dense(1))
+        model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+        return model
 
-    def train_from_df(self, df: pd.DataFrame):
-        required_cols = self.features + [self.config.target_column]
-        df_clean = df[required_cols].dropna()
+    def train_lstm(self):
+        X, y, _ = self.load_sequences()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        X = df_clean[self.features]
-        y = df_clean[self.config.target_column]
-        X_scaled = self.scaler.fit_transform(X)
-        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+        self.lstm_model = self.build_lstm_model((X.shape[1], X.shape[2]))
+        self.lstm_model.fit(X_train, y_train, epochs=20, batch_size=8, validation_split=0.2)
 
-        self.model = XGBRegressor(n_estimators=300, max_depth=4, learning_rate=0.1,
-                                subsample=0.7, colsample_bytree=0.7, random_state=42)
-        self.model.fit(X_train, y_train)
-        self.evaluate(X_test, y_test)
-        self.export_to_onnx(X_test)
+        y_pred = self.lstm_model.predict(X_test).flatten()
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        rmse = mean_squared_error(y_test, y_pred, squared=False)
 
-    def evaluate(self, X_test, y_test):
-        start_time = time.time()
-        y_pred = self.model.predict(X_test)
-        end_time = time.time()
+        print("\n📊 LSTM Evaluation:")
+        print(f"R² Score: {r2:.4f}")
+        print(f"MAE: {mae:.4f}")
+        print(f"RMSE: {rmse:.4f}")
 
-        print(f"\n✅ XGBoost Results:")
-        print("R² Score:", r2_score(y_test, y_pred))
-        print("MAE:", mean_absolute_error(y_test, y_pred))
-        print("RMSE:", np.sqrt(mean_squared_error(y_test, y_pred)))
-        print(f"Total inference time: {end_time - start_time:.6f} seconds")
-        print(f"Average time per data point: {(end_time - start_time) / len(X_test):.8f} seconds")
+        self.lstm_model.save(self.config.model_path)
 
-    def export_to_onnx(self, X_sample):
-        try:
-            initial_type = [('float_input', FloatTensorType([None, X_sample.shape[1]]))]
-            onnx_model = convert_xgboost(self.model, initial_types=initial_type)
-            with open(self.config.onnx_export_path, "wb") as f:
-                f.write(onnx_model.SerializeToString())
-            print(f"✅ Exported XGBoost model to {self.config.onnx_export_path}")
-        except Exception as e:
-            print(f"❌ Failed to export ONNX model: {e}")
+    def train_hmm(self):
+        X, _, _ = self.load_sequences()
+        flat_data = np.concatenate(X, axis=0)
+        lengths = [len(seq) for seq in X]
 
+        self.hmm_model = GaussianHMM(n_components=self.config.hmm_states, covariance_type="diag", n_iter=1000)
+        self.hmm_model.fit(flat_data, lengths)
+        print("✅ HMM model trained on trip sequences.")
 
+    def predict_driver_behaviors(self):
+        X, _, ids = self.load_sequences(return_ids=True)
+        results = []
+
+        for i, seq in enumerate(X):
+            states = self.hmm_model.predict(seq)
+            dominant_state = Counter(states).most_common(1)[0][0]
+            label = self.behavior_labels.get(dominant_state, "Unknown")
+            results.append({"unique_id": ids[i], "driver_behavior": label})
+
+        print(f"✅ Predicted behavior for {len(results)} trips.")
+        return results

@@ -159,6 +159,7 @@ class LSTM_HMM_Trainer:
         X, _, ids = self.preprocess_sequences(df, fit_scalers=False, return_ids=True)
 
         results = defaultdict(list)
+        #results = defaultdict(list)
         for i, seq in enumerate(X):
             uid = ids[i]
             states = self.hmm_model.predict(seq)

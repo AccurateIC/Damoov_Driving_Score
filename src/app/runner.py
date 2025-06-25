@@ -22,7 +22,7 @@ from lstm_model import Config, LSTM_HMM_Trainer
 
 if __name__ == "__main__":
     config = Config(
-        db_path="csv/tracking_raw_DB_150525 (2).db",
+        db_path="D:/Downloadss/Updated_db.db",
         table_name="SampleTable",
         sequence_length=60
     )
