@@ -75,3 +75,5 @@
 2025-06-16 17:09:18,168 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
 2025-06-16 17:09:21,306 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
 2025-06-16 17:10:42,721 - ERROR - Error calculating score: math domain error
+2025-07-01 10:06:41,094 - ERROR - Error fetching trip score: 404: Trip not found
+2025-07-01 10:13:34,315 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'

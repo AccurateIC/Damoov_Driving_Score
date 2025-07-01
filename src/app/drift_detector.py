@@ -12,7 +12,7 @@ from river.drift import ADWIN
 from pydantic import BaseModel
 from typing import List
 
-#from model import XGBoostModelTrainer, XGBConfig
+from model import XGBoostModelTrainer, XGBConfig
 from model import Config, LSTM_HMM_Trainer
 
 # ========== LOGGING ==========
@@ -119,6 +119,7 @@ if __name__ == "__main__":
         ],
         
     )
+
 
     monitor = ADWINDriftMonitoring(config)
     result = monitor.run()
