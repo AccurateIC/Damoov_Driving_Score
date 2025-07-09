@@ -85,7 +85,7 @@ class DamoovCorneringScorer:
         self.max_gap = max_gap
 
     def detect_events(self):
-        df = self.df[(self.df['acceleration_y'].abs() > self.accy_threshold) & (self.df['speed_kmh'] >= self.min_speed)]
+        df = self.df[(self.df['acceleration_y_original'].abs() > self.accy_threshold) & (self.df['speed_kmh'] >= self.min_speed)]
         df = df.sort_values(by='timestamp').reset_index(drop=True)
 
         events, current_event = [], []
