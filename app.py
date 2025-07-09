@@ -35,7 +35,6 @@ def load_table_from_uploaded_db(file, session_key):
 
     return df
 
-
 # Sidebar navigation
 page = st.sidebar.selectbox("📂 Choose Feature", [
     "Upload Trip Data",
@@ -46,10 +45,10 @@ page = st.sidebar.selectbox("📂 Choose Feature", [
     "All Scores (Paginated)",
     "Database Stats",
     "System Metrics",
-    "View & Edit Config"
+    "View & Edit Config",
+    "Add User"  # ✅ New option
 ])
 
-# Upload Trip Data
 # Upload Trip Data
 if page == "Upload Trip Data":
     st.header("📤 Upload Trip Data from SQLite DB File")
@@ -157,3 +156,29 @@ elif page == "View & Edit Config":
                 st.error("Failed to update config.")
         except Exception as e:
             st.error(f"Invalid YAML: {e}")
+
+# ✅ Add User Page
+elif page == "Add User":
+    st.header("👤 Add New User")
+
+    with st.form("user_form"):
+        name = st.text_input("Name")
+        email = st.text_input("Email")
+        phone = st.text_input("Phone Number")
+        submit = st.form_submit_button("Add User")
+
+    if submit:
+        payload = {
+            "name": name,
+            "email": email,
+            "phone_number": phone
+        }
+
+        try:
+            response = requests.post(f"{API_URL}/users", json=payload)
+            if response.status_code == 200:
+                st.success("✅ User added successfully!")
+            else:
+                st.error(f"❌ Failed to add user: {response.json().get('detail', 'Unknown error')}")
+        except Exception as e:
+            st.error(f"⚠️ Request failed: {e}")

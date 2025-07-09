@@ -87,6 +87,12 @@ class DriftResponse(BaseModel):
     feature_drifts: Dict[str, float]
     timestamp: str
 
+class UserInput(BaseModel):
+    name: Optional[str]
+    email: Optional[str]
+    phone_number: Optional[str]
+
+
 # ============ DATABASE UTILITIES ============
 
 def get_db_connection():
@@ -109,6 +115,38 @@ def execute_query(query: str, params=None):
 async def root():
     return {"message": "Driving Score & Drift Detection API", "version": "1.0.0"}
 
+@app.post("/users")
+async def create_user(user: UserInput):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Create table if not exists
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                email TEXT,
+                phone_number TEXT,
+                created_at TEXT
+            );
+        """)
+
+        cursor.execute(
+            "INSERT INTO Users (name, email, phone_number, created_at) VALUES (?, ?, ?, ?)",
+            (user.name, user.email, user.phone_number, datetime.now().isoformat())
+        )
+
+        conn.commit()
+        conn.close()
+
+        return {"message": "User created successfully"}
+
+    except Exception as e:
+        logger.error(f"Error creating user: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+
+
 @app.get("/health")
 async def health_check():
     try:
@@ -119,6 +157,7 @@ async def health_check():
         return {"status": "healthy", "timestamp": datetime.now().isoformat()}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
+
 
 # ============ SCORING ENDPOINTS ============
 from Formulation.distance_utils import calculate_trip_distance_from_points
