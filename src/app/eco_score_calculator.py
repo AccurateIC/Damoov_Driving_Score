@@ -271,11 +271,7 @@ class EcoScoreCalculator:
 
     def _prepare(self):
         self.df['timestamp'] = pd.to_datetime(self.df['timestamp'], unit='s', errors='coerce')
-        before_drop = len(self.df)
         self.df.dropna(subset=['timestamp'], inplace=True)
-        after_drop = len(self.df)
-
-        #print(f"🧹 Dropped {before_drop - after_drop} rows with invalid timestamps for ID {self.unique_id}")
         self.df['time_diff'] = self.df['timestamp'].diff().dt.total_seconds().fillna(0)
 
         if 'midSpeed' in self.df.columns:
@@ -309,14 +305,19 @@ class EcoScoreCalculator:
         corner_events = self.count_harsh_cornerings()
         speed_std = self.compute_speed_std()
 
-        # ✅ Use external distance if available
         distance = self.external_trip_distances.get(self.unique_id, self.estimate_trip_distance())
+        distance = max(distance, 0.1)  # Avoid division by zero
 
-       # print(f"✅ Calculating score for ID: {self.unique_id}, distance: {round(distance, 3)} km")
+        # Normalize event rates per km
+        acc_rate = min(acc_events / distance, 20)
+        brake_rate = min(brake_events / distance, 20)
+        corner_rate = min(corner_events / distance, 20)
 
-        fuel_score = max(0, 100 - (acc_events * 2 + brake_events * 2 + speed_std * 2))
-        tire_score = max(0, 100 - (acc_events + brake_events + corner_events))
-        brake_score = max(0, 100 - (brake_events * 2 + distance * 0.5))
+        # Scoring logic (more realistic and balanced)
+        fuel_score = max(0, 100 - (acc_rate * 3 + brake_rate * 2 + speed_std * 1.5))
+        tire_score = max(0, 100 - (acc_rate * 2 + brake_rate * 2 + corner_rate * 2))
+        brake_score = max(0, 100 - (brake_rate * 4 + distance * 0.2))
+
         eco_score = round(0.4 * fuel_score + 0.3 * tire_score + 0.3 * brake_score, 2)
 
         return {
