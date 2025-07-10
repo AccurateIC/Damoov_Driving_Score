@@ -296,6 +296,7 @@ async def check_drift(request: List[Dict[str, Any]]):
         logger.error(f"Error in drift detection: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")
 """ 
+
 @app.post("/check-drift", response_model=DriftResponse)
 async def check_drift(request: List[Dict[str, Any]]):
     """Check for data drift using ADWINDriftMonitoring"""
@@ -314,17 +315,17 @@ async def check_drift(request: List[Dict[str, Any]]):
             target_column='safe_score',
         )
 
-        # Initialize drift monitoring system with reference DB
-        drift_system = ADWINDriftMonitoring(
-            config=drift_config,
-            db_path=config['database']['sqlite_path'],
-            table_name='SampleTable'
-        )
+        # Embed your DB & table into the config
+        drift_config.reference_db_path = config['database']['sqlite_path']
+        drift_config.current_db_path   = config['database']['sqlite_path']
+        drift_config.table_name        = 'SampleTable'
 
-        # Run the drift detection cycle
-        result = drift_system.run_cycle()
+        # Only pass the config now
+        drift_system = ADWINDriftMonitoring(drift_config)
+        result = drift_system.run()
 
-        if "drift" not in result:
+        # If no drift detected, return zeros
+        if not result.get("drift_detected", False):
             return DriftResponse(
                 drift_detected=False,
                 overall_drift_score=0.0,
@@ -332,18 +333,18 @@ async def check_drift(request: List[Dict[str, Any]]):
                 timestamp=datetime.now().isoformat()
             )
 
-        drift_result = result["drift"]
-
+        # Otherwise unpack the real result
         return DriftResponse(
-            drift_detected=drift_result.get("drift_detected", False),
-            overall_drift_score=drift_result.get("overall_drift_score", 0.0),
-            feature_drifts=drift_result.get("feature_drifts", {}),
-            timestamp=datetime.now().isoformat()
+            drift_detected      = result["drift_detected"],
+            overall_drift_score = result["average_drift_score"],
+            feature_drifts      = result["feature_drifts"],
+            timestamp           = datetime.now().isoformat()
         )
 
     except Exception as e:
         logger.error(f"Error in drift detection: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")
+
 
 
 # ============ DATA MANAGEMENT ENDPOINTS ============

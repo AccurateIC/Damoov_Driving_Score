@@ -66,3 +66,7 @@
 2025-06-13 16:56:09,275 - ERROR - Error fetching trip score: 404: Trip not found
 2025-06-13 16:56:10,155 - ERROR - Error fetching trip score: 404: Trip not found
 2025-06-13 16:56:11,708 - ERROR - Error fetching trip score: 404: Trip not found
+2025-07-04 11:05:35,494 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-07-04 11:05:38,221 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-07-04 11:05:40,405 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
+2025-07-04 11:27:20,320 - INFO - Drift Detected: True | Score: 4.1490
