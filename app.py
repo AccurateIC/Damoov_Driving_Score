@@ -181,4 +181,4 @@ elif page == "Add User":
             else:
                 st.error(f"❌ Failed to add user: {response.json().get('detail', 'Unknown error')}")
         except Exception as e:
-            st.error(f"⚠️ Request failed: {e}")
+            st.error(f"Request failed: {e}")
