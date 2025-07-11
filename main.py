@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import sqlite3
 import pandas as pd
+import numpy as np
 import json
 import yaml
 from datetime import datetime
@@ -13,7 +14,6 @@ import os
 
 # Add src/app to the import path
 sys.path.append(os.path.join(os.path.dirname(__file__), "src", "app"))
-
 
 # Import your custom modules
 from score_pipeline import run_score_pipeline
@@ -25,6 +25,29 @@ from Formulation.scorers import (
     SpeedingDetectorFixedLimit,
     PhoneUsageDetector
 )
+
+# ============ NUMPY SERIALIZATION UTILITY ============
+
+def convert_numpy_types(obj):
+    """Convert NumPy types to native Python types for JSON serialization"""
+    if isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif pd.isna(obj):
+        return None
+    return obj
+
+def safe_to_dict(df):
+    """Safely convert DataFrame to dict with NumPy type conversion"""
+    records = df.to_dict('records')
+    return convert_numpy_types(records)
 
 # Initialize FastAPI app
 app = FastAPI(title="Driving Score & Drift Detection API", version="1.0.0")
@@ -53,6 +76,7 @@ config = load_config()
 
 class TripData(BaseModel):
     unique_id: str
+    device_id: Optional[str] = None  # Add device_id field
     timestamp: float
     latitude: float
     longitude: float
@@ -68,6 +92,7 @@ class BatchTripData(BaseModel):
 
 class ScoreResponse(BaseModel):
     unique_id: str
+    device_id: Optional[str] = None
     safe_score: float
     risk_factor: float
     total_penalty: float
@@ -77,6 +102,15 @@ class ScoreResponse(BaseModel):
     cornering_score: float
     speeding_score: float
     phone_usage_score: float
+
+class DriverScoreResponse(BaseModel):
+    device_id: str
+    average_safe_score: float
+    average_risk_factor: float
+    average_star_rating: float
+    total_trips: int
+    score_distribution: Dict[str, int]  # star_rating -> count
+    latest_trip_date: Optional[str] = None
 
 class DriftCheckRequest(BaseModel):
     data: List[Dict[str, Any]]
@@ -122,8 +156,8 @@ async def health_check():
 
 # ============ SCORING ENDPOINTS ============
 from Formulation.distance_utils import calculate_trip_distance_from_points
-@app.post("/calculate-score", response_model=ScoreResponse)
 
+@app.post("/calculate-score", response_model=ScoreResponse)
 async def calculate_single_trip_score(trip_data: List[TripData]):
     """Calculate driving score for a single trip"""
     try:
@@ -184,15 +218,16 @@ async def calculate_single_trip_score(trip_data: List[TripData]):
         
         return ScoreResponse(
             unique_id=trip_data[0].unique_id,
-            safe_score=safe_score,
-            risk_factor=round(risk_factor, 4),
-            total_penalty=round(total_penalty, 4),
-            star_rating=star,
-            acceleration_score=round(acc_score, 4),
-            braking_score=round(dec_score, 4),
-            cornering_score=round(cor_score, 4),
-            speeding_score=round(spd_score, 4),
-            phone_usage_score=round(phone_score, 4)
+            device_id=trip_data[0].device_id,
+            safe_score=float(safe_score),
+            risk_factor=float(round(risk_factor, 4)),
+            total_penalty=float(round(total_penalty, 4)),
+            star_rating=int(star),
+            acceleration_score=float(round(acc_score, 4)),
+            braking_score=float(round(dec_score, 4)),
+            cornering_score=float(round(cor_score, 4)),
+            speeding_score=float(round(spd_score, 4)),
+            phone_usage_score=float(round(phone_score, 4))
         )
         
     except Exception as e:
@@ -220,7 +255,7 @@ async def get_trip_score(unique_id: str):
             raise HTTPException(status_code=404, detail="Trip not found")
         
         trip_data = result.iloc[0].to_dict()
-        return trip_data
+        return convert_numpy_types(trip_data)
         
     except Exception as e:
         logger.error(f"Error fetching trip score: {str(e)}")
@@ -234,68 +269,143 @@ async def get_all_scores(limit: int = 100, offset: int = 0):
         result = execute_query(query)
         
         return {
-            "total": len(result),
-            "limit": limit,
-            "offset": offset,
-            "data": result.to_dict('records')
+            "total": int(len(result)),
+            "limit": int(limit),
+            "offset": int(offset),
+            "data": safe_to_dict(result)
         }
         
     except Exception as e:
         logger.error(f"Error fetching scores: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching scores: {str(e)}")
 
-# ============ DRIFT DETECTION ENDPOINTS ============
-"""
-@app.post("/check-drift", response_model=DriftResponse)
-async def check_drift(request: List[Dict[str, Any]]):
-    
+# ============ NEW DRIVER SCORE ENDPOINTS ============
+
+@app.get("/driver-score/{device_id}", response_model=DriverScoreResponse)
+async def get_driver_score(device_id: str):
+    """Get aggregated driving score for a specific device/driver"""
     try:
-        # Convert to DataFrame
-        current_data = pd.DataFrame(request)
+        # Query to get all trips for this device
+        query = """
+        SELECT unique_id, device_id, safe_score, risk_factor, star_rating, timestamp
+        FROM SampleTable 
+        WHERE device_id = ? AND safe_score IS NOT NULL
+        """
+        result = execute_query(query, params=(device_id,))
         
-        # Initialize drift detection config
-        drift_config = DriftConfig(
-            drift_threshold=0.1,
-            retraining_threshold=0.15,
-            numerical_features=[
-            'acceleration_x_original', 'acceleration_y_original', 'acceleration_z_original',
-            'acceleration', 'deceleration', 'midSpeed'
-            ],
-            target_column='safe_score',
-            #data_path=config['database']['sqlite_path']
-        )
+        if result.empty:
+            raise HTTPException(status_code=404, detail="No trips found for this device ID")
         
-        # Initialize drift monitoring system
-        drift_system = ADWINDriftMonitoring(
-            drift_config, 
-            db_path=config['database']['sqlite_path'], 
-            table_name='SampleTable'
-        )
+        # Calculate aggregated metrics
+        avg_safe_score = float(round(result['safe_score'].mean(), 2))
+        avg_risk_factor = float(round(result['risk_factor'].mean(), 4))
+        avg_star_rating = float(round(result['star_rating'].mean(), 1))
+        total_trips = int(len(result))
         
-        # Run drift detection
-        result = drift_system.run_cycle()
+        # Calculate score distribution
+        score_distribution = result['star_rating'].value_counts().to_dict()
+        score_distribution = {str(k): int(v) for k, v in score_distribution.items()}
         
-        if "drift" not in result:
-            return DriftResponse(
-                drift_detected=False,
-                overall_drift_score=0.0,
-                feature_drifts={},
-                timestamp=datetime.now().isoformat()
-            )
+        # Get latest trip date
+        latest_trip = None
+        if 'timestamp' in result.columns:
+            latest_trip = result['timestamp'].max()
+            if pd.notna(latest_trip):
+                latest_trip = str(latest_trip)
         
-        drift_result = result["drift"]
-        
-        return DriftResponse(
-            drift_detected=drift_result.get("drift_detected", False),
-            overall_drift_score=drift_result.get("overall_drift_score", 0.0),
-            feature_drifts=drift_result.get("feature_drifts", {}),
-            timestamp=datetime.now().isoformat()
+        return DriverScoreResponse(
+            device_id=device_id,
+            average_safe_score=avg_safe_score,
+            average_risk_factor=avg_risk_factor,
+            average_star_rating=avg_star_rating,
+            total_trips=total_trips,
+            score_distribution=score_distribution,
+            latest_trip_date=latest_trip
         )
         
     except Exception as e:
-        logger.error(f"Error in drift detection: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")
-""" 
+        logger.error(f"Error fetching driver score: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching driver score: {str(e)}")
+
+@app.get("/driver-scores")
+async def get_all_driver_scores(limit: int = 100, offset: int = 0):
+    """Get aggregated scores for all drivers with pagination"""
+    try:
+        # Query to get all device IDs and their aggregated scores
+        query = """
+        SELECT 
+            device_id,
+            COUNT(*) as total_trips,
+            ROUND(AVG(safe_score), 2) as avg_safe_score,
+            ROUND(AVG(risk_factor), 4) as avg_risk_factor,
+            ROUND(AVG(star_rating), 1) as avg_star_rating,
+            MAX(timestamp) as latest_trip_date
+        FROM SampleTable 
+        WHERE device_id IS NOT NULL AND safe_score IS NOT NULL
+        GROUP BY device_id
+        ORDER BY avg_safe_score DESC
+        LIMIT ? OFFSET ?
+        """
+        result = execute_query(query, params=(limit, offset))
+        
+        # Get total count for pagination
+        count_query = """
+        SELECT COUNT(DISTINCT device_id) as total_drivers
+        FROM SampleTable 
+        WHERE device_id IS NOT NULL AND safe_score IS NOT NULL
+        """
+        total_count = execute_query(count_query)
+        total_drivers = int(total_count.iloc[0]['total_drivers']) if not total_count.empty else 0
+        
+        return {
+            "total_drivers": total_drivers,
+            "limit": int(limit),
+            "offset": int(offset),
+            "data": safe_to_dict(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching driver scores: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching driver scores: {str(e)}")
+
+@app.get("/driver-trips/{device_id}")
+async def get_driver_trips(device_id: str, limit: int = 50, offset: int = 0):
+    """Get all trips for a specific driver with pagination"""
+    try:
+        query = """
+        SELECT unique_id, device_id, safe_score, risk_factor, star_rating, timestamp
+        FROM SampleTable 
+        WHERE device_id = ? AND safe_score IS NOT NULL
+        ORDER BY timestamp DESC
+        LIMIT ? OFFSET ?
+        """
+        result = execute_query(query, params=(device_id, limit, offset))
+        
+        # Get total count for this driver
+        count_query = """
+        SELECT COUNT(*) as total_trips
+        FROM SampleTable 
+        WHERE device_id = ? AND safe_score IS NOT NULL
+        """
+        total_count = execute_query(count_query, params=(device_id,))
+        total_trips = int(total_count.iloc[0]['total_trips']) if not total_count.empty else 0
+        
+        if result.empty:
+            raise HTTPException(status_code=404, detail="No trips found for this device ID")
+        
+        return {
+            "device_id": device_id,
+            "total_trips": total_trips,
+            "limit": int(limit),
+            "offset": int(offset),
+            "data": safe_to_dict(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching driver trips: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching driver trips: {str(e)}")
+
+# ============ DRIFT DETECTION ENDPOINTS ============
 
 @app.post("/check-drift", response_model=DriftResponse)
 async def check_drift(request: List[Dict[str, Any]]):
@@ -333,19 +443,17 @@ async def check_drift(request: List[Dict[str, Any]]):
                 timestamp=datetime.now().isoformat()
             )
 
-        # Otherwise unpack the real result
+        # Otherwise unpack the real result with type conversion
         return DriftResponse(
-            drift_detected      = result["drift_detected"],
-            overall_drift_score = result["average_drift_score"],
-            feature_drifts      = result["feature_drifts"],
+            drift_detected      = bool(result["drift_detected"]),
+            overall_drift_score = float(result["average_drift_score"]),
+            feature_drifts      = convert_numpy_types(result["feature_drifts"]),
             timestamp           = datetime.now().isoformat()
         )
 
     except Exception as e:
         logger.error(f"Error in drift detection: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error in drift detection: {str(e)}")
-
-
 
 # ============ DATA MANAGEMENT ENDPOINTS ============
 
@@ -381,7 +489,7 @@ async def get_database_stats():
         for table in tables:
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             count = cursor.fetchone()[0]
-            stats["tables"][table] = {"row_count": count}
+            stats["tables"][table] = {"row_count": int(count)}
         
         conn.close()
         
@@ -396,7 +504,7 @@ async def get_database_stats():
 @app.get("/config")
 async def get_config():
     """Get current configuration"""
-    return config
+    return convert_numpy_types(config)
 
 @app.put("/config")
 async def update_config(new_config: dict):
@@ -431,9 +539,12 @@ async def get_metrics():
         
         conn.close()
         
+        avg_score = recent_scores.iloc[0]['avg_score'] if not recent_scores.empty else 0
+        total_trips = recent_scores.iloc[0]['total_trips'] if not recent_scores.empty else 0
+        
         return {
-            "average_safety_score": float(recent_scores.iloc[0]['avg_score']) if not recent_scores.empty else 0,
-            "total_trips_scored": int(recent_scores.iloc[0]['total_trips']) if not recent_scores.empty else 0,
+            "average_safety_score": float(avg_score) if avg_score is not None else 0.0,
+            "total_trips_scored": int(total_trips),
             "timestamp": datetime.now().isoformat()
         }
         
@@ -443,6 +554,5 @@ async def get_metrics():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True) 
-
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
 

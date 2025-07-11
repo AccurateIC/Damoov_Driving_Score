@@ -70,3 +70,17 @@
 2025-07-04 11:05:38,221 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
 2025-07-04 11:05:40,405 - ERROR - Error in drift detection: ADWINDriftMonitoring.__init__() got an unexpected keyword argument 'db_path'
 2025-07-04 11:27:20,320 - INFO - Drift Detected: True | Score: 4.1490
+2025-07-10 22:56:19,366 - INFO - Running scoring pipeline on startup…
+2025-07-10 22:56:21,038 - ERROR - Failed to initialize scoring tables: time data "0" doesn't match format "%Y-%m-%d %H:%M:%S", at position 66669. You might want to try:
+    - passing `format` if your strings have a consistent format;
+    - passing `format='ISO8601'` if your strings are all ISO8601 but not necessarily in exactly the same format;
+    - passing `format='mixed'`, and the format will be inferred for each element individually. You might want to use `dayfirst` alongside this.
+2025-07-11 08:07:37,487 - INFO - Running scoring pipeline on startup…
+2025-07-11 08:07:38,945 - ERROR - Failed to initialize scoring tables: time data "0" doesn't match format "%Y-%m-%d %H:%M:%S", at position 66669. You might want to try:
+    - passing `format` if your strings have a consistent format;
+    - passing `format='ISO8601'` if your strings are all ISO8601 but not necessarily in exactly the same format;
+    - passing `format='mixed'`, and the format will be inferred for each element individually. You might want to use `dayfirst` alongside this.
+2025-07-11 08:10:05,079 - INFO - Running scoring pipeline on startup…
+2025-07-11 08:10:11,693 - INFO - ✅ TripScores & DriverScores ready.
+2025-07-11 08:14:19,934 - INFO - Running scoring pipeline on startup…
+2025-07-11 08:14:26,205 - INFO - ✅ TripScores & DriverScores ready.
