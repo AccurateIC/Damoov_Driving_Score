@@ -183,12 +183,13 @@ def run_score_pipeline(db_path, config):
     conn = sqlite3.connect(db_path)
 
     #main_df = pd.read_sql_query("SELECT * FROM SampleTable", conn)
-    main_df = pd.read_sql_query("SELECT unique_id, timestamp, midSpeed, speed_kmh, acceleration, deceleration, acceleration_y_original, screen_on, screen_blocked FROM SampleTable", conn)
+    main_df = pd.read_sql_query("SELECT unique_id, tick_timestamp, timestamp, speed_kmh, acceleration, deceleration, acceleration_y_original, screen_on, screen_blocked FROM SampleTable", conn)
 
     start_df = pd.read_sql_query("SELECT * FROM EventsStartPointTable", conn)
     stop_df = pd.read_sql_query("SELECT * FROM EventsStopPointTable", conn)
-    main_df['timestamp'] = pd.to_datetime(main_df['timestamp'], errors='coerce')
     main_df = main_df.dropna(subset=['timestamp'])
+    main_df['timestamp'] = pd.to_datetime(main_df['tick_timestamp'], unit='s', errors='coerce')
+   
 
     trip_distances_df = calculate_trip_distances(start_df, stop_df)
     trip_distance_dict = dict(zip(trip_distances_df['UNIQUE_ID'], trip_distances_df['distance_km']))
@@ -249,9 +250,11 @@ def run_score_pipeline(db_path, config):
         )
 
         penalty_per_km = total_penalty / trip_distance
-
+        
+        event_thresholds = config.get("event_thresholds")
+        score_weights = config.get("score_weights")
         # ⚡ ECO Score
-        eco = EcoScoreCalculator(trip_df, unique_id=uid, external_trip_distances=trip_distance_dict)
+        eco = EcoScoreCalculator(trip_df, unique_id=uid, external_trip_distances=trip_distance_dict, thresholds=event_thresholds, score_weights=score_weights)
         eco_results = eco.calculate_scores()
 
         trip_scores.append({
