@@ -184,8 +184,9 @@ def run_score_pipeline(db_path, config):
     main_df = pd.read_sql_query("SELECT * FROM SampleTable", conn)
     start_df = pd.read_sql_query("SELECT * FROM EventsStartPointTable", conn)
     stop_df = pd.read_sql_query("SELECT * FROM EventsStopPointTable", conn)
-    main_df['timestamp'] = pd.to_datetime(main_df['timestamp'], errors='coerce')
-    main_df = main_df.dropna(subset=['timestamp'])
+    main_df.drop(columns=['timestamp'], inplace=True, errors='ignore')
+    main_df['timestamp'] = pd.to_datetime(main_df['tick_timestamp'], unit='s', errors='coerce')
+   # main_df = main_df.dropna(subset=['timestamp'])
 
 
     trip_distances_df = calculate_trip_distances(start_df, stop_df)
