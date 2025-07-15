@@ -34,7 +34,7 @@ weights:
   braking_weight: 0.20
 
 database:
-  sqlite_path: "D:/Downloadss/New_db/test.db"
+  sqlite_path: "D:/Downloadss/tracking_db/tracking_db.db"
   main_table: "SampleTable"
   start_table: "EventsStartPointTable"
   stop_table: "EventsStopPointTable"
