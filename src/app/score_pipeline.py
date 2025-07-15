@@ -183,7 +183,7 @@ def run_score_pipeline(db_path, config):
     conn = sqlite3.connect(db_path)
 
     #main_df = pd.read_sql_query("SELECT * FROM SampleTable", conn)
-    main_df = pd.read_sql_query("SELECT unique_id, tick_timestamp, timestamp, speed_kmh, acceleration, deceleration, acceleration_y_original, screen_on, screen_blocked FROM SampleTable", conn)
+    main_df = pd.read_sql_query("SELECT unique_id, device_id, tick_timestamp, timestamp, speed_kmh, acceleration, deceleration, acceleration_y_original, screen_on, screen_blocked FROM SampleTable", conn)
 
     start_df = pd.read_sql_query("SELECT * FROM EventsStartPointTable", conn)
     stop_df = pd.read_sql_query("SELECT * FROM EventsStopPointTable", conn)
@@ -259,7 +259,12 @@ def run_score_pipeline(db_path, config):
 
         trip_scores.append({
             'unique_id': uid,
-            'penalty_per_km': penalty_per_km,
+            'penalty_per_km': round(penalty_per_km, 2),
+            'acc_score': round(acc_score, 2),
+            'dec_score': round(dec_score, 2),
+            'cor_score': round(cor_score, 2),
+            'spd_score': round(spd_score, 2),
+            'phone_score': round(phone_score, 2),
             'fuel_score': eco_results['fuel_score'],
             'tire_score': eco_results['tire_score'],
             'brake_score': eco_results['brake_score'],
@@ -296,7 +301,7 @@ def run_score_pipeline(db_path, config):
 
     # Clean old score columns if present
     main_df = main_df.drop(columns=[
-        'safe_score', 'risk_factor', 'total_penalty', 'star_rating',
+        'acc_score', 'dec_score', 'cor_score', 'spd_score', 'phone_score', 'safe_score', 'risk_factor', 'total_penalty', 'star_rating',
         'penalty_per_km', 'eco_score', 'fuel_score', 'tire_score', 'brake_score',
         'harsh_accelerations', 'harsh_brakings', 'harsh_cornerings',
         'speed_std_dev', 'trip_distance_used'
