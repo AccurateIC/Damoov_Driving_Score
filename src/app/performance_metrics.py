@@ -170,16 +170,6 @@ def get_eco_driving_summary(filter: str = Query(..., description="Use: last_1_we
 
     return summary
 
-
-from fastapi import FastAPI, Query
-from datetime import timedelta
-import pandas as pd
-import sqlite3
-
-app = FastAPI()
-
-DB_PATH = "D:/Downloadss/tracking_db/tracking_db.db"
-
 @app.get("/safety_dashboard_summary")
 def get_safety_dashboard_summary(filter: str = Query(..., description="Use: last_1_week, last_2_weeks, last_1_month, last_2_months")):
     conn = sqlite3.connect(DB_PATH)
@@ -219,29 +209,27 @@ def get_safety_dashboard_summary(filter: str = Query(..., description="Use: last
 
     latest_scores = filtered_df.sort_values(by=['unique_id', 'timestamp']).drop_duplicates(subset=['unique_id'], keep='last')
 
-    # Corrected speed calculation per unique_id:
-    speed_per_trip = filtered_df.groupby('unique_id').agg({
-        'speed_kmh': ['max', 'mean']
-    }).reset_index()
-    speed_per_trip.columns = ['unique_id', 'trip_max_speed', 'trip_avg_speed']
+    # Calculate max and avg speed per trip → filter out unrealistic speeds:
+    speed_per_trip = filtered_df.groupby('unique_id')['speed_kmh'].agg(['max', 'mean']).reset_index()
+    speed_per_trip = speed_per_trip[speed_per_trip['max'] < 300]  # Ignore trips with max speed > 300 km/h as outlier
 
-    max_speed = round(speed_per_trip['trip_max_speed'].max(), 2)
-    avg_speed = round(speed_per_trip['trip_avg_speed'].mean(), 2)
+    max_speed = round(speed_per_trip['max'].max(), 2) if not speed_per_trip.empty else 0
+    avg_speed = round(speed_per_trip['mean'].mean(), 2) if not speed_per_trip.empty else 0
 
     df_filtered_time = df[df['timestamp'] >= time_ranges[filter]]
     time_driven_minutes = round(
         (df_filtered_time.groupby('unique_id')['timestamp'].max() - df_filtered_time.groupby('unique_id')['timestamp'].min())
-        .dt.total_minutes().sum() / 60, 2
+        .dt.total_seconds().sum() / 60, 2
     )
 
     response = {
         "safety_score": round(latest_scores['safe_score'].mean(), 2),
         "trips": latest_scores['unique_id'].nunique(),
         "driver_trips": latest_scores['device_id'].nunique(),
-        "mileage_mi": round(latest_scores['trip_distance_used'].sum(), 2),
+        "mileage_km": round(latest_scores['trip_distance_used'].sum(), 2),
         "time_driven_minutes": time_driven_minutes,
-        "average_speed_mph": avg_speed,
-        "max_speed_mph": max_speed,
+        "average_speed_kmh": avg_speed,
+        "max_speed_kmh": max_speed,
         "phone_usage_percentage": round(latest_scores['phone_score'].mean(), 2),
         "speeding_percentage": round(latest_scores['spd_score'].mean(), 2),
         "phone_usage_speeding_percentage": round(
