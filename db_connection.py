@@ -22,37 +22,44 @@ def load_table(table_name):
     return df
 """
 
-from sqlalchemy import create_engine
+import mysql.connector
 import pandas as pd
 
 # Replace with your actual credentials
 DB_CONFIG = {
     "username": "fleet",
     "password": "fleetpass",
-    "host": "192.68.10.41",           # e.g., "db.example.com"
-    "port": 5555,                  # PostgreSQL default port
+    "host": "192.68.10.41",      # MySQL host
+    "port": 5555,                # Your MySQL port
     "database": "tracking_db"
 }
 
-port = int(DB_CONFIG['port'])
-def get_engine():
-    uri = f"postgresql://{DB_CONFIG['username']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{port}/{DB_CONFIG['database']}"
-    return create_engine(uri)
-
 def load_table(table_name):
     try:
-        engine = get_engine()
-        with engine.connect() as conn:
-            print(f"✅ Connected to DB: {DB_CONFIG['database']}")
-            print(f"📥 Fetching table: {table_name} ...")
-            df = pd.read_sql(f"SELECT * FROM {table_name} LIMIT 5", conn)  # just first 5 rows
-            print(f"✅ Retrieved {len(df)} rows from '{table_name}'\n")
-            print(df)
-            return df
+        conn = mysql.connector.connect(
+            host=DB_CONFIG['host'],
+            user=DB_CONFIG['username'],
+            password=DB_CONFIG['password'],
+            database=DB_CONFIG['database'],
+            port=DB_CONFIG['port']
+        )
+
+        print(f"✅ Connected to DB: {DB_CONFIG['database']}")
+        print(f"📥 Fetching table: {table_name} ...")
+
+        query = f"SELECT * FROM {table_name} LIMIT 5"
+        df = pd.read_sql(query, con=conn)
+
+        print(f"✅ Retrieved {len(df)} rows from '{table_name}'\n")
+        print(df)
+
+        conn.close()
+        return df
+
     except Exception as e:
         print(f"❌ Failed to load table '{table_name}': {e}")
         return pd.DataFrame()
 
 # 🔍 Test with a known table
 if __name__ == "__main__":
-    load_table("SampleTable")  # change table name as needed
+    load_table("SampleTable")
