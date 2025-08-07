@@ -1,4 +1,3 @@
-// src/pages/Trips/TripsList.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tripsMockData } from '../../data/mockTrips';

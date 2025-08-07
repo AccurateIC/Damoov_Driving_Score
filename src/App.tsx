@@ -1,4 +1,3 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 
@@ -30,21 +29,17 @@ function App() {
             element={<Navigate to="/dashboard/summary" replace />}
           />
 
-          {/* Dashboards */}
           <Route path="dashboard/summary" element={<Summary />} />
           <Route path="dashboard/sdk" element={<SDK />} />
           <Route path="dashboard/safety" element={<Safety />} />
 
-          {/* Users */}
           <Route path="users/list" element={<UsersList />} />
           <Route path="users/profiles" element={<Profiles />} />
           <Route path="users/permissions" element={<Permissions />} />
 
-          {/* Trips */}
           <Route path="trips/list" element={<TripsList />} />
           <Route path="/trips/details" element={<TripDetails />} />
 
-          {/* Others (optional, uncomment when needed) */}
           <Route path="Management" element={<Management />} />
           <Route path="billing" element={<Billing />} />
           <Route path="data-tool" element={<DataTool />} />

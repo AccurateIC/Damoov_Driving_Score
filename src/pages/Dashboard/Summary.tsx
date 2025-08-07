@@ -1,5 +1,3 @@
-// src/pages/Dashboard/Summary.tsx
-
 import React, { useState } from "react";
 import Chart from "../../components/Chart";
 import Table from "../../components/Table";
@@ -157,16 +155,16 @@ const Summary = () => {
         backgroundColor: [
           "#EF4444",
           "#EF4444",
-          "#EF4444", // Aggressive
+          "#EF4444", 
           "#F97316",
           "#F97316",
           "#F97316",
-          "#F97316", // Moderate
+          "#F97316", 
           "#10B981",
           "#10B981",
           "#10B981",
           "#10B981",
-          "#10B981", // Safe
+          "#10B981",
         ],
       },
     ],
@@ -282,7 +280,6 @@ const Summary = () => {
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
       <div className="flex space-x-6 border-b pb-2">
         {["performance", "safe", "eco"].map((tab) => (
           <button
@@ -337,7 +334,6 @@ const Summary = () => {
           <Chart {...radarChartData} />
         </div>
       </div>
-      {/* Driver Tables */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-4 rounded-xl shadow-md">
           <h3 className="text-md font-semibold mb-3">

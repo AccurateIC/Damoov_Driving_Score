@@ -108,7 +108,6 @@ const Profiles = () => {
 
   return (
     <div className="p-6 bg-[#f8f9fb] min-h-screen text-sm">
-      {/* Search Bar */}
       <div className="flex items-center gap-3 mb-4">
         <button className="px-4 py-2 border rounded-md bg-white">← Back</button>
         <input
@@ -133,9 +132,7 @@ const Profiles = () => {
 
       {user && (
         <>
-          {/* User Card */}
           <div ref={cardRef} className="bg-white rounded-xl shadow p-6 grid grid-cols-12 gap-6">
-            {/* Left: Avatar + Scores */}
             <div className="col-span-3 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gray-200" />
@@ -159,7 +156,6 @@ const Profiles = () => {
               </div>
             </div>
 
-            {/* Right: Grid Details */}
             <div className="col-span-9 grid grid-cols-3 gap-4 text-gray-800">
               <div><strong>Email:</strong> {user.email}</div>
               <div><strong>Phone:</strong> {user.phone}</div>
@@ -198,7 +194,6 @@ const Profiles = () => {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="mt-6 flex gap-6 text-sm font-medium text-gray-700">
             {["Trips", "Safety Dashboard", "Vehicles & Devices"].map((tab) => (
               <button
@@ -213,7 +208,6 @@ const Profiles = () => {
             ))}
           </div>
 
-          {/* Tab Content */}
           <div className="mt-4 bg-white rounded shadow p-4">
             <p className="text-gray-600">You are viewing the <strong>{activeTab}</strong> section.</p>
           </div>

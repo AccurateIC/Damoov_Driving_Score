@@ -1,4 +1,3 @@
-// src/pages/Trips/TripDetails.tsx
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { tripsMockData } from "../../data/mockTrips";
@@ -21,7 +20,6 @@ const TripDetails = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50 p-6 gap-6">
-      {/* Left: Trip List */}
       <div className="w-1/3 bg-white rounded shadow p-4 space-y-4 overflow-y-auto">
         <div className="flex items-center gap-2">
           <button className="bg-green-100 text-green-600 px-4 py-1 rounded font-medium border border-green-300">
@@ -85,9 +83,7 @@ const TripDetails = () => {
         )}
       </div>
 
-      {/* Right: Map & Analytics */}
       <div className="flex-1 space-y-6">
-        {/* Map */}
         <div className="h-96 w-full rounded shadow overflow-hidden">
           <iframe
             title="Trip Map"
@@ -100,7 +96,6 @@ const TripDetails = () => {
           ></iframe>
         </div>
 
-        {/* Tabs */}
         <div className="bg-white shadow rounded">
           <div className="flex border-b">
             <button
