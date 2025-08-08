@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 import Summary from "./pages/Dashboard/Summary";
-import SDK from "./pages/Dashboard/SDK";
+// import SDK from "./pages/Dashboard/SDK";
 import Safety from "./pages/Dashboard/Safety";
 
 import UsersList from "./pages/Users/List";
@@ -30,7 +30,7 @@ function App() {
           />
 
           <Route path="dashboard/summary" element={<Summary />} />
-          <Route path="dashboard/sdk" element={<SDK />} />
+          {/* <Route path="dashboard/sdk" element={<SDK />} /> */}
           <Route path="dashboard/safety" element={<Safety />} />
 
           <Route path="users/list" element={<UsersList />} />

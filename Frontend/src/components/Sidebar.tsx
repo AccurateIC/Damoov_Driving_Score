@@ -76,7 +76,7 @@ const Sidebar = () => {
       <nav className="flex-1 px-2 py-4 overflow-y-auto space-y-12">
         <SidebarSection title="Dashboards" icon={<LayoutDashboard size={24} />}>
           <SidebarLink to="/dashboard/summary" label="Summary" />
-          <SidebarLink to="/dashboard/sdk" label="SDK" />
+          {/* <SidebarLink to="/dashboard/sdk" label="SDK" /> */}
           <SidebarLink to="/dashboard/safety" label="Safety" />
         </SidebarSection>
 

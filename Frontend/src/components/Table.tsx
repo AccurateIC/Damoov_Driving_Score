@@ -27,12 +27,17 @@ const formatChange = (value: string) => {
 };
 
 const Table: React.FC<TableProps> = ({ columns, data }) => {
+  // Filter out percentage and absolute columns
+  const filteredColumns = columns.filter(
+    col => col.accessor !== "percentage" && col.accessor !== "absolute"
+  );
+
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-xl bg-white shadow">
       <table className="min-w-full text-sm text-left">
         <thead className="bg-gray-100 text-gray-700">
           <tr>
-            {columns.map((col, idx) => (
+            {filteredColumns.map((col, idx) => (
               <th key={idx} className="px-4 py-3 font-medium">
                 {col.header}
               </th>
@@ -42,13 +47,11 @@ const Table: React.FC<TableProps> = ({ columns, data }) => {
         <tbody>
           {data.map((row, rIdx) => (
             <tr key={rIdx} className="border-t hover:bg-gray-50">
-              {columns.map((col, cIdx) => {
+              {filteredColumns.map((col, cIdx) => {
                 const value = row[col.accessor];
-                const isChangeColumn = col.accessor === 'percentage' || col.accessor === 'absolute';
-
                 return (
                   <td key={cIdx} className="px-4 py-2 text-gray-800">
-                    {isChangeColumn ? formatChange(value) : value || '-'}
+                    {value || "-"}
                   </td>
                 );
               })}
@@ -59,5 +62,6 @@ const Table: React.FC<TableProps> = ({ columns, data }) => {
     </div>
   );
 };
+
 
 export default Table;

@@ -29,25 +29,133 @@ const Safety = () => {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const [selectedTab, setSelectedTab] = useState("Safety Score");
-  const [selectedDays, setSelectedDays] = useState(14);
+  // const [selectedDays, setSelectedDays] = useState(14);
 
-  const metricsTop = [
-    { label: "Safety Score", value: 65, color: "text-orange-500" },
-    { label: "Trust Level", value: 100, color: "text-green-500" },
-    { label: "Trips", value: 6 },
-    { label: "Driver Trips", value: 6 },
-    { label: "Mileage mi", value: 46 },
-    { label: "Time Driven h", value: 5 },
-  ];
+  // const metricsTop = [
+  //   { label: "Safety Score", value: 65, color: "text-orange-500" },
+  //   { label: "Trust Level", value: 100, color: "text-green-500" },
+  //   { label: "Trips", value: 6 },
+  //   { label: "Driver Trips", value: 6 },
+  //   { label: "Mileage mi", value: 46 },
+  //   { label: "Time Driven h", value: 5 },
+  // ];
 
-  const metricsBottom = [
-    { label: "Average Speed mi/h", value: 34 },
-    { label: "Max Speed mi/h", value: 62 },
-    { label: "Phone Usage %", value: 1 },
-    { label: "Speeding %", value: 8 },
-    { label: "Phone Usage Speeding %", value: 1 },
-    { label: "Unique Tags Count", value: "—" },
-  ];
+// const [metricsTop, setMetricsTop] = useState<
+//   { label: string; value: number; color?: string }[]
+// >([]);
+
+const [selectedDays, setSelectedDays] = useState(14); // default 14 days
+const [metricsTop, setMetricsTop] = useState<
+  { label: string; value: number | string; color?: string }[]
+>([]);
+
+// Map the select values to your API filter strings
+const filterMap: Record<number, string> = {
+  7: "last_1_week",
+  14: "last_2_weeks",
+  30: "last_1_month",
+  60: "last_2_months",
+};
+
+useEffect(() => {
+  const filterValue = filterMap[selectedDays] || "last_2_weeks";
+
+  fetch(`http://127.0.0.1:5000/safety_dashboard_summary?filter=${filterValue}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setMetricsTop([
+        { label: "Safety Score", value: data.safety_score, color: "text-orange-500" },
+        { label: "Trust Level", value: 100, color: "text-green-500" }, // static
+        { label: "Trips", value: data.trips },
+        { label: "Driver Trips", value: data.driver_trips },
+        { label: "Mileage mi", value: (data.mileage_km * 0.621371).toFixed(2) },
+        { label: "Time Driven h", value: (data.time_driven_minutes / 60).toFixed(2) },
+      ]);
+    })
+    .catch((err) => console.error("Error fetching metrics top data:", err));
+}, [selectedDays]);
+
+
+
+  // const metricsBottom = [
+  //   { label: "Average Speed mi/h", value: 34 },
+  //   { label: "Max Speed mi/h", value: 62 },
+  //   { label: "Phone Usage %", value: 1 },
+  //   { label: "Speeding %", value: 8 },
+  //   { label: "Phone Usage Speeding %", value: 1 },
+  //   { label: "Unique Tags Count", value: "—" },
+  // ];
+
+const [metricsBottom, setMetricsBottom] = useState<
+  { label: string; value: number | string }[]
+>([]);
+// const [selectedDays, setSelectedDays] = useState(14); // default filter
+
+// map selectedDays → API filter string
+const getFilterValue = (days: number) => {
+  switch (days) {
+    case 7:
+      return "last_1_week";
+    case 14:
+      return "last_2_weeks";
+    case 30:
+      return "last_1_month";
+    case 60:
+      return "last_2_months";
+    default:
+      return "last_2_weeks";
+  }
+};
+
+useEffect(() => {
+  const filterValue = getFilterValue(selectedDays);
+
+  fetch(`http://127.0.0.1:5000/safety_dashboard_summary?filter=${filterValue}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setMetricsBottom([
+        {
+          label: "Average Speed mi/h",
+          value: (data.average_speed_kmh * 0.621371).toFixed(2),
+        },
+        {
+          label: "Max Speed mi/h",
+          value: (data.max_speed_kmh * 0.621371).toFixed(2),
+        },
+        {
+          label: "Phone Usage %",
+          value: data.phone_usage_percentage.toFixed(2),
+        },
+        {
+          label: "Speeding %",
+          value: data.speeding_percentage.toFixed(2),
+        },
+        {
+          label: "Phone Usage Speeding %",
+          value: data.phone_usage_speeding_percentage.toFixed(2),
+        },
+        {
+          label: "Unique Tags Count",
+          value: data.unique_tags_count ?? "—",
+        },
+      ]);
+    })
+    .catch((err) => console.error("Error fetching metrics bottom:", err));
+}, [selectedDays]); // runs again when dropdown changes
+
+// Filter dropdown
+<select
+  value={selectedDays}
+  onChange={(e) => setSelectedDays(Number(e.target.value))}
+  className="border border-green-600 text-green-600 px-4 py-2 rounded-md text-sm"
+>
+  <option value={7}>Last 7 Days</option>
+  <option value={14}>Last 14 Days</option>
+  <option value={30}>Last 30 Days</option>
+  <option value={60}>Last 60 Days</option>
+</select>
+
+
 
   const tabs = [
     "Safety Score",
@@ -160,7 +268,7 @@ const Safety = () => {
   return (
     <div className="p-6 space-y-6" ref={dashboardRef}>
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <select
+        {/* <select
           value={selectedDays}
           onChange={(e) => setSelectedDays(Number(e.target.value))}
           className="border border-green-600 text-green-600 px-4 py-2 rounded-md text-sm"
@@ -168,7 +276,21 @@ const Safety = () => {
           <option value={7}>Last 7 Days</option>
           <option value={14}>Last 14 Days</option>
           <option value={30}>Last 30 Days</option>
-        </select>
+        </select> */}
+
+
+<select
+  value={selectedDays}
+  onChange={(e) => setSelectedDays(Number(e.target.value))}
+  className="border border-green-600 text-green-600 px-4 py-2 rounded-md text-sm"
+>
+  <option value={7}>Last 7 Days</option>
+  <option value={14}>Last 14 Days</option>
+  <option value={30}>Last 30 Days</option>
+  <option value={60}>Last 60 Days</option>
+</select>
+
+
 
         <button
           onClick={exportPDF}

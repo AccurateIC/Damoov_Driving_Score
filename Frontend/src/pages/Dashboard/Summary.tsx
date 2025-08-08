@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Chart from "../../components/Chart";
 import Table from "../../components/Table";
 import OverviewChart from "../../components/OverviewChart";
@@ -8,96 +8,153 @@ const Summary = () => {
     "performance"
   );
 
-  const performanceData = [
-    {
-      metric: "New Drivers",
-      value: "104",
-      percentage: "-21.21%",
-      absolute: "-28",
-    },
-    {
-      metric: "Active Drivers",
-      value: "338",
-      percentage: "-1.17%",
-      absolute: "-4",
-    },
-    {
-      metric: "Trips Number",
-      value: "15,840",
-      percentage: "+4.92%",
-      absolute: "+743",
-    },
-    {
-      metric: "Mileage",
-      value: "237,644",
-      percentage: "+3.43%",
-      absolute: "+7,875",
-    },
-    {
-      metric: "Time of Driving",
-      value: "304,406",
-      percentage: "+1.98%",
-      absolute: "+5,915",
-    },
-  ];
+  const [performanceData, setPerformanceData] = useState<
+  { metric: string; value: string }[]
+>([]);
 
-  const safeDrivingData = [
-    {
-      metric: "Safety Score",
-      value: "78",
-      percentage: "+0.02%",
-      absolute: "0.01",
-    },
-    {
-      metric: "Acceleration",
-      value: "79",
-      percentage: "+1.37%",
-      absolute: "1.07",
-    },
-    { metric: "Braking", value: "79", percentage: "+0.52%", absolute: "0.41" },
-    {
-      metric: "Cornering",
-      value: "91",
-      percentage: "+0.59%",
-      absolute: "0.54",
-    },
-    {
-      metric: "Speeding",
-      value: "80",
-      percentage: "-1.25%",
-      absolute: "-1.01",
-    },
-    {
-      metric: "Phone Usage",
-      value: "87",
-      percentage: "-0.95%",
-      absolute: "-0.44",
-    },
-  ];
+useEffect(() => {
+  fetch("http://127.0.0.1:5000/performance_summary?filter=last_2_weeks")
+    .then((res) => res.json())
+    .then((data) => {
+      setPerformanceData([
+        { metric: "New Drivers", value: data.new_drivers.toString() },
+        { metric: "Active Drivers", value: data.active_drivers.toString() },
+        { metric: "Trips Number", value: data.trips_number.toString() },
+        { metric: "Mileage", value: data.mileage.toString() },
+        { metric: "Time of Driving", value: data.time_of_driving.toString() },
+      ]);
+    })
+    .catch((err) =>
+      console.error("Error fetching performance data:", err)
+    );
+}, []);
 
-  const ecoDrivingData = [
-    {
-      metric: "Eco Score",
-      value: "75",
-      percentage: "-1.22%",
-      absolute: "-0.93",
-    },
-    { metric: "Brakes", value: "74", percentage: "-1.56%", absolute: "-1.17" },
-    { metric: "Tyres", value: "94", percentage: "-0.35%", absolute: "-0.33" },
-    { metric: "Fuel", value: "92", percentage: "-0.24%", absolute: "-0.22" },
-    {
-      metric: "Depreciation",
-      value: "39",
-      percentage: "-5.73%",
-      absolute: "-2.40",
-    },
-  ];
+
+  // const performanceData = [
+  //   {
+  //     metric: "New Drivers",
+  //     value: "104",
+      
+  //   },
+  //   {
+  //     metric: "Active Drivers",
+  //     value: "338",
+     
+  //   },
+  //   {
+  //     metric: "Trips Number",
+  //     value: "15,840",
+     
+  //   },
+  //   {
+  //     metric: "Mileage",
+  //     value: "237,644",
+     
+  //   },
+  //   {
+  //     metric: "Time of Driving",
+  //     value: "304,406",
+      
+  //   },
+  // ];
+
+  // const safeDrivingData = [
+  //   {
+  //     metric: "Safety Score",
+  //     value: "78",
+     
+  //   },
+  //   {
+  //     metric: "Acceleration",
+  //     value: "79",
+     
+  //   },
+    
+  //   { metric: "Braking", value: "79"},
+  //   {
+  //     metric: "Cornering",
+  //     value: "91",
+     
+  //   },
+  //   {
+  //     metric: "Speeding",
+  //     value: "80",
+    
+  //   },
+  //   {
+  //     metric: "Phone Usage",
+  //     value: "87",
+      
+  //   },
+  // ];
+
+  const [safeDrivingData, setSafeDrivingData] = useState<
+  { metric: string; value: string }[]
+>([]);
+
+useEffect(() => {
+  fetch("http://127.0.0.1:5000/safe_driving_summary?filter=last_2_weeks")
+    .then((res) => res.json())
+    .then((data) => {
+      setSafeDrivingData([
+        { metric: "Safety Score", value: data.safety_score.toString() },
+        { metric: "Acceleration Score", value: data.acceleration_score.toString() },
+        { metric: "Braking Score", value: data.braking_score.toString() },
+        { metric: "Cornering Score", value: data.cornering_score.toString() },
+        { metric: "Speeding Score", value: data.speeding_score.toString() },
+        { metric: "Phone Usage Score", value: data.phone_usage_score.toString() },
+        { metric: "Trip Count", value: data.trip_count.toString() },
+      ]);
+    })
+    .catch((err) =>
+      console.error("Error fetching safe driving data:", err)
+    );
+}, []);
+
+
+  // const ecoDrivingData = [
+  //   {
+  //     metric: "Eco Score",
+  //     value: "75",
+    
+  //   },
+  //   { metric: "Brakes", value: "74" },
+  //   { metric: "Tyres", value: "94"},
+  //   { metric: "Fuel", value: "92" },
+  //   {
+  //     metric: "Depreciation",
+  //     value: "39",
+     
+  //   },
+  // ];
+
+  const [ecoDrivingData, setEcoDrivingData] = useState<
+  { metric: string; value: string }[]
+>([]);
+
+useEffect(() => {
+  fetch("http://127.0.0.1:5000/eco_driving_summary?filter=last_2_weeks")
+    .then((res) => res.json())
+    .then((data) => {
+      setEcoDrivingData([
+        { metric: "Eco Score", value: data.eco_score.toString() },
+        { metric: "Brakes Score", value: data.brakes_score.toString() },
+        { metric: "Tyres Score", value: data.tires_score.toString() },
+        { metric: "Fuel Score", value: data.fuel_score.toString() },
+        { metric: "Trip Count", value: data.trip_count.toString() },
+        // No depreciation value in API, keeping static
+      ]);
+    })
+    .catch((err) =>
+      console.error("Error fetching eco driving data:", err)
+    );
+}, []);
 
   const summaryColumns = [
     { header: "Metric", accessor: "metric" },
     { header: "Value", accessor: "value" },
-    { header: "Percentage Change", accessor: "percentage" },
-    { header: "Absolute Change", accessor: "absolute" },
+    // { header: "Percentage Change", accessor: "percentage" },
+    // { header: "Absolute Change", accessor: "absolute" },
   ];
 
   const barChartData = {
@@ -301,7 +358,7 @@ const Summary = () => {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">Last 2 Weeks Summary</h3>
+        {/* <h3 className="text-lg font-semibold mb-2">Last 2 Weeks Summary</h3> */}
         <Table columns={summaryColumns} data={getCurrentTabData()} />
       </div>
       <div>
