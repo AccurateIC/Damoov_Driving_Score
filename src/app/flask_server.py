@@ -40,7 +40,7 @@ def reverse_geocode(lat, lon):
 
 # --- Existing Summary APIs ---
 
-@app.route("/performance_summary")
+"""@app.route("/performance_summary")
 def performance_summary():
     filter_val = request.args.get("filter")
     df = load_data()
@@ -58,14 +58,13 @@ def performance_summary():
         "new_drivers": trip_df['device_id'].nunique(),
         "active_drivers": trip_df['device_id'].nunique(),
         "trips_number": trip_df['unique_id'].nunique(),
-        "mileage": round(trip_df['trip_distance_used'].sum(), 2),
+        "mileage": round(trip_df[trip_df['trip_distance_used'] <= 1000]['trip_distance_used'].sum(), 2),
         "time_of_driving": round(
             (df2.groupby('unique_id')['timestamp'].max() -
              df2.groupby('unique_id')['timestamp'].min()).dt.total_seconds().sum() / 60, 2
         )
     }
-    return jsonify(summary)
-    
+    return jsonify(summary)"""
 
 @app.route("/safe_driving_summary")
 def safe_driving_summary():
@@ -200,6 +199,59 @@ def get_all_trip_locations(unique_id: int):
     conn.close()
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
     return df.sort_values(by='timestamp')
+
+@app.route("/performance_summary")
+def performance_summary():
+    filter_val = request.args.get("filter")
+    df = load_data()
+
+    # Time range filter
+    now = df['timestamp'].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df['timestamp'] >= start]
+    if df.empty:
+        return jsonify({"error": "No data in selected range"}), 404
+
+    # One row per trip
+    trip_df = df.drop_duplicates("unique_id")
+
+    # Filter trips with valid distance
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
+
+    # Filter based on valid GPS/timeStart using get_trip_points()
+    valid_trip_ids = []
+    for uid in trip_df['unique_id']:
+        points = get_trip_points(uid)
+        if points.empty:
+            continue
+        row = points.iloc[0]
+        if (
+            row['start_latitude'] != 0 and row['end_latitude'] != 0 and
+            row['start_longitude'] != 0 and row['end_longitude'] != 0 and
+            row['start_time'] and row['end_time']
+        ):
+            valid_trip_ids.append(uid)
+
+    trip_df = trip_df[trip_df['unique_id'].isin(valid_trip_ids)]
+    df = df[df['unique_id'].isin(valid_trip_ids)]
+
+    # Time of driving calculation
+    trip_times = df.groupby('unique_id')['timestamp'].agg(['min', 'max'])
+    total_drive_time_min = ((trip_times['max'] - trip_times['min']).dt.total_seconds().sum()) / 60
+
+    summary = {
+        "new_drivers": trip_df['device_id'].nunique(),
+        "active_drivers": trip_df['device_id'].nunique(),
+        "trips_number": trip_df['unique_id'].nunique(),
+        "mileage": round(trip_df['trip_distance_used'].sum(), 2),
+        "time_of_driving": round(total_drive_time_min, 2)
+    }
+
+    return jsonify(summary)
+
 
 @app.route("/trips", methods=["GET"])
 def list_trips_tripapi():
