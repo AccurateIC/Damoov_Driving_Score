@@ -370,5 +370,44 @@ def trip_map_api(track_id):
         })
     return jsonify({"track_id": track_id, "route": enriched})
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+@app.route('/summary_graph/<unique_id>/<metric>/<filter_val>', methods=['GET'])
+def summary_graph(unique_id, metric, filter_val):
+    now = datetime.now()
+    start_date, _ = get_time_range(filter_val, now)
+
+    # Load only relevant trip data
+    df = load_data()
+    df = df[(df['unique_id'] == int(unique_id)) & (df['timestamp'] >= start_date)]
+
+    if df.empty:
+        return {"metric": metric, "labels": [], "values": []}
+
+    # Score metrics directly from DB
+    score_columns = {
+        "safety": "safe_score",
+        "acceleration": "acc_score",
+        "braking": "dec_score",
+        "cornering": "cor_score",
+        "speeding": "spd_score",
+        "phone_usage": "phone_score"
+    }
+
+    # Other KPIs from performance_summary
+    summary_kpis = {
+        "registered_assets": lambda d: d['device_id'].nunique(),
+        "active_assets": lambda d: d['device_id'].nunique(),
+        "trips": lambda d: d['unique_id'].nunique(),
+        "driving_time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+    }
+
+    metric = metric.lower()
+
+    if metric in score_columns:
+        grouped = df.groupby(df['timestamp'].dt.date)[score_columns[metric]].mean().round(2)
+        return {"metric": metric, "labels": list(map(str, grouped.index)), "values": grouped.tolist()}
+
+    elif metric in summary_kpis:
+        return {"metric": metric, "labels": [metric], "values": [summary_kpis[metric](df)]}
+
+    else:
+        return {"error": f"Unsupported metric: {metric}"}
