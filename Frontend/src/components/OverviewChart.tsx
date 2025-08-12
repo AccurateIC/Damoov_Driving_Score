@@ -173,7 +173,7 @@ const OverviewChart = () => {
 
   return (
     <div className="bg-white shadow rounded-xl p-6 w-[70rem]">
-      <div className="mb-4 border-b border-gray-200">
+      {/* <div className="mb-4 border-b border-gray-200">
         <nav className="flex space-x-4">
           <button
             className={`pb-2 px-4 font-medium ${
@@ -196,7 +196,7 @@ const OverviewChart = () => {
             Safe driving
           </button>
         </nav>
-      </div>
+      </div> */}
 
       <div className="flex justify-between items-center mb-4">
         <div>
