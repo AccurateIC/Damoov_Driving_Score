@@ -370,44 +370,116 @@ def trip_map_api(track_id):
         })
     return jsonify({"track_id": track_id, "route": enriched})
 
-@app.route('/summary_graph/<unique_id>/<metric>/<filter_val>', methods=['GET'])
+"""@app.route('/summary_graph/<unique_id>/<metric>/<filter_val>', methods=['GET'])
 def summary_graph(unique_id, metric, filter_val):
     now = datetime.now()
     start_date, _ = get_time_range(filter_val, now)
-
-    # Load only relevant trip data
+    
     df = load_data()
-    df = df[(df['unique_id'] == int(unique_id)) & (df['timestamp'] >= start_date)]
+    df = df[df['timestamp'] >= start_date]
 
     if df.empty:
         return {"metric": metric, "labels": [], "values": []}
 
-    # Score metrics directly from DB
-    score_columns = {
-        "safety": "safe_score",
-        "acceleration": "acc_score",
-        "braking": "dec_score",
-        "cornering": "cor_score",
-        "speeding": "spd_score",
-        "phone_usage": "phone_score"
+    # Map metric names to DB columns
+    metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: d['unique_id'].nunique(),
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
     }
 
-    # Other KPIs from performance_summary
-    summary_kpis = {
-        "registered_assets": lambda d: d['device_id'].nunique(),
-        "active_assets": lambda d: d['device_id'].nunique(),
-        "trips": lambda d: d['unique_id'].nunique(),
-        "driving_time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
-    }
-
-    metric = metric.lower()
-
-    if metric in score_columns:
-        grouped = df.groupby(df['timestamp'].dt.date)[score_columns[metric]].mean().round(2)
-        return {"metric": metric, "labels": list(map(str, grouped.index)), "values": grouped.tolist()}
-
-    elif metric in summary_kpis:
-        return {"metric": metric, "labels": [metric], "values": [summary_kpis[metric](df)]}
-
-    else:
+    if metric not in metric_map:
         return {"error": f"Unsupported metric: {metric}"}
+
+    if callable(metric_map[metric]):
+        values = [metric_map[metric](df)]
+        labels = [metric]
+    else:
+        values = df.groupby(df['timestamp'].dt.date)[metric_map[metric]].mean().round(2).tolist()
+        labels = sorted(df['timestamp'].dt.date.unique().astype(str))
+
+    return {"metric": metric, "labels": labels, "values": values}
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+"""
+
+
+    # Map metric names to DB columns
+metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: d['unique_id'].nunique(),
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+}
+
+@app.route('/summary_graph', methods=['POST'])
+def summary_graph():
+    params = request.json
+    metric = params.get("metric")
+    filter_val = params.get("filter_val")
+
+    now = datetime.now()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}
+
+    df = load_data()
+
+    # Try filtering
+    filtered_df = df[df['timestamp'] >= start_date]
+
+    # Fallback if no rows found
+    if filtered_df.empty:
+        print(f"No rows found for filter {filter_val}, returning full dataset for testing.")
+        filtered_df = df.copy()
+
+    # Metric mapping
+    metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: d['unique_id'].nunique(),
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+    }
+
+    if metric not in metric_map:
+        return {"error": f"Unsupported metric: {metric}"}
+
+    # Generate labels and values
+    if callable(metric_map[metric]):
+        values = [metric_map[metric](filtered_df)]
+        labels = [metric]
+    else:
+        values = (
+            filtered_df.groupby(filtered_df['timestamp'].dt.date)[metric_map[metric]]
+            .mean()
+            .round(2)
+            .tolist()
+        )
+        labels = sorted(filtered_df['timestamp'].dt.date.unique().astype(str))
+
+    return {"metric": metric, "labels": labels, "data": values}
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
