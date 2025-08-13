@@ -426,7 +426,7 @@ metric_map = {
         "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
 }
 
-@app.route('/summary_graph', methods=['POST'])
+"""@app.route('/summary_graph', methods=['POST'])
 def summary_graph():
     params = request.json
     metric = params.get("metric")
@@ -477,6 +477,92 @@ def summary_graph():
             .tolist()
         )
         labels = sorted(filtered_df['timestamp'].dt.date.unique().astype(str))
+
+    return {"metric": metric, "labels": labels, "data": values}
+"""
+
+@app.route('/summary_graph', methods=['POST'])
+def summary_graph():
+    params = request.json
+    metric = params.get("metric")
+    filter_val = params.get("filter_val")
+
+    # Load data first
+    df = load_data()
+
+    # Use dataset's latest timestamp, not current date
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}
+
+    # Filter data
+    filtered_df = df[df['timestamp'] >= start_date]
+
+    # Return empty arrays if no rows match
+    if filtered_df.empty:
+        return {"metric": metric, "labels": [], "data": []}
+
+    # Metric mapping
+    metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: (
+            d.groupby(d['timestamp'].dt.date)['unique_id']
+            .nunique() ),
+                     
+
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+    }
+
+
+
+    if metric not in metric_map:
+         return {"error": f"Unsupported metric: {metric}"}
+    
+   # values, labels = [], []
+
+    if callable(metric_map[metric]):
+        if metric == "Trips":
+            # Trips per day
+            daily = filtered_df.groupby(filtered_df['timestamp'].dt.date)['unique_id'].nunique()
+        elif metric == "Driving time":
+            # Driving time per day in minutes
+            daily = filtered_df.groupby(filtered_df['timestamp'].dt.date).apply(
+                lambda g: (g['timestamp'].max() - g['timestamp'].min()).total_seconds() / 60
+            )
+        else:
+            # Fallback to old behavior
+            total_value = metric_map[metric](filtered_df)
+            return {
+                "metric": metric,
+                "labels": [metric],
+                "data": [total_value]
+            }
+
+        # Remove NaN days
+        daily = daily.dropna()
+
+        # Convert to lists
+        values = daily.tolist()
+        labels = daily.index.astype(str).tolist()
+
+    else:
+        daily_avg = (
+            filtered_df.groupby(filtered_df['timestamp'].dt.date)[metric_map[metric]]
+            .mean()
+            .round(2)
+            .dropna()
+        )
+        values = daily_avg.tolist()
+        labels = daily_avg.index.astype(str).tolist()
 
     return {"metric": metric, "labels": labels, "data": values}
 
