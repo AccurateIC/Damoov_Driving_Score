@@ -53,7 +53,9 @@ const Summary = () => {
   >([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/safe_driving_summary?filter=last_2_weeks")
+    const filterValue = getFilterValue(selectedDays);
+    console.log("filterValue", filterValue);
+    fetch(`http://127.0.0.1:5000/safe_driving_summary?filter=${filterValue}`)
       .then((res) => res.json())
       .then((data) => {
         setSafeDrivingData([
@@ -73,11 +75,11 @@ const Summary = () => {
         ]);
       })
       .catch((err) => console.error("Error fetching safe driving data:", err));
-  }, []);
+  }, [selectedDays]);
 
   useEffect(() => {
     const filterValue = getFilterValue(selectedDays);
-    console.log("filterValue", filterValue);
+
     fetch(`http://127.0.0.1:5000/eco_driving_summary?filter=${filterValue}`)
       .then((res) => res.json())
       .then((data) => {
