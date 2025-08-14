@@ -9,152 +9,93 @@ const Summary = () => {
   );
 
   const [performanceData, setPerformanceData] = useState<
-  { metric: string; value: string }[]
->([]);
+    { metric: string; value: string }[]
+  >([]);
+  const [ecoDrivingData, setEcoDrivingData] = useState<
+    { metric: string; value: string }[]
+  >([]);
 
-useEffect(() => {
-  fetch("http://127.0.0.1:5000/performance_summary?filter=last_2_weeks")
-    .then((res) => res.json())
-    .then((data) => {
-      setPerformanceData([
-        { metric: "New Drivers", value: data.new_drivers.toString() },
-        { metric: "Active Drivers", value: data.active_drivers.toString() },
-        { metric: "Trips Number", value: data.trips_number.toString() },
-        { metric: "Mileage", value: data.mileage.toString() },
-        { metric: "Time of Driving", value: data.time_of_driving.toString() },
-      ]);
-    })
-    .catch((err) =>
-      console.error("Error fetching performance data:", err)
-    );
-}, []);
+  const [selectedDays, setSelectedDays] = useState(14);
 
+  const getFilterValue = (days: number) => {
+    switch (days) {
+      case 7:
+        return "last_1_week";
+      case 14:
+        return "last_2_weeks";
+      case 30:
+        return "last_1_month";
+      case 60:
+        return "last_2_months";
+      default:
+        return "last_2_weeks";
+    }
+  };
 
-  // const performanceData = [
-  //   {
-  //     metric: "New Drivers",
-  //     value: "104",
-      
-  //   },
-  //   {
-  //     metric: "Active Drivers",
-  //     value: "338",
-     
-  //   },
-  //   {
-  //     metric: "Trips Number",
-  //     value: "15,840",
-     
-  //   },
-  //   {
-  //     metric: "Mileage",
-  //     value: "237,644",
-     
-  //   },
-  //   {
-  //     metric: "Time of Driving",
-  //     value: "304,406",
-      
-  //   },
-  // ];
-
-  // const safeDrivingData = [
-  //   {
-  //     metric: "Safety Score",
-  //     value: "78",
-     
-  //   },
-  //   {
-  //     metric: "Acceleration",
-  //     value: "79",
-     
-  //   },
-    
-  //   { metric: "Braking", value: "79"},
-  //   {
-  //     metric: "Cornering",
-  //     value: "91",
-     
-  //   },
-  //   {
-  //     metric: "Speeding",
-  //     value: "80",
-    
-  //   },
-  //   {
-  //     metric: "Phone Usage",
-  //     value: "87",
-      
-  //   },
-  // ];
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+    fetch("http://127.0.0.1:5000/performance_summary?filter=last_2_weeks")
+      .then((res) => res.json())
+      .then((data) => {
+        setPerformanceData([
+          { metric: "New Drivers", value: data.new_drivers.toString() },
+          { metric: "Active Drivers", value: data.active_drivers.toString() },
+          { metric: "Trips Number", value: data.trips_number.toString() },
+          { metric: "Mileage", value: data.mileage.toString() },
+          { metric: "Time of Driving", value: data.time_of_driving.toString() },
+        ]);
+      })
+      .catch((err) => console.error("Error fetching performance data:", err));
+  }, []);
 
   const [safeDrivingData, setSafeDrivingData] = useState<
-  { metric: string; value: string }[]
->([]);
+    { metric: string; value: string }[]
+  >([]);
 
-useEffect(() => {
-  fetch("http://127.0.0.1:5000/safe_driving_summary?filter=last_2_weeks")
-    .then((res) => res.json())
-    .then((data) => {
-      setSafeDrivingData([
-        { metric: "Safety Score", value: data.safety_score.toString() },
-        { metric: "Acceleration Score", value: data.acceleration_score.toString() },
-        { metric: "Braking Score", value: data.braking_score.toString() },
-        { metric: "Cornering Score", value: data.cornering_score.toString() },
-        { metric: "Speeding Score", value: data.speeding_score.toString() },
-        { metric: "Phone Usage Score", value: data.phone_usage_score.toString() },
-        { metric: "Trip Count", value: data.trip_count.toString() },
-      ]);
-    })
-    .catch((err) =>
-      console.error("Error fetching safe driving data:", err)
-    );
-}, []);
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/safe_driving_summary?filter=last_2_weeks")
+      .then((res) => res.json())
+      .then((data) => {
+        setSafeDrivingData([
+          { metric: "Safety Score", value: data.safety_score.toString() },
+          {
+            metric: "Acceleration Score",
+            value: data.acceleration_score.toString(),
+          },
+          { metric: "Braking Score", value: data.braking_score.toString() },
+          { metric: "Cornering Score", value: data.cornering_score.toString() },
+          { metric: "Speeding Score", value: data.speeding_score.toString() },
+          {
+            metric: "Phone Usage Score",
+            value: data.phone_usage_score.toString(),
+          },
+          { metric: "Trip Count", value: data.trip_count.toString() },
+        ]);
+      })
+      .catch((err) => console.error("Error fetching safe driving data:", err));
+  }, []);
 
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+    console.log("filterValue", filterValue);
+    fetch(`http://127.0.0.1:5000/eco_driving_summary?filter=${filterValue}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEcoDrivingData([
+          { metric: "Eco Score", value: data.eco_score.toString() },
+          { metric: "Brakes Score", value: data.brakes_score.toString() },
+          { metric: "Tyres Score", value: data.tires_score.toString() },
+          { metric: "Fuel Score", value: data.fuel_score.toString() },
+          { metric: "Trip Count", value: data.trip_count.toString() },
+        ]);
+      })
 
-  // const ecoDrivingData = [
-  //   {
-  //     metric: "Eco Score",
-  //     value: "75",
-    
-  //   },
-  //   { metric: "Brakes", value: "74" },
-  //   { metric: "Tyres", value: "94"},
-  //   { metric: "Fuel", value: "92" },
-  //   {
-  //     metric: "Depreciation",
-  //     value: "39",
-     
-  //   },
-  // ];
-
-  const [ecoDrivingData, setEcoDrivingData] = useState<
-  { metric: string; value: string }[]
->([]);
-
-useEffect(() => {
-  fetch("http://127.0.0.1:5000/eco_driving_summary?filter=last_2_weeks")
-    .then((res) => res.json())
-    .then((data) => {
-      setEcoDrivingData([
-        { metric: "Eco Score", value: data.eco_score.toString() },
-        { metric: "Brakes Score", value: data.brakes_score.toString() },
-        { metric: "Tyres Score", value: data.tires_score.toString() },
-        { metric: "Fuel Score", value: data.fuel_score.toString() },
-        { metric: "Trip Count", value: data.trip_count.toString() },
-        // No depreciation value in API, keeping static
-      ]);
-    })
-    .catch((err) =>
-      console.error("Error fetching eco driving data:", err)
-    );
-}, []);
+      .catch((err) => console.error("Error fetching eco driving data:", err));
+  }, [selectedDays]);
 
   const summaryColumns = [
     { header: "Metric", accessor: "metric" },
     { header: "Value", accessor: "value" },
-    // { header: "Percentage Change", accessor: "percentage" },
-    // { header: "Absolute Change", accessor: "absolute" },
   ];
 
   const barChartData = {
@@ -212,11 +153,11 @@ useEffect(() => {
         backgroundColor: [
           "#EF4444",
           "#EF4444",
-          "#EF4444", 
+          "#EF4444",
           "#F97316",
           "#F97316",
           "#F97316",
-          "#F97316", 
+          "#F97316",
           "#10B981",
           "#10B981",
           "#10B981",
@@ -337,6 +278,18 @@ useEffect(() => {
 
   return (
     <div className="space-y-6">
+      <div>
+        <select
+          value={selectedDays}
+          onChange={(e) => setSelectedDays(Number(e.target.value))}
+          className="border border-green-600 text-green-600 px-4 py-2 rounded-md text-sm"
+        >
+          <option value={7}>Last 7 Days</option>
+          <option value={14}>Last 14 Days</option>
+          <option value={30}>Last 30 Days</option>
+          <option value={60}>Last 60 Days</option>
+        </select>
+      </div>
       <div className="flex space-x-6 border-b pb-2">
         {["performance", "safe", "eco"].map((tab) => (
           <button
@@ -402,7 +355,7 @@ useEffect(() => {
           <h3 className="text-md font-semibold mb-3">Top 10 Safe Drivers</h3>
           <Table columns={driverTableColumns} data={topSafeDrivers} />
         </div>
-      </div> 
+      </div>
     </div>
   );
 };
