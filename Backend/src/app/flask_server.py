@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 app = Flask(__name__)
 CORS(app)
 
-DB_PATH = "/home/ankita/Desktop/Damoov/Damoov_Driving_Score/Backend/src/app/tracking_db.db"
+DB_PATH = "D:/Downloadss/tracking_db/tracking_db.db"
 TABLE_NAME = "SampleTable"
 geolocator = Nominatim(user_agent="trip-location-tester")
 
@@ -567,6 +567,85 @@ def summary_graph():
 
     return {"metric": metric, "labels": labels, "data": values}
 
+#This will be used when actual data is available
+@app.route('/driver_distribution', methods=['POST'])
+def driver_distribution():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    # Load & filter by time window (same pattern as /summary_graph)
+    df = load_data()  # must include: device_id, safe_score, timestamp
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}, 400
+
+    df = df[(df['timestamp'] >= start_date) & (df['safe_score'].notna())]
+    if df.empty:
+        return {
+            "labels": ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"],
+            "data": [0]*12
+        }
+
+    # --- one score per driver (latest record in the window) ---
+    # if your driver id column is different, replace 'device_id' below
+    df_sorted = df.sort_values(['device_id', 'timestamp'])
+    idx = df_sorted.groupby('device_id')['timestamp'].idxmax()
+    latest_per_driver = df_sorted.loc[idx, ['device_id', 'safe_score']]
+
+    # --- bin drivers by their latest safe_score ---
+    bins = [0, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+    labels = ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"]
+
+    latest_per_driver['score_range'] = pd.cut(
+        latest_per_driver['safe_score'], bins=bins, labels=labels, right=False
+    )
+
+    distribution = (
+        latest_per_driver['score_range']
+        .value_counts()
+        .reindex(labels, fill_value=0)
+    )
+
+    return {
+        "labels": labels,
+        "data": distribution.tolist()   # counts of DRIVERS per score bucket
+    }
+
+
+@app.route('/safety_params', methods=['POST'])
+def safety_params():
+    params = request.json
+    filter_val = params.get("filter_val")
+
+    # Load data
+    df = load_data()
+
+    # Use latest timestamp from dataset
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}
+
+    # Filter dataset
+    filtered_df = df[df['timestamp'] >= start_date]
+
+    if filtered_df.empty:
+        return {"labels": [], "data": []}
+
+    avg_params = {
+        "Acceleration": round(filtered_df['acc_score'].mean(), 2),
+        "Braking": round(filtered_df['dec_score'].mean(), 2),
+        "Cornering": round(filtered_df['cor_score'].mean(), 2),
+        "Speeding": round(filtered_df['spd_score'].mean(), 2),
+        "Phone usage": round(filtered_df['phone_score'].mean(), 2)
+    }
+
+    return {
+        "labels": list(avg_params.keys()),
+        "data": list(avg_params.values())
+    }
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
