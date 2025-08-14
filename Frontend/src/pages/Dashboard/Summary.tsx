@@ -321,8 +321,8 @@ const Summary = () => {
         <h4 className="text-lg font-semibold text-gray-700 mb-4">
           Performance Overview (Last 14 Days)
         </h4>
+<OverviewChart selectedDays={selectedDays} />
 
-        <OverviewChart />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -145,7 +145,7 @@ const safeDrivingTableData = [
     phoneScore: 86,
   },
 ];
-const OverviewChart = () => {
+const OverviewChart = ({ selectedDays }: { selectedDays: string }) => {
    const [selectedParam, setSelectedParam] = useState<string>("Trips");
   const [viewMode, setViewMode] = useState<"table" | "chart">("chart");
    const [activeTab, setActiveTab] = useState<"performance" | "safeDriving">(
@@ -166,19 +166,27 @@ const OverviewChart = () => {
     "Driving time": { labels: [], datasets: [] },
   });
 
+  const filterMap: Record<number, string> = {
+ 
+  7: "last_1_week",
+  14: "last_2_weeks",
+  30: "last_1_month",
+  60: "last_2_months",
+};
  useEffect(() => {
+    console.log("Fetching chart with selectedDays:", selectedDays, "and metric:", selectedParam);
     fetch("http://127.0.0.1:5000/summary_graph", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         metric: selectedParam,
-        filter_val: "last_2_weeks",
+        filter_val: filterMap[selectedDays],
       }),
     })
       .then((res) => res.json())
      .then((data) => {
   console.log("API Response:", data);
-
+      console.log("selectedDays in Overview", selectedDays);
   const { labels, data: values, metric } = data;
 
   setChartDataSets((prev) => ({
@@ -188,7 +196,9 @@ const OverviewChart = () => {
       datasets: [
         {
           label: metric,
-          data: values.map((val: number) => (isNaN(val) ? 0 : val)),
+          // data: values.map((val: number) => (isNaN(val) ? 0 : val)),
+          data: values?.map((val: number) => (isNaN(val) ? 0 : val)) ?? [],
+
           backgroundColor:
             metric === "Safety score"
               ? "#4f46e5"
