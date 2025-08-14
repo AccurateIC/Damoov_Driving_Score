@@ -34,7 +34,8 @@ const Summary = () => {
 
   useEffect(() => {
     const filterValue = getFilterValue(selectedDays);
-    fetch("http://127.0.0.1:5000/performance_summary?filter=last_2_weeks")
+    console.log("filterValue", filterValue);
+    fetch(`http://127.0.0.1:5000/performance_summary?filter=${filterValue}`)
       .then((res) => res.json())
       .then((data) => {
         setPerformanceData([
@@ -46,7 +47,7 @@ const Summary = () => {
         ]);
       })
       .catch((err) => console.error("Error fetching performance data:", err));
-  }, []);
+  }, [selectedDays]);
 
   const [safeDrivingData, setSafeDrivingData] = useState<
     { metric: string; value: string }[]
