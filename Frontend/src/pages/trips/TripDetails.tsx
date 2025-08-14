@@ -2,21 +2,41 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { tripsMockData } from "../../data/mockTrips";
 import { MapPinned } from "lucide-react";
-import TimelineChart from './TimelineChart';
-import RadarChart from './RadarChart';
-import SpeedChart from './SpeedChart';
+import TimelineChart from "./TimelineChart";
+import RadarChart from "./RadarChart";
+import SpeedChart from "./SpeedChart";
 
 const TripDetails = () => {
-  const [searchParams] = useSearchParams();
-  const userId = searchParams.get("user") || "";
-  const [searchInput, setSearchInput] = useState(userId);
-  const [filteredTrips, setFilteredTrips] = useState<any[]>([]);
+  // const [searchParams] = useSearchParams();
+  // const userId = searchParams.get("user") || "";
+  // const [searchInput, setSearchInput] = useState(userId);
+  // const [filteredTrips, setFilteredTrips] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("timeline");
+  const [tripDetails, setTripDetails] = useState([]);
+  const [searchId, setSearchId] = useState("");
+  // useEffect(() => {
+  //   const filtered = tripsMockData.filter((t) => t.user === userId);
+  //   setFilteredTrips(filtered);
+  // }, [userId]);
 
-  useEffect(() => {
-    const filtered = tripsMockData.filter((t) => t.user === userId);
-    setFilteredTrips(filtered);
-  }, [userId]);
+  const handleSearch = () => {
+    // Load trips on component mount
+    // http://127.0.0.1:5000/trips/location/15610303
+    fetch(`http://127.0.0.1:5000/trips/location/${searchId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setTripDetails(data);
+      })
+      .catch((error) => console.error("Error fetching trips:", error));
+    console.log("tripDetails", tripDetails);
+    // console.log("searchId djh", searchId);
+  };
+
+  const fromCoords = tripDetails.from.split("→")[0].trim().replace(/[()]/g, "");
+  const toCoords = tripDetails.to.split("→")[0].trim().replace(/[()]/g, "");
+  console.log(fromCoords, toCoords);
+  const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=YOUR_GOOGLE_MAPS_API_KEY&origin=${fromCoords}&destination=${toCoords}&zoom=14`;
+
 
   return (
     <div className="flex min-h-screen bg-gray-50 p-6 gap-6">
@@ -33,12 +53,20 @@ const TripDetails = () => {
         <div className="flex gap-2 mt-2">
           <input
             type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
             placeholder="Search by User ID"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="border px-3 py-1 rounded w-full text-sm"
           />
           <button
+            onClick={handleSearch}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md"
+          >
+            Search
+          </button>
+
+          {/* <button
             onClick={() => {
               const filtered = tripsMockData.filter(
                 (t) => t.user === searchInput
@@ -47,11 +75,41 @@ const TripDetails = () => {
             }}
             className="text-green-600 text-sm underline"
           >
-            Reset search
-          </button>
+            Reset 
+          </button> */}
+        </div>
+        <div>
+          {/* <div className="p-3 rounded border border-gray-200 space-y-2 text-sm">
+  <div className="text-gray-800 font-semibold">Unique Id:  
+    {tripDetails.unique_id}
+  </div>
+  <div>
+    <span className="font-medium text-green-600">From:</span> {tripDetails.from}
+  </div>
+  <div>
+    <span className="font-medium text-blue-600">To:</span> {tripDetails.to}
+  </div>
+</div> */}
+          {tripDetails && Object.keys(tripDetails).length > 0 && (
+            <div className="p-3 rounded border border-gray-200 space-y-1 text-sm">
+              <div className="text-gray-800 font-semibold">
+                Unique ID {tripDetails.unique_id}
+              </div>
+              <div className="flex items-start">
+                <span className="font-medium text-green-600 mr-2">From</span>
+                <span>{tripDetails.from}</span>
+              </div>
+              <div className="flex items-start">
+                <span className="font-medium text-red-600 mr-2">To </span>
+                <span>{tripDetails.to}</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {filteredTrips.length === 0 ? (
+        {/* 15610303 */}
+
+        {/* {filteredTrips.length === 0 ? (
           <p className="text-sm text-gray-500 mt-6">
             No trips found for given ID
           </p>
@@ -80,7 +138,7 @@ const TripDetails = () => {
               <div className="text-gray-400 text-xs">{trip.id}</div>
             </div>
           ))
-        )}
+        )} */}
       </div>
 
       <div className="flex-1 space-y-6">
