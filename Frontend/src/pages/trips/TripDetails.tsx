@@ -32,10 +32,10 @@ const TripDetails = () => {
     // console.log("searchId djh", searchId);
   };
 
-  const fromCoords = tripDetails.from.split("→")[0].trim().replace(/[()]/g, "");
-  const toCoords = tripDetails.to.split("→")[0].trim().replace(/[()]/g, "");
-  console.log(fromCoords, toCoords);
-  const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=YOUR_GOOGLE_MAPS_API_KEY&origin=${fromCoords}&destination=${toCoords}&zoom=14`;
+  // const fromCoords = tripDetails.from.split("→")[0].trim().replace(/[()]/g, "");
+  // const toCoords = tripDetails.to.split("→")[0].trim().replace(/[()]/g, "");
+  // console.log(fromCoords, toCoords);
+  // const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=YOUR_GOOGLE_MAPS_API_KEY&origin=${fromCoords}&destination=${toCoords}&zoom=14`;
 
 
   return (
