@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 app = Flask(__name__)
 CORS(app)
 
-DB_PATH = "D:/Downloadss/tracking_db/tracking_db.db"
+DB_PATH = "/home/ankita/Desktop/Damoov/Damoov_Driving_Score/Backend/src/app/tracking_db.db"
 TABLE_NAME = "SampleTable"
 geolocator = Nominatim(user_agent="trip-location-tester")
 
