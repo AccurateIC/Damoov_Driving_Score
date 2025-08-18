@@ -6,7 +6,7 @@ import { FiSearch, FiDownload } from "react-icons/fi";
 const TripsList = () => {
   // const [searchId, setSearchId] = useState('');
   const navigate = useNavigate();
-  const [searchId, setSearchId] = useState('');
+  const [searchId, setSearchId] = useState("");
   const [tripDetails, setTripDetails] = useState([]);
 
   const handleSearch = () => {
@@ -98,23 +98,23 @@ const TripsList = () => {
           <table className="mt-4 border border-gray-300 w-full">
             <thead className="bg-gray-200">
               <tr>
+                <th className="border p-2">Unique ID</th>
                 <th className="border p-2">Device ID</th>
                 <th className="border p-2">Start Time</th>
                 <th className="border p-2">End Time</th>
                 <th className="border p-2">Trip Distance Used</th>
-                <th className="border p-2">Unique ID</th>
               </tr>
             </thead>
             <tbody>
               {trips.map((trip, index) => (
                 <tr key={index}>
-                  <td className="border p-2">{trip.device_id}</td>
-                  <td className="border p-2">{trip.start_time}</td>
-                  <td className="border p-2">{trip.end_time}</td>
-                  <td className="border p-2">
+                  <td className="border p-2 text-center">{trip.unique_id}</td>
+                  <td className="border p-2 text-center">{trip.device_id}</td>
+                  <td className="border p-2 text-center">{trip.start_time}</td>
+                  <td className="border p-2 text-center">{trip.end_time}</td>
+                  <td className="border text-center p-2">
                     {trip.trip_distance_used ?? "N/A"}
                   </td>
-                  <td className="border p-2">{trip.unique_id}</td>
                 </tr>
               ))}
             </tbody>
