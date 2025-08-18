@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 app = Flask(__name__)
 CORS(app)
 
-DB_PATH = "/home/ankita/Desktop/Damoov/Damoov_Driving_Score/Backend/src/app/tracking_db.db"
+DB_PATH = "D:/Downloadss/tracking_db/tracking_db.db"
 TABLE_NAME = "SampleTable"
 geolocator = Nominatim(user_agent="trip-location-tester")
 
@@ -646,6 +646,36 @@ def safety_params():
         "labels": list(avg_params.keys()),
         "data": list(avg_params.values())
     }
+
+@app.route('/safety_graph_trend', methods=['POST'])
+def safety_graph_trend():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+    metric = params.get("metric", "safe_score")  
+    # metric can be: safe_score, acc_score, dec_score, cor_score, spd_score, phone_score
+
+    # Load data
+    df = load_data()  # must include timestamp + metric columns
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}, 400
+
+    # Filter data
+    filtered_df = df[df['timestamp'] >= start_date]
+    if filtered_df.empty:
+        return {"labels": [], "data": []}
+
+    # --- Aggregate by day ---
+    filtered_df['date'] = filtered_df['timestamp'].dt.date
+    daily_avg = filtered_df.groupby('date')[metric].mean().reset_index().dropna()
+
+    return {
+        "labels": daily_avg['date'].astype(str).tolist(),  # e.g. ["2025-07-20", "2025-07-21", ...]
+        "data": daily_avg[metric].round(2).tolist()
+    }
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
