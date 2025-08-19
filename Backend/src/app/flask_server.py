@@ -676,6 +676,94 @@ def safety_graph_trend():
         "data": daily_avg[metric].round(2).tolist()
     }
 
+@app.route("/mileage_daily", methods=["POST"])
+def mileage_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    df = load_data()
+
+    # --- Time range filter ---
+    now = df['timestamp'].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df['timestamp'] >= start]
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- One row per trip ---
+    trip_df = df.drop_duplicates("unique_id")
+
+    # --- Filter out unrealistic trips ---
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
+
+    if trip_df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- Group by day & sum mileage ---
+    trip_df['date'] = trip_df['timestamp'].dt.date
+    daily_mileage = (
+        trip_df.groupby('date')['trip_distance_used']
+        .sum()
+        .reset_index()
+        .dropna()
+    )
+
+    return jsonify({
+        "labels": daily_mileage['date'].astype(str).tolist(),
+        "data": daily_mileage['trip_distance_used'].round(2).tolist()
+    })
+
+@app.route("/driving_time_daily", methods=["POST"])
+def driving_time_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    df = load_data()
+
+    # --- Time range filter ---
+    now = df['timestamp'].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df['timestamp'] >= start]
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- One row per trip ---
+    trip_df = df.drop_duplicates("unique_id")
+
+    # --- Filter out unrealistic trips (optional, e.g. > 500km) ---
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
+
+    if trip_df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- Driving time per trip ---
+    trip_times = df.groupby('unique_id')['timestamp'].agg(['min', 'max'])
+    trip_times['drive_time_min'] = (trip_times['max'] - trip_times['min']).dt.total_seconds() / 60
+    trip_times = trip_times.reset_index()
+
+    # Merge drive time back with trips
+    trip_df = trip_df.merge(trip_times[['unique_id', 'drive_time_min']], on='unique_id', how='left')
+
+    # --- Group by day & sum driving time ---
+    trip_df['date'] = trip_df['timestamp'].dt.date
+    daily_time = (
+        trip_df.groupby('date')['drive_time_min']
+        .sum()
+        .reset_index()
+        .dropna()
+    )
+
+    return jsonify({
+        "labels": daily_time['date'].astype(str).tolist(),
+        "data": daily_time['drive_time_min'].round(2).tolist()
+    })
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
