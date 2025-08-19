@@ -213,7 +213,7 @@ const OverviewChart = ({ selectedDays }: { selectedDays: string }) => {
 })
 
       .catch((err) => console.error("Error fetching chart data:", err));
-  }, [selectedParam]);
+  }, [selectedParam, selectedDays]);
 
    return (
     <div className="bg-white shadow rounded-xl p-6 w-[70rem]">

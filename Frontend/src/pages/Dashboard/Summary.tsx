@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Chart from "../../components/Chart";
 import Table from "../../components/Table";
 import OverviewChart from "../../components/OverviewChart";
@@ -100,114 +100,99 @@ const Summary = () => {
     { header: "Metric", accessor: "metric" },
     { header: "Value", accessor: "value" },
   ];
+  const [distributionChart, setDistributionChart] = useState<any>(null);
 
-  const barChartData = {
-    type: "bar" as const,
-    title: "14 Days of Last 2 Weeks Daily Trend",
-    labels: [
-      "06/19",
-      "06/20",
-      "06/21",
-      "06/22",
-      "06/23",
-      "06/24",
-      "06/25",
-      "06/26",
-      "06/27",
-      "06/28",
-      "06/29",
-      "06/30",
-      "07/01",
-      "07/02",
-      "07/03",
-    ],
-    datasets: [
-      {
-        label: "Mileage",
-        data: [
-          15000, 14500, 14000, 13500, 16000, 17500, 15500, 14800, 15200, 14300,
-          16000, 16500, 15800, 14700, 3000,
-        ],
-        backgroundColor: "rgba(59,130,246,0.8)",
-      },
-    ],
-  };
-  const distributionChart = {
-    type: "bar" as const,
-    title: "",
-    labels: [
-      "<45.0",
-      "45–50",
-      "50–55",
-      "55–60",
-      "60–65",
-      "65–70",
-      "70–75",
-      "75–80",
-      "80–85",
-      "85–90",
-      "90–95",
-      "95–100",
-    ],
-    datasets: [
-      {
-        label: "Drivers",
-        data: [2, 3, 5, 12, 23, 33, 44, 51, 46, 31, 33, 24],
-        backgroundColor: [
-          "#EF4444",
-          "#EF4444",
-          "#EF4444",
-          "#F97316",
-          "#F97316",
-          "#F97316",
-          "#F97316",
-          "#10B981",
-          "#10B981",
-          "#10B981",
-          "#10B981",
-          "#10B981",
-        ],
-      },
-    ],
-    options: {
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: true },
-        datalabels: {
-          anchor: "end",
-          align: "end",
-          color: "#000",
-          font: { weight: "bold" },
-          formatter: (value: number) => value,
-        },
-      },
-      scales: {
-        x: { ticks: { color: "#333" }, grid: { display: false } },
-        y: { ticks: { color: "#333" }, grid: { color: "#e5e7eb" } },
-      },
-    },
-  };
+  const [safeScore, setSafeScore] = useState([]);
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
 
-  const radarChartData = {
-    type: "radar" as const,
-    title: "",
-    labels: [
-      "AccelerationScore",
-      "BrakingScore",
-      "CorneringScore",
-      "PhoneUsageScore",
-      "SpeedingScore",
-    ],
-    datasets: [
-      {
-        label: "Score",
-        data: [85, 85, 85, 85, 85],
-        backgroundColor: "rgba(59,130,246,0.3)",
-        borderColor: "rgba(59,130,246,1)",
-        pointBackgroundColor: "rgba(59,130,246,1)",
-      },
-    ],
-  };
+    fetch("http://127.0.0.1:5000/driver_distribution", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filter_val: filterValue,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSafeScore(data);
+        console.log("safe Score:", safeScore[0]);
+        console.log("Driver Distribution Data:", data);
+        setDistributionChart({
+          type: "bar" as const,
+          title: "",
+          labels: data.labels,
+          datasets: [
+            {
+              label: "Drivers",
+              data: data.data,
+              backgroundColor: data.labels.map((_: string, idx: number) => {
+                if (idx < 3) return "#10B981"; // red
+                if (idx < 7) return "#F97316"; // orange
+                return "#10B981"; // green
+              }),
+            },
+          ],
+          options: {
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true },
+              datalabels: {
+                anchor: "end",
+                align: "end",
+                color: "#000",
+                font: { weight: "bold" },
+                formatter: (value: number) => value,
+              },
+            },
+            scales: {
+              x: { ticks: { color: "#333" }, grid: { display: false } },
+              y: { ticks: { color: "#333" }, grid: { color: "#e5e7eb" } },
+            },
+          },
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching driver distribution data:", err);
+      });
+  }, [selectedDays]);
+
+  // const [radarChartData, serRadarChartData] = useState<any>(null);
+  // http://127.0.0.1:5000/safety_params
+
+  const [radarChartData, setRadarChartData] = useState<any>(null);
+
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+
+    fetch("http://127.0.0.1:5000/safety_params", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filter_val: filterValue }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Safety Params Data:", data);
+
+        setRadarChartData({
+          type: "radar" as const,
+          title: "Safety Parameters",
+          labels: data.labels, // dynamic labels
+          datasets: [
+            {
+              label: "Score",
+              data: data.data, // dynamic values
+              backgroundColor: "rgba(59,130,246,0.3)",
+              borderColor: "rgba(59,130,246,1)",
+              pointBackgroundColor: "rgba(59,130,246,1)",
+            },
+          ],
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching safety params data:", err);
+      });
+  }, [selectedDays]);
 
   const getCurrentTabData = () => {
     if (activeTab === "safe") return safeDrivingData;
@@ -321,8 +306,7 @@ const Summary = () => {
         <h4 className="text-lg font-semibold text-gray-700 mb-4">
           Performance Overview (Last 14 Days)
         </h4>
-<OverviewChart selectedDays={selectedDays} />
-
+        <OverviewChart selectedDays={selectedDays} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
