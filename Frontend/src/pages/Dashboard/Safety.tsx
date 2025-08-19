@@ -166,18 +166,46 @@ useEffect(() => {
     "Phone Usage",
   ];
 
-  const radarData = {
-    labels: ["Phone usage", "Acceleration", "Brakes", "Cornering", "Speeding"],
-    datasets: [
-      {
-        label: "Safety Metrics",
-        data: [100, 100, 100, 100, 100],
-        backgroundColor: "rgba(34,197,94,0.3)",
-        borderColor: "#22c55e",
-        pointBackgroundColor: "#22c55e",
-      },
-    ],
-  };
+const [radarChartData, setRadarChartData] = useState({
+  labels: [],
+  datasets: [],
+});
+
+useEffect(() => {
+  const filterValue = getFilterValue(selectedDays);
+
+  fetch("http://127.0.0.1:5000/safety_params", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filter_val: filterValue }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Safety Params Data:", data);
+
+      // ✅ Expected API response:
+      // {
+      //   "labels": ["Phone Usage", "Acceleration", "Brakes", "Cornering", "Speeding"],
+      //   "data": [85, 92, 76, 88, 70]
+      // }
+
+      setRadarChartData({
+        labels: data.labels || [],
+        datasets: [
+          {
+            label: "Safety Metrics",
+            data: data.data || [],
+            backgroundColor: "rgba(34,197,94,0.3)",
+            borderColor: "#22c55e",
+            pointBackgroundColor: "#22c55e",
+          },
+        ],
+      });
+    })
+    .catch((err) => {
+      console.error("Error fetching safety params data:", err);
+    });
+}, [selectedDays]);
 
   const generateLabels = (days: number) => {
     const today = new Date();
@@ -198,33 +226,115 @@ useEffect(() => {
   };
 
   const commonLabels = generateLabels(selectedDays);
-  const lineData = {
-    labels: commonLabels,
-    datasets: [
-      {
-        label: `${selectedTab} Daily`,
-        data: generateRandomData(selectedDays, 50, 75),
-        borderColor: "#22c55e",
-        backgroundColor: "rgba(34,197,94,0.2)",
-        tension: 0.3,
-        fill: true,
-      },
-    ],
-  };
+  // const lineData = {
+  //   labels: commonLabels,
+  //   datasets: [
+  //     {
+  //       label: `${selectedTab} Daily`,
+  //       data: generateRandomData(selectedDays, 50, 75),
+  //       borderColor: "#22c55e",
+  //       backgroundColor: "rgba(34,197,94,0.2)",
+  //       tension: 0.3,
+  //       fill: true,
+  //     },
+  //   ],
+  // };
 
-  const dailyMileage = {
-    labels: commonLabels,
-    datasets: [
-      {
-        label: "Mileage Daily (mi)",
-        data: generateRandomData(selectedDays, 3, 12),
-        borderColor: "#3b82f6",
-        backgroundColor: "rgba(59,130,246,0.2)",
-        tension: 0,
-        fill: true,
-      },
-    ],
-  };
+
+  const [lineData, setLineData] = useState({
+  labels: [],
+  datasets: [],
+});
+
+useEffect(() => {
+  const filterValue = getFilterValue(selectedDays);
+
+  fetch("http://127.0.0.1:5000/safety_graph_trend", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      filter_val: filterValue,
+      metric: "safe_score", // 👈 later you can map this to selectedTab if needed
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Safety Graph Trend Data:", data);
+
+      setLineData({
+        labels: data.labels || [],
+        datasets: [
+          {
+            label: `${selectedTab} Daily`,
+            data: data.data || [],
+            borderColor: "#22c55e",
+            backgroundColor: "rgba(34,197,94,0.2)",
+            tension: 0.3,
+            fill: true,
+          },
+        ],
+      });
+    })
+    .catch((err) => {
+      console.error("Error fetching safety graph trend:", err);
+    });
+}, [selectedDays, selectedTab]);
+
+
+
+  const [dailyMileage, setDailyMileage] = useState({
+  labels: [],
+  datasets: [],
+});
+
+useEffect(() => {
+  const filterValue = getFilterValue(selectedDays);
+
+  fetch("http://127.0.0.1:5000/mileage_daily", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ filter_val: filterValue }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Mileage Daily Data:", data);
+
+      // ✅ API returns:
+      // { labels: [...dates], data: [...values] }
+
+      setDailyMileage({
+        labels: data.labels || [],
+        datasets: [
+          {
+            label: "Mileage Daily (mi)",
+            data: data.data || [],
+            borderColor: "#3b82f6",
+            backgroundColor: "rgba(59,130,246,0.2)",
+            tension: 0.3,
+            fill: true,
+          },
+        ],
+      });
+    })
+    .catch((err) => {
+      console.error("Error fetching mileage daily data:", err);
+    });
+}, [selectedDays]);
+
+
+  // const dailyMileage = {
+  //   labels: commonLabels,
+  //   datasets: [
+  //     {
+  //       label: "Mileage Daily (mi)",
+  //       data: generateRandomData(selectedDays, 3, 12),
+  //       borderColor: "#3b82f6",
+  //       backgroundColor: "rgba(59,130,246,0.2)",
+  //       tension: 0,
+  //       fill: true,
+  //     },
+  //   ],
+  // };
 
   const drivingTime = {
     labels: commonLabels,
@@ -325,27 +435,27 @@ useEffect(() => {
           <h3 className="text-md font-bold text-gray-500 mb-4">
             Safety Score: 65
           </h3>
-          <Radar data={radarData} />
+          <Radar data={radarChartData} />
         </div>
 
         <div className="p-4 border rounded-lg bg-white shadow-sm h-[40rem]">
-          <div className="flex space-x-4 mb-4 overflow-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
-                className={`px-3 py-1 rounded-full text-sm border whitespace-nowrap ${
-                  selectedTab === tab
-                    ? "bg-green-100 text-green-600 border-green-300"
-                    : "text-gray-600 border-gray-200"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <Line data={lineData} />
-        </div>
+    <div className="flex space-x-4 mb-4 overflow-auto">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setSelectedTab(tab)}
+          className={`px-3 py-1 rounded-full text-sm border whitespace-nowrap ${
+            selectedTab === tab
+              ? "bg-green-100 text-green-600 border-green-300"
+              : "text-gray-600 border-gray-200"
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+    <Line data={lineData} />
+  </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
