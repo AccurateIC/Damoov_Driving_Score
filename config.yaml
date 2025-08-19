@@ -1,3 +1,4 @@
+# --- scoring thresholds unchanged ---
 acceleration:
   threshold: 0.047
   min_speed: 20
@@ -25,7 +26,6 @@ phone_usage:
   min_duration: 3
   max_gap: 20
 
-
 weights:
   speeding_weight: 0.20
   phone_usage_weight: 0.20
@@ -33,9 +33,18 @@ weights:
   cornering_weight: 0.20
   braking_weight: 0.20
 
+# >>> IMPORTANT: DB config <<<
 database:
+  type: mysql            # "mysql" or "sqlite"
+  # SQLite fallback (still supported)
   sqlite_path: "D:/Downloadss/tracking_db/tracking_db.db"
-  main_table: "SampleTable"
+  # MySQL connection
+  host: "192.168.10.41"
+  port: 3306
+  user: "fleet"
+  password: "fleetpass"
+  name: "accurate_tracking_db"
+  main_table: "newSampleTable"          # << run pipeline on the CLONE
   start_table: "EventsStartPointTable"
   stop_table: "EventsStopPointTable"
 
@@ -53,14 +62,11 @@ score_weights:
   acc_rate_fuel: 3
   brake_rate_fuel: 2
   speed_std_fuel: 1.5
-
   acc_rate_tire: 2
   brake_rate_tire: 2
   corner_rate_tire: 2
-
   brake_rate_brake: 4
   distance_brake: 0.2
-
   fuel_score_weight: 0.4
   tire_score_weight: 0.3
   brake_score_weight: 0.3
@@ -74,4 +80,3 @@ numerical_features:
   - acceleration
   - deceleration
   - midSpeed
-
