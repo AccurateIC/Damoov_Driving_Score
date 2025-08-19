@@ -1,34 +1,29 @@
-import sqlite3
-import pandas as pd
-import logging
+import mysql.connector
 
-# Setup logging
-logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+try:
+    conn = mysql.connector.connect(
+        host="192.168.10.41",       # Server IP (not localhost)
+        user="fleet",
+        password="fleetpass",
+        database="accurate_tracking_db",
+        port=3306
+    )
 
-# Connect to the SQLite database
-conn = sqlite3.connect("/home/chirag/Downloads/raxel_traker_db_200325.db")
-cursor = conn.cursor()
+    if conn.is_connected():
+        print("✅ Connected to MySQL server")
+        cursor = conn.cursor()
+        cursor.execute("SELECT DATABASE();")
+        db_name = cursor.fetchone()[0]
+        print(f"Current database: {db_name}")
 
-# Get all table names (optional, if you want to list them)
-cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-tables = [row[0] for row in cursor.fetchall()]
-print("Tables:", tables)
+        cursor.execute("SHOW TABLES;")
+        tables = cursor.fetchall()
+        print("Tables in database:")
+        for t in tables:
+            print(f" - {t[0]}")
 
-# Read data from the SampleTable
+        cursor.close()
+        conn.close()
 
-for table in tables: 
-    table_name = table
-    print(f"******************Table**************: {table_name}")
-    df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
-    # Log the dataframe
-    # logger.info(df)
-
-    # Write to CSV
-    df.to_csv(f"{table_name}.csv", index=False)
-    print(f"Data from {table_name} written to {table_name}.csv")
-
-
-
-# Close connection
-conn.close()
+except mysql.connector.Error as err:
+    print(f"❌ Error: {err}")

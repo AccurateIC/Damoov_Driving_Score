@@ -83,7 +83,7 @@ const Sidebar = () => {
         <SidebarSection title="Users" icon={<Users size={24} />}>
           <SidebarLink to="/users/list" label="List of Users" />
           <SidebarLink to="/users/profiles" label="Profiles" />
-          <SidebarLink to="/users/permissions" label="Permissions" />
+          {/* <SidebarLink to="/users/permissions" label="Permissions" /> */}
         </SidebarSection>
 
         <SidebarSection title="Trips" icon={<Map size={24} />}>
@@ -92,11 +92,11 @@ const Sidebar = () => {
         </SidebarSection>
 
         <div className="space-y-2 pt-2 border-t border-gray-800">
-          <SidebarLink to="/management" label="Management" />
-          <StaticSection icon={<FileText size={22} />} label="Billing" />
+          {/* <SidebarLink to="/management" label="Management" /> */}
+          {/* <StaticSection icon={<FileText size={22} />} label="Billing" /> */}
           <SidebarLink to="/data-tool" label="DataTool" />
           <StaticSection icon={<BookOpen size={22} />} label="User Guide" />
-          <StaticSection icon={<Bug size={22} />} label="Report a Bug" />
+          {/* <StaticSection icon={<Bug size={22} />} label="Report a Bug" /> */}
         </div>
       </nav>
     </aside>

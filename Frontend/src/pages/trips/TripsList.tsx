@@ -1,62 +1,126 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { tripsMockData } from '../../data/mockTrips';
-import { FiSearch, FiDownload } from 'react-icons/fi';
+import React, { use, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { tripsMockData } from "../../data/mockTrips";
+import { FiSearch, FiDownload } from "react-icons/fi";
 
 const TripsList = () => {
-  const [searchId, setSearchId] = useState('');
+  // const [searchId, setSearchId] = useState('');
   const navigate = useNavigate();
+  const [searchId, setSearchId] = useState("");
+  const [tripDetails, setTripDetails] = useState([]);
 
   const handleSearch = () => {
-    const t = tripsMockData.find(t => t.id === searchId.trim());
-    if (t) navigate(`/trips/details/${searchId.trim()}`);
-    else alert('Trip ID not found!');
+    // Load trips on component mount
+    fetch(`http://127.0.0.1:5000/trips/${searchId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setTripDetails(data);
+      })
+      .catch((error) => console.error("Error fetching trips:", error));
+    console.log("tripDetails", tripDetails);
+    // console.log("searchId djh", searchId);
+    loadTrips();
   };
 
-  const resetSearch = () => setSearchId('');
+  const resetSearch = () => setSearchId("");
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadTrips = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("http://127.0.0.1:5000/trips");
+      const data = await response.json();
+      setTrips(data);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 bg-[#f8f9fb] min-h-screen text-sm">
-      <div className="flex gap-4 mb-4">
-        <button className="px-4 py-2 bg-green-500 text-white rounded-md">List of Trips</button>
-        <button className="px-4 py-2 border rounded-md text-gray-600">Trip Details</button>
-      </div>
+      <div className="p-4">
+        {/* Load Trips Button */}
+        <button
+          onClick={loadTrips}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          {loading ? "Loading..." : "Trips List"}
+        </button>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="flex items-center bg-white border rounded-md px-3 py-2 w-full md:flex-1">
-          <FiSearch className="mr-2 text-gray-500"/>
-          <input
-            type="text"
-            placeholder="Search trips by ID"
-            value={searchId}
-            onChange={e => setSearchId(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            className="w-full text-sm outline-none"
-          />
+        {/* Search Row (Moved Below Button) */}
+        <div className="flex flex-wrap items-center gap-3 mb-4 mt-4">
+          <div className="flex items-center bg-white border rounded-md px-3 py-2 w-full md:flex-1">
+            <FiSearch className="mr-2 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search trips by ID"
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              className="w-full text-sm outline-none"
+            />
+          </div>
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md"
+          >
+            Search
+          </button>
+          {tripDetails && Object.keys(tripDetails).length > 0 && (
+            <table className="mt-4 border border-gray-300 w-full">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="border p-2">Device ID</th>
+                  <th className="border p-2">Start Time</th>
+                  <th className="border p-2">End Time</th>
+                  <th className="border p-2">Unique ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[tripDetails].map((trip, index) => (
+                  <tr key={index}>
+                    <td className="border p-2">{trip.device_id}</td>
+                    <td className="border p-2">{trip.start_time}</td>
+                    <td className="border p-2">{trip.end_time}</td>
+                    <td className="border p-2">{trip.unique_id}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-        <button onClick={resetSearch} className="text-green-600 text-sm underline">Reset</button>
-        <button onClick={handleSearch} className="bg-blue-600 text-white px-4 py-2 rounded-md">Search</button>
-        <select className="border rounded-md px-3 py-2 bg-white text-sm">
-          <option>Last 7 days</option>
-          <option>Last 14 days</option>
-          <option>Last 30 days</option>
-        </select>
-        <button className="bg-green-500 text-white px-4 py-2 rounded-md">Add Test Trip(s)</button>
-        <input
-          placeholder="TrackToken or Track ID"
-          className="border px-3 py-2 rounded-md text-sm w-full md:w-64"
-        />
-      </div>
 
-      <div className="flex items-center justify-between mb-6">
-        <button className="bg-green-500 text-white px-4 py-2 rounded-md">Add Filters</button>
-        <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 text-gray-600"><FiDownload /> Export Data</button>
-          <button className="border px-4 py-2 bg-white rounded-md text-gray-700">Columns ▾</button>
-        </div>
+        {/* Trips Table */}
+        {trips.length > 0 && (
+          <table className="mt-4 border border-gray-300 w-full">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border p-2">Unique ID</th>
+                <th className="border p-2">Device ID</th>
+                <th className="border p-2">Start Time</th>
+                <th className="border p-2">End Time</th>
+                <th className="border p-2">Trip Distance Used</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trips.map((trip, index) => (
+                <tr key={index}>
+                  <td className="border p-2 text-center">{trip.unique_id}</td>
+                  <td className="border p-2 text-center">{trip.device_id}</td>
+                  <td className="border p-2 text-center">{trip.start_time}</td>
+                  <td className="border p-2 text-center">{trip.end_time}</td>
+                  <td className="border text-center p-2">
+                    {trip.trip_distance_used ?? "N/A"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
-
-      <div className="text-center text-gray-500 mt-32">No results in chosen time period</div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -11,11 +11,6 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-const chartLabels = Array.from({ length: 14 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (13 - i));
-  return date.toISOString().split("T")[0]; 
-});
 
 const performanceTableData = [
   {
@@ -111,6 +106,17 @@ const performanceTableData = [
   },
 ];
 
+
+interface ChartDataset {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string;
+    borderRadius: number;
+  }[];
+}
+
 const safeDrivingTableData = [
   {
     date: "2025-07-22",
@@ -139,65 +145,78 @@ const safeDrivingTableData = [
     phoneScore: 86,
   },
 ];
-const chartDataSets = {
-  Mileage: {
-    labels: chartLabels,
-    datasets: [
-      {
-        label: "Mileage",
-        data: [2740, 16266, 17578, 18741, 18207, 17502, 19168, 16000, 15000, 18000, 17000, 16500, 15500, 14500],
-        backgroundColor: "#4f46e5",
-        borderRadius: 6,
-      },
-    ],
-  },
-  "Driving Time": {
-    labels: chartLabels,
-    datasets: [
-      {
-        label: "Driving Time",
-        data: [3006, 21009, 19015, 23101, 22586, 22953, 24012, 22000, 21000, 23000, 22000, 21500, 22500, 23500],
-        backgroundColor: "#16a34a",
-        borderRadius: 6,
-      },
-    ],
-  },
-};
-
-const OverviewChart = () => {
-  const [selectedParam, setSelectedParam] = useState("Mileage");
+const OverviewChart = ({ selectedDays }: { selectedDays: string }) => {
+   const [selectedParam, setSelectedParam] = useState<string>("Trips");
   const [viewMode, setViewMode] = useState<"table" | "chart">("chart");
-  const [activeTab, setActiveTab] = useState<"performance" | "safeDriving">(
-    "performance"
-  );
+   const [activeTab, setActiveTab] = useState<"performance" | "safeDriving">(
+      "performance"
+    );
 
-  return (
+  // Allow any metric name as key
+  const [chartDataSets, setChartDataSets] = useState<Record<string, ChartDataset>>({
+    "Safety score": { labels: [], datasets: [] },
+    "Acceleration": { labels: [], datasets: [] },
+    "Braking": { labels: [], datasets: [] },
+    "Cornering": { labels: [], datasets: [] },
+    "Speeding": { labels: [], datasets: [] },
+    "Phone usage": { labels: [], datasets: [] },
+    "Registered assets": { labels: [], datasets: [] },
+    "Active assets": { labels: [], datasets: [] },
+    "Trips": { labels: [], datasets: [] },
+    "Driving time": { labels: [], datasets: [] },
+  });
+
+  const filterMap: Record<number, string> = {
+ 
+  7: "last_1_week",
+  14: "last_2_weeks",
+  30: "last_1_month",
+  60: "last_2_months",
+};
+ useEffect(() => {
+    console.log("Fetching chart with selectedDays:", selectedDays, "and metric:", selectedParam);
+    fetch("http://127.0.0.1:5000/summary_graph", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        metric: selectedParam,
+        filter_val: filterMap[selectedDays],
+      }),
+    })
+      .then((res) => res.json())
+     .then((data) => {
+  console.log("API Response:", data);
+      console.log("selectedDays in Overview", selectedDays);
+  const { labels, data: values, metric } = data;
+
+  setChartDataSets((prev) => ({
+    ...prev,
+    [metric]: {
+      labels,
+      datasets: [
+        {
+          label: metric,
+          // data: values.map((val: number) => (isNaN(val) ? 0 : val)),
+          data: values?.map((val: number) => (isNaN(val) ? 0 : val)) ?? [],
+
+          backgroundColor:
+            metric === "Safety score"
+              ? "#4f46e5"
+              : metric === "Acceleration"
+              ? "#16a34a"
+              : "#f97316",
+          borderRadius: 6,
+        },
+      ],
+    },
+  }));
+})
+
+      .catch((err) => console.error("Error fetching chart data:", err));
+  }, [selectedParam, selectedDays]);
+
+   return (
     <div className="bg-white shadow rounded-xl p-6 w-[70rem]">
-      <div className="mb-4 border-b border-gray-200">
-        <nav className="flex space-x-4">
-          <button
-            className={`pb-2 px-4 font-medium ${
-              activeTab === "performance"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("performance")}
-          >
-            Performance
-          </button>
-          <button
-            className={`pb-2 px-4 font-medium ${
-              activeTab === "safeDriving"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("safeDriving")}
-          >
-            Safe driving
-          </button>
-        </nav>
-      </div>
-
       <div className="flex justify-between items-center mb-4">
         <div>
           <select
@@ -224,7 +243,7 @@ const OverviewChart = () => {
           >
             Chart
           </button>
-          <button
+               <button
             onClick={() => setViewMode("table")}
             className={`px-4 py-2 text-sm rounded ${
               viewMode === "table"
@@ -237,11 +256,13 @@ const OverviewChart = () => {
         </div>
       </div>
 
-      {viewMode === "chart" && (
-        <Bar data={chartDataSets[selectedParam]} options={{ responsive: true }} />
-      )}
-
-      {viewMode === "table" && (
+      {viewMode === "chart" &&
+        chartDataSets[selectedParam]?.labels?.length > 0 && (
+          <Bar
+            data={chartDataSets[selectedParam]}
+            options={{ responsive: true }}
+          />
+        )} {viewMode === "table" && (
         <div className="overflow-x-auto mt-4">
           {activeTab === "performance" ? (
             <table className="w-full text-sm border border-gray-200 rounded-lg">
@@ -316,6 +337,7 @@ const OverviewChart = () => {
           )}
         </div>
       )}
+
     </div>
   );
 };

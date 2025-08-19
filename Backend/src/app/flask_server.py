@@ -1,4 +1,5 @@
 
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
@@ -11,7 +12,7 @@ from fastapi.responses import JSONResponse
 app = Flask(__name__)
 CORS(app)
 
-DB_PATH = "D:/Downloadss/tracking_db/tracking_db.db"
+DB_PATH = "/home/ankita/Desktop/Damoov/Damoov_Driving_Score/Backend/src/app/tracking_db.db"
 TABLE_NAME = "SampleTable"
 geolocator = Nominatim(user_agent="trip-location-tester")
 
@@ -40,7 +41,7 @@ def reverse_geocode(lat, lon):
 
 # --- Existing Summary APIs ---
 
-@app.route("/performance_summary")
+"""@app.route("/performance_summary")
 def performance_summary():
     filter_val = request.args.get("filter")
     df = load_data()
@@ -58,14 +59,13 @@ def performance_summary():
         "new_drivers": trip_df['device_id'].nunique(),
         "active_drivers": trip_df['device_id'].nunique(),
         "trips_number": trip_df['unique_id'].nunique(),
-        "mileage": round(trip_df['trip_distance_used'].sum(), 2),
+        "mileage": round(trip_df[trip_df['trip_distance_used'] <= 1000]['trip_distance_used'].sum(), 2),
         "time_of_driving": round(
             (df2.groupby('unique_id')['timestamp'].max() -
              df2.groupby('unique_id')['timestamp'].min()).dt.total_seconds().sum() / 60, 2
         )
     }
-    return jsonify(summary)
-    
+    return jsonify(summary)"""
 
 @app.route("/safe_driving_summary")
 def safe_driving_summary():
@@ -201,6 +201,59 @@ def get_all_trip_locations(unique_id: int):
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
     return df.sort_values(by='timestamp')
 
+@app.route("/performance_summary")
+def performance_summary():
+    filter_val = request.args.get("filter")
+    df = load_data()
+
+    # Time range filter
+    now = df['timestamp'].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df['timestamp'] >= start]
+    if df.empty:
+        return jsonify({"error": "No data in selected range"}), 404
+
+    # One row per trip
+    trip_df = df.drop_duplicates("unique_id")
+
+    # Filter trips with valid distance
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
+
+    # Filter based on valid GPS/timeStart using get_trip_points()
+    valid_trip_ids = []
+    for uid in trip_df['unique_id']:
+        points = get_trip_points(uid)
+        if points.empty:
+            continue
+        row = points.iloc[0]
+        if (
+            row['start_latitude'] != 0 and row['end_latitude'] != 0 and
+            row['start_longitude'] != 0 and row['end_longitude'] != 0 and
+            row['start_time'] and row['end_time']
+        ):
+            valid_trip_ids.append(uid)
+
+    trip_df = trip_df[trip_df['unique_id'].isin(valid_trip_ids)]
+    df = df[df['unique_id'].isin(valid_trip_ids)]
+
+    # Time of driving calculation
+    trip_times = df.groupby('unique_id')['timestamp'].agg(['min', 'max'])
+    total_drive_time_min = ((trip_times['max'] - trip_times['min']).dt.total_seconds().sum()) / 60
+
+    summary = {
+        "new_drivers": trip_df['device_id'].nunique(),
+        "active_drivers": trip_df['device_id'].nunique(),
+        "trips_number": trip_df['unique_id'].nunique(),
+        "mileage": round(trip_df['trip_distance_used'].sum(), 2),
+        "time_of_driving": round(total_drive_time_min, 2)
+    }
+
+    return jsonify(summary)
+
+
 @app.route("/trips", methods=["GET"])
 def list_trips_tripapi():
  def list_trips():
@@ -317,6 +370,400 @@ def trip_map_api(track_id):
             "location": reverse_geocode(row['latitude'], row['longitude'])
         })
     return jsonify({"track_id": track_id, "route": enriched})
+
+"""@app.route('/summary_graph/<unique_id>/<metric>/<filter_val>', methods=['GET'])
+def summary_graph(unique_id, metric, filter_val):
+    now = datetime.now()
+    start_date, _ = get_time_range(filter_val, now)
+    
+    df = load_data()
+    df = df[df['timestamp'] >= start_date]
+
+    if df.empty:
+        return {"metric": metric, "labels": [], "values": []}
+
+    # Map metric names to DB columns
+    metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: d['unique_id'].nunique(),
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+    }
+
+    if metric not in metric_map:
+        return {"error": f"Unsupported metric: {metric}"}
+
+    if callable(metric_map[metric]):
+        values = [metric_map[metric](df)]
+        labels = [metric]
+    else:
+        values = df.groupby(df['timestamp'].dt.date)[metric_map[metric]].mean().round(2).tolist()
+        labels = sorted(df['timestamp'].dt.date.unique().astype(str))
+
+    return {"metric": metric, "labels": labels, "values": values}
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+"""
+
+
+    # Map metric names to DB columns
+metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: d['unique_id'].nunique(),
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+}
+
+"""@app.route('/summary_graph', methods=['POST'])
+def summary_graph():
+    params = request.json
+    metric = params.get("metric")
+    filter_val = params.get("filter_val")
+
+    now = datetime.now()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}
+
+    df = load_data()
+
+    # Try filtering
+    filtered_df = df[df['timestamp'] >= start_date]
+
+    # Fallback if no rows found
+    if filtered_df.empty:
+        print(f"No rows found for filter {filter_val}, returning full dataset for testing.")
+        filtered_df = df.copy()
+
+    # Metric mapping
+    metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: d['unique_id'].nunique(),
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+    }
+
+    if metric not in metric_map:
+        return {"error": f"Unsupported metric: {metric}"}
+
+    # Generate labels and values
+    if callable(metric_map[metric]):
+        values = [metric_map[metric](filtered_df)]
+        labels = [metric]
+    else:
+        values = (
+            filtered_df.groupby(filtered_df['timestamp'].dt.date)[metric_map[metric]]
+            .mean()
+            .round(2)
+            .tolist()
+        )
+        labels = sorted(filtered_df['timestamp'].dt.date.unique().astype(str))
+
+    return {"metric": metric, "labels": labels, "data": values}
+"""
+
+@app.route('/summary_graph', methods=['POST'])
+def summary_graph():
+    params = request.json
+    metric = params.get("metric")
+    filter_val = params.get("filter_val")
+
+    # Load data first
+    df = load_data()
+
+    # Use dataset's latest timestamp, not current date
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}
+
+    # Filter data
+    filtered_df = df[df['timestamp'] >= start_date]
+
+    # Return empty arrays if no rows match
+    if filtered_df.empty:
+        return {"metric": metric, "labels": [], "data": []}
+
+    # Metric mapping
+    metric_map = {
+        "Safety score": "safe_score",
+        "Acceleration": "acc_score",
+        "Braking": "dec_score",
+        "Cornering": "cor_score",
+        "Speeding": "spd_score",
+        "Phone usage": "phone_score",
+        "Registered assets": lambda d: d['device_id'].nunique(),
+        "Active assets": lambda d: d['device_id'].nunique(),
+        "Trips": lambda d: (
+            d.groupby(d['timestamp'].dt.date)['unique_id']
+            .nunique() ),
+                     
+
+        "Driving time": lambda d: (d['timestamp'].max() - d['timestamp'].min()).total_seconds() / 60
+    }
+
+
+
+    if metric not in metric_map:
+         return {"error": f"Unsupported metric: {metric}"}
+    
+   # values, labels = [], []
+
+    if callable(metric_map[metric]):
+        if metric == "Trips":
+            # Trips per day
+            daily = filtered_df.groupby(filtered_df['timestamp'].dt.date)['unique_id'].nunique()
+        elif metric == "Driving time":
+            # Driving time per day in minutes
+            daily = filtered_df.groupby(filtered_df['timestamp'].dt.date).apply(
+                lambda g: (g['timestamp'].max() - g['timestamp'].min()).total_seconds() / 60
+            )
+        else:
+            # Fallback to old behavior
+            total_value = metric_map[metric](filtered_df)
+            return {
+                "metric": metric,
+                "labels": [metric],
+                "data": [total_value]
+            }
+
+        # Remove NaN days
+        daily = daily.dropna()
+
+        # Convert to lists
+        values = daily.tolist()
+        labels = daily.index.astype(str).tolist()
+
+    else:
+        daily_avg = (
+            filtered_df.groupby(filtered_df['timestamp'].dt.date)[metric_map[metric]]
+            .mean()
+            .round(2)
+            .dropna()
+        )
+        values = daily_avg.tolist()
+        labels = daily_avg.index.astype(str).tolist()
+
+    return {"metric": metric, "labels": labels, "data": values}
+
+#This will be used when actual data is available
+@app.route('/driver_distribution', methods=['POST'])
+def driver_distribution():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    # Load & filter by time window (same pattern as /summary_graph)
+    df = load_data()  # must include: device_id, safe_score, timestamp
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}, 400
+
+    df = df[(df['timestamp'] >= start_date) & (df['safe_score'].notna())]
+    if df.empty:
+        return {
+            "labels": ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"],
+            "data": [0]*12
+        }
+
+    # --- one score per driver (latest record in the window) ---
+    # if your driver id column is different, replace 'device_id' below
+    df_sorted = df.sort_values(['device_id', 'timestamp'])
+    idx = df_sorted.groupby('device_id')['timestamp'].idxmax()
+    latest_per_driver = df_sorted.loc[idx, ['device_id', 'safe_score']]
+
+    # --- bin drivers by their latest safe_score ---
+    bins = [0, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+    labels = ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"]
+
+    latest_per_driver['score_range'] = pd.cut(
+        latest_per_driver['safe_score'], bins=bins, labels=labels, right=False
+    )
+
+    distribution = (
+        latest_per_driver['score_range']
+        .value_counts()
+        .reindex(labels, fill_value=0)
+    )
+
+    return {
+        "labels": labels,
+        "data": distribution.tolist()   # counts of DRIVERS per score bucket
+    }
+
+
+@app.route('/safety_params', methods=['POST'])
+def safety_params():
+    params = request.json
+    filter_val = params.get("filter_val")
+
+    # Load data
+    df = load_data()
+
+    # Use latest timestamp from dataset
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}
+
+    # Filter dataset
+    filtered_df = df[df['timestamp'] >= start_date]
+
+    if filtered_df.empty:
+        return {"labels": [], "data": []}
+
+    avg_params = {
+        "Acceleration": round(filtered_df['acc_score'].mean(), 2),
+        "Braking": round(filtered_df['dec_score'].mean(), 2),
+        "Cornering": round(filtered_df['cor_score'].mean(), 2),
+        "Speeding": round(filtered_df['spd_score'].mean(), 2),
+        "Phone usage": round(filtered_df['phone_score'].mean(), 2)
+    }
+
+    return {
+        "labels": list(avg_params.keys()),
+        "data": list(avg_params.values())
+    }
+
+@app.route('/safety_graph_trend', methods=['POST'])
+def safety_graph_trend():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+    metric = params.get("metric", "safe_score")  
+    # metric can be: safe_score, acc_score, dec_score, cor_score, spd_score, phone_score
+
+    # Load data
+    df = load_data()  # must include timestamp + metric columns
+    now = df['timestamp'].max()
+    start_date = get_time_range(filter_val, now)
+
+    if start_date is None:
+        return {"error": f"Unsupported filter: {filter_val}"}, 400
+
+    # Filter data
+    filtered_df = df[df['timestamp'] >= start_date]
+    if filtered_df.empty:
+        return {"labels": [], "data": []}
+
+    # --- Aggregate by day ---
+    filtered_df['date'] = filtered_df['timestamp'].dt.date
+    daily_avg = filtered_df.groupby('date')[metric].mean().reset_index().dropna()
+
+    return {
+        "labels": daily_avg['date'].astype(str).tolist(),  # e.g. ["2025-07-20", "2025-07-21", ...]
+        "data": daily_avg[metric].round(2).tolist()
+    }
+
+@app.route("/mileage_daily", methods=["POST"])
+def mileage_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    df = load_data()
+
+    # --- Time range filter ---
+    now = df['timestamp'].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df['timestamp'] >= start]
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- One row per trip ---
+    trip_df = df.drop_duplicates("unique_id")
+
+    # --- Filter out unrealistic trips ---
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
+
+    if trip_df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- Group by day & sum mileage ---
+    trip_df['date'] = trip_df['timestamp'].dt.date
+    daily_mileage = (
+        trip_df.groupby('date')['trip_distance_used']
+        .sum()
+        .reset_index()
+        .dropna()
+    )
+
+    return jsonify({
+        "labels": daily_mileage['date'].astype(str).tolist(),
+        "data": daily_mileage['trip_distance_used'].round(2).tolist()
+    })
+
+@app.route("/driving_time_daily", methods=["POST"])
+def driving_time_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    df = load_data()
+
+    # --- Time range filter ---
+    now = df['timestamp'].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df['timestamp'] >= start]
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- One row per trip ---
+    trip_df = df.drop_duplicates("unique_id")
+
+    # --- Filter out unrealistic trips (optional, e.g. > 500km) ---
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
+
+    if trip_df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # --- Driving time per trip ---
+    trip_times = df.groupby('unique_id')['timestamp'].agg(['min', 'max'])
+    trip_times['drive_time_min'] = (trip_times['max'] - trip_times['min']).dt.total_seconds() / 60
+    trip_times = trip_times.reset_index()
+
+    # Merge drive time back with trips
+    trip_df = trip_df.merge(trip_times[['unique_id', 'drive_time_min']], on='unique_id', how='left')
+
+    # --- Group by day & sum driving time ---
+    trip_df['date'] = trip_df['timestamp'].dt.date
+    daily_time = (
+        trip_df.groupby('date')['drive_time_min']
+        .sum()
+        .reset_index()
+        .dropna()
+    )
+
+    return jsonify({
+        "labels": daily_time['date'].astype(str).tolist(),
+        "data": daily_time['drive_time_min'].round(2).tolist()
+    })
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

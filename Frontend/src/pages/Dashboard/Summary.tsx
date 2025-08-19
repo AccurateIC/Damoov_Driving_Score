@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Chart from "../../components/Chart";
 import Table from "../../components/Table";
 import OverviewChart from "../../components/OverviewChart";
@@ -8,205 +8,191 @@ const Summary = () => {
     "performance"
   );
 
-  const performanceData = [
-    {
-      metric: "New Drivers",
-      value: "104",
-      percentage: "-21.21%",
-      absolute: "-28",
-    },
-    {
-      metric: "Active Drivers",
-      value: "338",
-      percentage: "-1.17%",
-      absolute: "-4",
-    },
-    {
-      metric: "Trips Number",
-      value: "15,840",
-      percentage: "+4.92%",
-      absolute: "+743",
-    },
-    {
-      metric: "Mileage",
-      value: "237,644",
-      percentage: "+3.43%",
-      absolute: "+7,875",
-    },
-    {
-      metric: "Time of Driving",
-      value: "304,406",
-      percentage: "+1.98%",
-      absolute: "+5,915",
-    },
-  ];
+  const [performanceData, setPerformanceData] = useState<
+    { metric: string; value: string }[]
+  >([]);
+  const [ecoDrivingData, setEcoDrivingData] = useState<
+    { metric: string; value: string }[]
+  >([]);
 
-  const safeDrivingData = [
-    {
-      metric: "Safety Score",
-      value: "78",
-      percentage: "+0.02%",
-      absolute: "0.01",
-    },
-    {
-      metric: "Acceleration",
-      value: "79",
-      percentage: "+1.37%",
-      absolute: "1.07",
-    },
-    { metric: "Braking", value: "79", percentage: "+0.52%", absolute: "0.41" },
-    {
-      metric: "Cornering",
-      value: "91",
-      percentage: "+0.59%",
-      absolute: "0.54",
-    },
-    {
-      metric: "Speeding",
-      value: "80",
-      percentage: "-1.25%",
-      absolute: "-1.01",
-    },
-    {
-      metric: "Phone Usage",
-      value: "87",
-      percentage: "-0.95%",
-      absolute: "-0.44",
-    },
-  ];
+  const [selectedDays, setSelectedDays] = useState(14);
 
-  const ecoDrivingData = [
-    {
-      metric: "Eco Score",
-      value: "75",
-      percentage: "-1.22%",
-      absolute: "-0.93",
-    },
-    { metric: "Brakes", value: "74", percentage: "-1.56%", absolute: "-1.17" },
-    { metric: "Tyres", value: "94", percentage: "-0.35%", absolute: "-0.33" },
-    { metric: "Fuel", value: "92", percentage: "-0.24%", absolute: "-0.22" },
-    {
-      metric: "Depreciation",
-      value: "39",
-      percentage: "-5.73%",
-      absolute: "-2.40",
-    },
-  ];
+  const getFilterValue = (days: number) => {
+    switch (days) {
+      case 7:
+        return "last_1_week";
+      case 14:
+        return "last_2_weeks";
+      case 30:
+        return "last_1_month";
+      case 60:
+        return "last_2_months";
+      default:
+        return "last_2_weeks";
+    }
+  };
+
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+    console.log("filterValue", filterValue);
+    fetch(`http://127.0.0.1:5000/performance_summary?filter=${filterValue}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPerformanceData([
+          { metric: "New Drivers", value: data.new_drivers.toString() },
+          { metric: "Active Drivers", value: data.active_drivers.toString() },
+          { metric: "Trips Number", value: data.trips_number.toString() },
+          { metric: "Mileage", value: data.mileage.toString() },
+          { metric: "Time of Driving", value: data.time_of_driving.toString() },
+        ]);
+      })
+      .catch((err) => console.error("Error fetching performance data:", err));
+  }, [selectedDays]);
+
+  const [safeDrivingData, setSafeDrivingData] = useState<
+    { metric: string; value: string }[]
+  >([]);
+
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+    console.log("filterValue", filterValue);
+    fetch(`http://127.0.0.1:5000/safe_driving_summary?filter=${filterValue}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setSafeDrivingData([
+          { metric: "Safety Score", value: data.safety_score.toString() },
+          {
+            metric: "Acceleration Score",
+            value: data.acceleration_score.toString(),
+          },
+          { metric: "Braking Score", value: data.braking_score.toString() },
+          { metric: "Cornering Score", value: data.cornering_score.toString() },
+          { metric: "Speeding Score", value: data.speeding_score.toString() },
+          {
+            metric: "Phone Usage Score",
+            value: data.phone_usage_score.toString(),
+          },
+          { metric: "Trip Count", value: data.trip_count.toString() },
+        ]);
+      })
+      .catch((err) => console.error("Error fetching safe driving data:", err));
+  }, [selectedDays]);
+
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+
+    fetch(`http://127.0.0.1:5000/eco_driving_summary?filter=${filterValue}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEcoDrivingData([
+          { metric: "Eco Score", value: data.eco_score.toString() },
+          { metric: "Brakes Score", value: data.brakes_score.toString() },
+          { metric: "Tyres Score", value: data.tires_score.toString() },
+          { metric: "Fuel Score", value: data.fuel_score.toString() },
+          { metric: "Trip Count", value: data.trip_count.toString() },
+        ]);
+      })
+
+      .catch((err) => console.error("Error fetching eco driving data:", err));
+  }, [selectedDays]);
 
   const summaryColumns = [
     { header: "Metric", accessor: "metric" },
     { header: "Value", accessor: "value" },
-    { header: "Percentage Change", accessor: "percentage" },
-    { header: "Absolute Change", accessor: "absolute" },
   ];
+  const [distributionChart, setDistributionChart] = useState<any>(null);
 
-  const barChartData = {
-    type: "bar" as const,
-    title: "14 Days of Last 2 Weeks Daily Trend",
-    labels: [
-      "06/19",
-      "06/20",
-      "06/21",
-      "06/22",
-      "06/23",
-      "06/24",
-      "06/25",
-      "06/26",
-      "06/27",
-      "06/28",
-      "06/29",
-      "06/30",
-      "07/01",
-      "07/02",
-      "07/03",
-    ],
-    datasets: [
-      {
-        label: "Mileage",
-        data: [
-          15000, 14500, 14000, 13500, 16000, 17500, 15500, 14800, 15200, 14300,
-          16000, 16500, 15800, 14700, 3000,
-        ],
-        backgroundColor: "rgba(59,130,246,0.8)",
-      },
-    ],
-  };
-  const distributionChart = {
-    type: "bar" as const,
-    title: "",
-    labels: [
-      "<45.0",
-      "45–50",
-      "50–55",
-      "55–60",
-      "60–65",
-      "65–70",
-      "70–75",
-      "75–80",
-      "80–85",
-      "85–90",
-      "90–95",
-      "95–100",
-    ],
-    datasets: [
-      {
-        label: "Drivers",
-        data: [2, 3, 5, 12, 23, 33, 44, 51, 46, 31, 33, 24],
-        backgroundColor: [
-          "#EF4444",
-          "#EF4444",
-          "#EF4444", 
-          "#F97316",
-          "#F97316",
-          "#F97316",
-          "#F97316", 
-          "#10B981",
-          "#10B981",
-          "#10B981",
-          "#10B981",
-          "#10B981",
-        ],
-      },
-    ],
-    options: {
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: true },
-        datalabels: {
-          anchor: "end",
-          align: "end",
-          color: "#000",
-          font: { weight: "bold" },
-          formatter: (value: number) => value,
-        },
-      },
-      scales: {
-        x: { ticks: { color: "#333" }, grid: { display: false } },
-        y: { ticks: { color: "#333" }, grid: { color: "#e5e7eb" } },
-      },
-    },
-  };
+  const [safeScore, setSafeScore] = useState([]);
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
 
-  const radarChartData = {
-    type: "radar" as const,
-    title: "",
-    labels: [
-      "AccelerationScore",
-      "BrakingScore",
-      "CorneringScore",
-      "PhoneUsageScore",
-      "SpeedingScore",
-    ],
-    datasets: [
-      {
-        label: "Score",
-        data: [85, 85, 85, 85, 85],
-        backgroundColor: "rgba(59,130,246,0.3)",
-        borderColor: "rgba(59,130,246,1)",
-        pointBackgroundColor: "rgba(59,130,246,1)",
-      },
-    ],
-  };
+    fetch("http://127.0.0.1:5000/driver_distribution", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filter_val: filterValue,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSafeScore(data);
+        console.log("safe Score:", safeScore[0]);
+        console.log("Driver Distribution Data:", data);
+        setDistributionChart({
+          type: "bar" as const,
+          title: "",
+          labels: data.labels,
+          datasets: [
+            {
+              label: "Drivers",
+              data: data.data,
+              backgroundColor: data.labels.map((_: string, idx: number) => {
+                if (idx < 3) return "#10B981"; // red
+                if (idx < 7) return "#F97316"; // orange
+                return "#10B981"; // green
+              }),
+            },
+          ],
+          options: {
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: true },
+              datalabels: {
+                anchor: "end",
+                align: "end",
+                color: "#000",
+                font: { weight: "bold" },
+                formatter: (value: number) => value,
+              },
+            },
+            scales: {
+              x: { ticks: { color: "#333" }, grid: { display: false } },
+              y: { ticks: { color: "#333" }, grid: { color: "#e5e7eb" } },
+            },
+          },
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching driver distribution data:", err);
+      });
+  }, [selectedDays]);
+
+  // const [radarChartData, serRadarChartData] = useState<any>(null);
+  // http://127.0.0.1:5000/safety_params
+
+  const [radarChartData, setRadarChartData] = useState<any>(null);
+
+  useEffect(() => {
+    const filterValue = getFilterValue(selectedDays);
+
+    fetch("http://127.0.0.1:5000/safety_params", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filter_val: filterValue }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Safety Params Data:", data);
+
+        setRadarChartData({
+          type: "radar" as const,
+          title: "Safety Parameters",
+          labels: data.labels, // dynamic labels
+          datasets: [
+            {
+              label: "Score",
+              data: data.data, // dynamic values
+              backgroundColor: "rgba(59,130,246,0.3)",
+              borderColor: "rgba(59,130,246,1)",
+              pointBackgroundColor: "rgba(59,130,246,1)",
+            },
+          ],
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching safety params data:", err);
+      });
+  }, [selectedDays]);
 
   const getCurrentTabData = () => {
     if (activeTab === "safe") return safeDrivingData;
@@ -280,6 +266,18 @@ const Summary = () => {
 
   return (
     <div className="space-y-6">
+      <div>
+        <select
+          value={selectedDays}
+          onChange={(e) => setSelectedDays(Number(e.target.value))}
+          className="border border-green-600 text-green-600 px-4 py-2 rounded-md text-sm"
+        >
+          <option value={7}>Last 7 Days</option>
+          <option value={14}>Last 14 Days</option>
+          <option value={30}>Last 30 Days</option>
+          <option value={60}>Last 60 Days</option>
+        </select>
+      </div>
       <div className="flex space-x-6 border-b pb-2">
         {["performance", "safe", "eco"].map((tab) => (
           <button
@@ -301,15 +299,14 @@ const Summary = () => {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">Last 2 Weeks Summary</h3>
+        {/* <h3 className="text-lg font-semibold mb-2">Last 2 Weeks Summary</h3> */}
         <Table columns={summaryColumns} data={getCurrentTabData()} />
       </div>
       <div>
         <h4 className="text-lg font-semibold text-gray-700 mb-4">
           Performance Overview (Last 14 Days)
         </h4>
-
-        <OverviewChart />
+        <OverviewChart selectedDays={selectedDays} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -345,7 +342,7 @@ const Summary = () => {
           <h3 className="text-md font-semibold mb-3">Top 10 Safe Drivers</h3>
           <Table columns={driverTableColumns} data={topSafeDrivers} />
         </div>
-      </div> 
+      </div>
     </div>
   );
 };
