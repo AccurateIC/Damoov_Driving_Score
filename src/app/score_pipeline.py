@@ -4,9 +4,9 @@ from math import radians, sin, cos, acos
 from pathlib import Path
 import yaml
 from sqlalchemy import text
-from eco_score_calculator import EcoScoreCalculator
+from src.app.eco_score_calculator import EcoScoreCalculator
 
-from Formulation.scorers import (
+from src.app.Formulation.scorers import (
     DamoovAccelerationScorer,
     DamoovDeccelerationScorer,
     DamoovCorneringScorer,
@@ -70,10 +70,10 @@ def run_score_pipeline(engine, config):
 
     # Clean + timestamps
     if 'timestamp' in main_df.columns:
-        main_df = main_df.dropna(subset=['timestamp'])
+        main_dffrop = main_df.dropna(subset=['timestamp'])
     # Recompute from tick epoch if available
     if 'tick_timestamp' in main_df.columns:
-        main_df['timestamp'] = pd.to_datetime(main_df['tick_timestamp'], errors='coerce')
+        main_df['timestamp'] = pd.to_datetime(main_df['tick_timestamp'], unit = 's', errors='coerce')
 
     trip_distances_df = calculate_trip_distances(start_df, stop_df)
     trip_distance_dict = dict(zip(trip_distances_df['UNIQUE_ID'], trip_distances_df['distance_km']))
