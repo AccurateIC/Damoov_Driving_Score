@@ -47,6 +47,7 @@ database:
   main_table: "newSampleTable"          # << run pipeline on the CLONE
   start_table: "EventsStartPointTable"
   stop_table: "EventsStopPointTable"
+  old_table: "SampleTable"
 
 thresholds:
   trip_distance_high: 0.8
