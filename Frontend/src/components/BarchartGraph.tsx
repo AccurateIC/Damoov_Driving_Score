@@ -1,0 +1,163 @@
+
+import React, { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+interface ChartDataset {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: (ctx: any) => string;
+    borderRadius: number;
+  }[];
+}
+
+const BarChartGraph = () => {
+  const [selectedParam, setSelectedParam] = useState<string>("Trips");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("Last 2 Weeks");
+
+  const [chartDataSets, setChartDataSets] = useState<
+    Record<string, ChartDataset>
+  >({
+    Trips: { labels: [], datasets: [] },
+    "Driving time": { labels: [], datasets: [] },
+    "Safety score": { labels: [], datasets: [] },
+    Acceleration: { labels: [], datasets: [] },
+    Braking: { labels: [], datasets: [] },
+    Cornering: { labels: [], datasets: [] },
+    Speeding: { labels: [], datasets: [] },
+    "Phone usage": { labels: [], datasets: [] },
+  });
+
+  const filterMap: Record<string, string> = {
+    "Last Week": "last_1_week",
+    "Last 2 Weeks": "last_2_weeks",
+    "Last Month": "last_1_month",
+    "Last 2 Months": "last_2_months",
+   
+  };
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/summary_graph", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        metric: selectedParam,
+        filter_val: filterMap[selectedPeriod],
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const { labels, data: values, metric } = data;
+
+        setChartDataSets((prev) => ({
+          ...prev,
+          [metric]: {
+            labels,
+            datasets: [
+              {
+                label: metric,
+                data: values?.map((val: number) => (isNaN(val) ? 0 : val)) ?? [],
+                backgroundColor: (ctx: any) => {
+                  const index = ctx.dataIndex;
+                  const lastIndex = values.length - 1;
+                  return index === lastIndex ? "#4338CA" : "rgba(79,70,229,0.3)"; // dark blue for latest
+                },
+                borderRadius: 8,
+              },
+            ],
+          },
+        }));
+      })
+      .catch((err) => console.error("Error fetching chart data:", err));
+  }, [selectedParam, selectedPeriod]);
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false as const,
+    plugins: {
+      legend: { display: false },
+      tooltip: { mode: "index" as const, intersect: false },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 12 } },
+      },
+      y: {
+        grid: { color: "#eee" },
+        ticks: { stepSize: 10 },
+      },
+    },
+  };
+
+  return (
+    // div className="w-[1081px] h-[482px] rounded-[15px] bg-white shadow p-6 flex flex-col">
+    
+    <div className="bg-white  rounded-xl shadow-sm p-7">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <span className="text-gray-600 font-medium">Performance for</span>
+          <select
+            onChange={(e) => setSelectedParam(e.target.value)}
+            value={selectedParam}
+            className="border border-gray-300 rounded px-3 py-2 text-gray-700"
+          >
+            {Object.keys(chartDataSets).map((param) => (
+              <option key={param} value={param}>
+                {param}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <select
+          onChange={(e) => setSelectedPeriod(e.target.value)}
+          value={selectedPeriod}
+          className="border border-gray-300 rounded px-3 py-2 text-gray-700"
+        >
+          {Object.keys(filterMap).map((period) => (
+            <option key={period} value={period}>
+              {period}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Chart */}
+      {/* <div className="flex-1">
+        {chartDataSets[selectedParam]?.labels?.length > 0 && (
+          <Bar
+            data={chartDataSets[selectedParam]}
+            options={options}
+          />
+        )}
+      </div> */}
+
+<div className=" w-full h-[482px]">
+  <Bar
+    data={chartDataSets[selectedParam]}
+    options={{
+      responsive: true,
+      maintainAspectRatio: false,
+    }}
+  />
+</div>
+
+
+    </div>
+  );
+};
+
+export default BarChartGraph;
