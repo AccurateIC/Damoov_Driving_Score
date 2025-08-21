@@ -34,10 +34,20 @@ weights:
   braking_weight: 0.20
 
 database:
+  type: mysql            # "mysql" or "sqlite"
+  # SQLite fallback (still supported)
   sqlite_path: "D:/Downloadss/tracking_db/tracking_db.db"
-  main_table: "SampleTable"
+  # MySQL connection
+  host: "192.168.10.41"
+  port: 3306
+  user: "fleet"
+  password: "fleetpass"
+  name: "accurate_tracking_db"
+  main_table: "newSampleTable"          # << run pipeline on the CLONE
   start_table: "EventsStartPointTable"
   stop_table: "EventsStopPointTable"
+  old_table: "SampleTable"
+  map_table: "LastKnownPointTable"
 
 thresholds:
   trip_distance_high: 0.8
