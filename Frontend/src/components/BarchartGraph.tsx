@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 import {
@@ -22,30 +21,29 @@ interface ChartDataset {
   }[];
 }
 
-const BarChartGraph = () => {
+const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
   const [selectedParam, setSelectedParam] = useState<string>("Trips");
-  const [selectedPeriod, setSelectedPeriod] = useState<string>("Last 2 Weeks");
+  // const [selectedPeriod, setSelectedPeriod] = useState<string>("Last 2 Weeks");
 
   const [chartDataSets, setChartDataSets] = useState<
     Record<string, ChartDataset>
   >({
-    Trips: { labels: [], datasets: [] },
+    "Trips": { labels: [], datasets: [] },
     "Driving time": { labels: [], datasets: [] },
     "Safety score": { labels: [], datasets: [] },
-    Acceleration: { labels: [], datasets: [] },
-    Braking: { labels: [], datasets: [] },
-    Cornering: { labels: [], datasets: [] },
-    Speeding: { labels: [], datasets: [] },
+    "Acceleration": { labels: [], datasets: [] },
+    "Braking": { labels: [], datasets: [] },
+    "Cornering": { labels: [], datasets: [] },
+    "Speeding": { labels: [], datasets: [] },
     "Phone usage": { labels: [], datasets: [] },
   });
 
-  const filterMap: Record<string, string> = {
-    "Last Week": "last_1_week",
-    "Last 2 Weeks": "last_2_weeks",
-    "Last Month": "last_1_month",
-    "Last 2 Months": "last_2_months",
-   
-  };
+const filterMap: Record<number, string> = {
+  7: "last_1_week",
+  14: "last_2_weeks",
+  30: "last_1_month",
+  60: "last_2_months",
+};
 
   useEffect(() => {
     fetch("http://127.0.0.1:5000/summary_graph", {
@@ -53,13 +51,13 @@ const BarChartGraph = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         metric: selectedParam,
-        filter_val: filterMap[selectedPeriod],
+        filter_val: filterMap[selectedDays],
       }),
     })
       .then((res) => res.json())
       .then((data) => {
         const { labels, data: values, metric } = data;
-
+console.log("selectedDays",selectedDays);
         setChartDataSets((prev) => ({
           ...prev,
           [metric]: {
@@ -67,11 +65,14 @@ const BarChartGraph = () => {
             datasets: [
               {
                 label: metric,
-                data: values?.map((val: number) => (isNaN(val) ? 0 : val)) ?? [],
+                data:
+                  values?.map((val: number) => (isNaN(val) ? 0 : val)) ?? [],
                 backgroundColor: (ctx: any) => {
                   const index = ctx.dataIndex;
                   const lastIndex = values.length - 1;
-                  return index === lastIndex ? "#4338CA" : "rgba(79,70,229,0.3)"; // dark blue for latest
+                  return index === lastIndex
+                    ? "#4338CA"
+                    : "rgba(79,70,229,0.3)"; // dark blue for latest
                 },
                 borderRadius: 8,
               },
@@ -80,7 +81,7 @@ const BarChartGraph = () => {
         }));
       })
       .catch((err) => console.error("Error fetching chart data:", err));
-  }, [selectedParam, selectedPeriod]);
+  }, [selectedParam, selectedDays]);
 
   const options = {
     responsive: true,
@@ -103,8 +104,8 @@ const BarChartGraph = () => {
 
   return (
     // div className="w-[1081px] h-[482px] rounded-[15px] bg-white shadow p-6 flex flex-col">
-    
-    <div className="bg-white  rounded-xl shadow-sm p-7">
+
+    <div className="bg-white  rounded-xl  shadow-sm p-7">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
@@ -122,7 +123,7 @@ const BarChartGraph = () => {
           </select>
         </div>
 
-        <select
+        {/* <select
           onChange={(e) => setSelectedPeriod(e.target.value)}
           value={selectedPeriod}
           className="border border-gray-300 rounded px-3 py-2 text-gray-700"
@@ -132,7 +133,7 @@ const BarChartGraph = () => {
               {period}
             </option>
           ))}
-        </select>
+        </select> */}
       </div>
 
       {/* Chart */}
@@ -145,17 +146,15 @@ const BarChartGraph = () => {
         )}
       </div> */}
 
-<div className=" w-full h-[482px]">
-  <Bar
-    data={chartDataSets[selectedParam]}
-    options={{
-      responsive: true,
-      maintainAspectRatio: false,
-    }}
-  />
-</div>
-
-
+      <div className=" w-full md:h-[482px]">
+        <Bar
+          data={chartDataSets[selectedParam]}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+          }}
+        />
+      </div>
     </div>
   );
 };

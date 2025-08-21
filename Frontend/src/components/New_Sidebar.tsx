@@ -10,6 +10,7 @@ import {
   Route,
   BookOpen,
 } from "lucide-react";
+import logo from "../assets/accurate_logo.png"; // Adjust the path as necessary
 
 const Sidebar = () => {
   const [openDashboard, setOpenDashboard] = useState(true);
@@ -19,7 +20,7 @@ const Sidebar = () => {
       {/* Logo */}
       <div className="flex flex-col items-center mb-12">
         <img
-          src="../accurate_logo.png" // replace with your actual logo path
+          src="../assets/accurate_logo.png" // replace with your actual logo path
           alt="Accurate Group"
           className="h-12 object-contain"
         />
