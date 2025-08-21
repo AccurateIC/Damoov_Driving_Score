@@ -1,4 +1,4 @@
-# --- scoring thresholds unchanged ---
+
 acceleration:
   threshold: 0.047
   min_speed: 20
@@ -26,6 +26,7 @@ phone_usage:
   min_duration: 3
   max_gap: 20
 
+
 weights:
   speeding_weight: 0.20
   phone_usage_weight: 0.20
@@ -33,7 +34,6 @@ weights:
   cornering_weight: 0.20
   braking_weight: 0.20
 
-# >>> IMPORTANT: DB config <<<
 database:
   type: mysql            # "mysql" or "sqlite"
   # SQLite fallback (still supported)
@@ -81,3 +81,14 @@ numerical_features:
   - acceleration
   - deceleration
   - midSpeed
+
+database:
+  sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
+
+
+files:
+  main_data: "csv/Cleaned_SampleTable.csv"
+  sample_data: "csv/SampleTable.csv"
+  events_start: "csv/EventsStartPointTable.csv"
+  events_stop: "csv/EventsStopPointTable.csv"
+  trip_distances_output: "csv/trip_distances_from_spherical_formula.csv"
