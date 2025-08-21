@@ -1,4 +1,7 @@
 
+***Damoov_Diving_Score***
+=======
+
 ```markdown
 # 🚘 Driving Safety Score Prediction
 
@@ -130,15 +133,5 @@ pip install -r requirements.txt  # if provided
 
 Pull requests, suggestions, and improvements are welcome! Please fork the repo and submit a PR under a descriptive branch name.
 
----
 
-## 📄 License
-
-This project is licensed under the same terms as the main [Damoov\_Diving\_Score](https://github.com/AccurateIC/Damoov_Diving_Score) repository.
-
----
-
-## 🙋 Author
-
-Developed and maintained by **Prathamesh**
 

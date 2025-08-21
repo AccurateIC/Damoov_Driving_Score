@@ -35,6 +35,54 @@ weights:
   braking_weight: 0.20
 
 database:
+  type: mysql            # "mysql" or "sqlite"
+  # SQLite fallback (still supported)
+  sqlite_path: "D:/Downloadss/tracking_db/tracking_db.db"
+  # MySQL connection
+  host: "192.168.10.41"
+  port: 3306
+  user: "fleet"
+  password: "fleetpass"
+  name: "accurate_tracking_db"
+  main_table: "newSampleTable"          # << run pipeline on the CLONE
+  start_table: "EventsStartPointTable"
+  stop_table: "EventsStopPointTable"
+  old_table: "SampleTable"
+
+thresholds:
+  trip_distance_high: 0.8
+  trip_distance_medium: 0.6
+  trip_distance_min: 0.25
+
+event_thresholds:
+  acceleration_threshold: 0.8
+  braking_threshold: 0.6
+  cornering_threshold: 0.25
+
+score_weights:
+  acc_rate_fuel: 3
+  brake_rate_fuel: 2
+  speed_std_fuel: 1.5
+  acc_rate_tire: 2
+  brake_rate_tire: 2
+  corner_rate_tire: 2
+  brake_rate_brake: 4
+  distance_brake: 0.2
+  fuel_score_weight: 0.4
+  tire_score_weight: 0.3
+  brake_score_weight: 0.3
+
+model_path: models/driving_model.pkl
+target_column: safety_score
+numerical_features:
+  - acceleration_x_original
+  - acceleration_y_original
+  - acceleration_z_original
+  - acceleration
+  - deceleration
+  - midSpeed
+
+database:
   sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
 
 
