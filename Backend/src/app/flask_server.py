@@ -1,15 +1,16 @@
+
 # flask_server.py
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import pandas as pd
-import sqlite3
 from geopy.geocoders import Nominatim
 import numpy as np
 import os
 import yaml
-from sqlalchemy import create_engine
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
+from sqlalchemy.pool import QueuePool
+from functools import lru_cache
 import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -31,34 +32,63 @@ app = Flask(__name__)
 CORS(app)
 geolocator = Nominatim(user_agent="trip-location-tester")
 
-# =========================
-# Utilities
-# =========================
-def _connect():
-    """Return SQLAlchemy engine depending on db_type (mysql/sqlite)."""
+# Global engine instance
+engine = None
+
+@app.before_request
+def setup_database():
+    global engine
     if db_cfg.get("type", "sqlite").lower() == "mysql":
         user = db_cfg["user"]
         password = db_cfg["password"]
         host = db_cfg["host"]
         port = db_cfg["port"]
         name = db_cfg["name"]
-
-        # Create SQLAlchemy engine for MySQL
         engine = create_engine(
-            f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}"
+            f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}",
+            poolclass=QueuePool,
+            pool_size=10,
+            max_overflow=20,
+            pool_recycle=3600
         )
-        return engine
     else:
-        # SQLite path se direct SQLAlchemy engine banega
-        return create_engine(f"sqlite:///{db_cfg['sqlite_path']}")
+        engine = create_engine(
+            f"sqlite:///{db_cfg['sqlite_path']}",
+            poolclass=QueuePool,
+            pool_size=10,
+            max_overflow=20
+        )
 
+# =========================
+# Utilities
+# =========================
+@lru_cache(maxsize=1000)
+def cached_reverse_geocode(lat, lon):
+    """Cache geocoding results to avoid repeated requests for same coordinates"""
+    try:
+        loc = geolocator.reverse((lat, lon), language="en", timeout=10)
+        return loc.address if loc else "Unknown location"
+    except Exception:
+        return "Geocoding error"
 
 def load_data() -> pd.DataFrame:
     """Load main table and normalize to a 'timestamp' column."""
-    engine  = _connect()
-    df = pd.read_sql_query(f"SELECT * FROM {main_table}", engine )
+    df = pd.read_sql_query(f"SELECT * FROM {main_table}", engine)
     
-
+    # Optimize data types
+    if "unique_id" in df.columns:
+        df["unique_id"] = df["unique_id"].astype("int32")
+    
+    if "device_id" in df.columns:
+        df["device_id"] = df["device_id"].astype("category")
+    
+    # Convert only necessary numeric columns
+    numeric_cols = ["acc_score", "dec_score", "cor_score", "spd_score", 
+                   "phone_score", "safe_score", "trip_distance_used", "speed_kmh"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    
     # normalize timestamp
     if "timestamp" in df.columns:
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -76,6 +106,12 @@ def load_data() -> pd.DataFrame:
     df = df.dropna(subset=["timestamp"])
     return df
 
+# Cache the data for 60 seconds to avoid repeated database queries
+@lru_cache(maxsize=1)
+def load_data_cached():
+    """Load main table with caching"""
+    return load_data()
+
 def get_time_range(filter_val: str, now: pd.Timestamp):
     return {
         "last_1_week": now - timedelta(weeks=1),
@@ -84,15 +120,7 @@ def get_time_range(filter_val: str, now: pd.Timestamp):
         "last_2_months": now - timedelta(days=60)
     }.get(filter_val)
 
-def reverse_geocode(lat, lon):
-    try:
-        loc = geolocator.reverse((lat, lon), language="en", timeout=10)
-        return loc.address if loc else "Unknown location"
-    except Exception:
-        return "Geocoding error"
-
 def get_trip_points(unique_id: int) -> pd.DataFrame:
-    engine  = _connect()
     df = pd.read_sql_query(f"""
         SELECT s.UNIQUE_ID,
                s.latitude  AS start_latitude,
@@ -104,19 +132,18 @@ def get_trip_points(unique_id: int) -> pd.DataFrame:
         FROM {start_table} s
         LEFT JOIN {stop_table} e ON s.UNIQUE_ID = e.UNIQUE_ID
         WHERE s.UNIQUE_ID = %s
-    """, engine , params=(unique_id,))
+    """, engine, params=(unique_id,))
     
     return df
 
 def get_all_trip_locations(unique_id: int) -> pd.DataFrame:
-    engine  = _connect()
     df = pd.read_sql_query(f"""
         SELECT latitude, longitude, timeStart AS timestamp
         FROM {start_table} WHERE UNIQUE_ID = ?
         UNION ALL
         SELECT latitude, longitude, timeStart AS timestamp
         FROM {stop_table} WHERE UNIQUE_ID = ?
-    """, engine , params=(unique_id, unique_id))
+    """, engine, params=(unique_id, unique_id))
     
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", errors="coerce")
     return df.sort_values(by="timestamp")
@@ -127,13 +154,13 @@ def get_all_trip_locations(unique_id: int) -> pd.DataFrame:
 
 @app.route("/safe_driving_summary")
 def safe_driving_summary():
+    
     filter_val = request.args.get("filter")
-    engine  = _connect()
     df = pd.read_sql_query(f"""
         SELECT unique_id, acc_score, dec_score, cor_score, spd_score, phone_score, safe_score, timestamp
         FROM {main_table}
         WHERE safe_score IS NOT NULL
-    """, engine )
+    """, engine)
     
 
     # normalize timestamp
@@ -161,17 +188,17 @@ def safe_driving_summary():
         "speeding_score": round(filtered["spd_score"].mean(), 2),
         "phone_usage_score": round(filtered["phone_score"].mean(), 2)
     }
+
     return jsonify(summary)
 
 @app.route("/eco_driving_summary")
 def eco_driving_summary():
     filter_val = request.args.get("filter")
-    engine  = _connect()
     df = pd.read_sql_query(f"""
         SELECT unique_id, eco_score, brake_score, tire_score, fuel_score, timestamp
         FROM {main_table}
         WHERE eco_score IS NOT NULL
-    """, engine )
+    """, engine)
    
 
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
@@ -207,14 +234,13 @@ def eco_driving_summary():
 @app.route("/safety_dashboard_summary")
 def safety_dashboard_summary():
     filter_val = request.args.get("filter")
-    engine  = _connect()
-    base_df = pd.read_sql_query(f"SELECT timestamp, device_id, unique_id, trip_distance_used FROM {main_table}", conn)
+    base_df = pd.read_sql_query(f"SELECT timestamp, device_id, unique_id, trip_distance_used FROM {main_table}", engine)
     scored_df = pd.read_sql_query(f"""
         SELECT unique_id, device_id, trip_distance_used, speed_kmh, acc_score,
                dec_score, cor_score, spd_score, phone_score, safe_score, timestamp
         FROM {main_table}
         WHERE safe_score IS NOT NULL
-    """, engine )
+    """, engine)
     
 
     base_df["timestamp"] = pd.to_datetime(base_df["timestamp"], errors="coerce")
@@ -266,84 +292,57 @@ def safety_dashboard_summary():
     }
     return jsonify(summary)
 
-
-
-
 @app.route("/performance_summary")
 def performance_summary():
     filter_val = request.args.get("filter")
 
-    try:
-        with engine.begin() as conn:
-            df = pd.read_sql_query(text("SELECT * FROM trips"), conn)
-    except Exception as e:
-        return jsonify({"error": f"Database error: {e}"}), 500
+    # Load trip data
+    df = load_data()
+    if df.empty:
+        return jsonify({"error": "No trip data found"}), 404
 
-    if df.empty or "timestamp" not in df.columns:
-        return jsonify({"error": "No data available"}), 404
-
-    now = df["timestamp"].max()
+    # Time range filter
+    now = df['timestamp'].max()
     start = get_time_range(filter_val, now)
     if not start:
         return jsonify({"error": "Invalid filter"}), 400
 
-    df = df[df["timestamp"] >= start]
+    df = df[df['timestamp'] >= start]
     if df.empty:
         return jsonify({"error": "No data in selected range"}), 404
 
+    # Trips cleanup
     trip_df = df.drop_duplicates("unique_id")
-    if "trip_distance_used" in trip_df.columns:
-        trip_df = trip_df[trip_df["trip_distance_used"] <= 500]
+    trip_df = trip_df[trip_df['trip_distance_used'] <= 500]
 
-    # ✅ Single query for all trip points (no loop)
-    valid_ids = tuple(trip_df["unique_id"].tolist())
-    if not valid_ids:
-        return jsonify({"error": "No valid trips"}), 404
-
-    query = text(f"""
-        SELECT track_id AS unique_id,
-               start_latitude, end_latitude,
-               start_longitude, end_longitude,
-               start_time, end_time
-        FROM trip_points
-        WHERE track_id IN :ids
-    """)
+    # Join with devices table
     with engine.begin() as conn:
-        points_df = pd.read_sql_query(query, conn, params={"ids": valid_ids})
+        devices_df = pd.read_sql("SELECT device_id, user_id FROM devices", conn)
 
-    # ✅ filter valid trips in vectorized way
-    mask = (
-        (points_df["start_latitude"] != 0) &
-        (points_df["end_latitude"] != 0) &
-        (points_df["start_longitude"] != 0) &
-        (points_df["end_longitude"] != 0) &
-        (points_df["start_time"].notnull()) &
-        (points_df["end_time"].notnull())
-    )
-    valid_trip_ids = points_df.loc[mask, "unique_id"].unique().tolist()
+    trip_df = trip_df.merge(devices_df, on="device_id", how="left")
 
-    trip_df = trip_df[trip_df["unique_id"].isin(valid_trip_ids)]
-    df = df[df["unique_id"].isin(valid_trip_ids)]
+    # Calculate driving time
+    trip_times = df.groupby('unique_id')['timestamp'].agg(['min', 'max'])
+    total_drive_time_min = ((trip_times['max'] - trip_times['min']).dt.total_seconds().sum()) / 60
 
-    if trip_df.empty:
-        return jsonify({"error": "No valid trips found"}), 404
+    # Metrics
+    active_drivers = trip_df['device_id'].nunique()
 
-    trip_times = df.groupby("unique_id")["timestamp"].agg(["min", "max"])
-    total_drive_time_min = (
-        (trip_times["max"] - trip_times["min"]).dt.total_seconds().sum() / 60.0
-    )
+    # Devices that appeared for the first time in this range
+    historical = df[df['timestamp'] < start]['device_id'].unique().tolist()
+    new_drivers = trip_df[~trip_df['device_id'].isin(historical)]['device_id'].nunique()
 
     summary = {
-        "new_drivers": int(trip_df["device_id"].nunique()),
-        "active_drivers": int(trip_df["device_id"].nunique()),
-        "trips_number": int(trip_df["unique_id"].nunique()),
-        "mileage": round(
-            trip_df.get("trip_distance_used", pd.Series(dtype=float)).sum(), 2
-        ) if "trip_distance_used" in trip_df.columns else 0.0,
-        "time_of_driving": round(total_drive_time_min, 2),
+        "new_drivers": int(new_drivers),
+        "active_drivers": int(active_drivers),
+        "trips_number": int(trip_df['unique_id'].nunique()),
+        "mileage": round(trip_df['trip_distance_used'].sum(), 2),
+        "time_of_driving": round(total_drive_time_min, 2)
     }
 
     return jsonify(summary)
+
+
 
 
 # =========================
@@ -352,7 +351,7 @@ def performance_summary():
 
 @app.route("/trips", methods=["GET"])
 def list_trips_tripapi():
-    df = load_data()
+    df = load_data_cached()
 
     # Ensure required columns exist
     required_cols = ["unique_id", "device_id", "timestamp"]
@@ -385,7 +384,7 @@ def list_trips_tripapi():
 
 @app.route("/trips/<int:unique_id>", methods=["GET"])
 def trip_details_api(unique_id: int):
-    df = load_data()
+    df = load_data_cached()
     trip = df[df["unique_id"] == unique_id]
     if trip.empty:
         return jsonify({"error": "Trip not found"}), 404
@@ -399,7 +398,7 @@ def trip_details_api(unique_id: int):
 
 @app.route("/trips/stats/<int:unique_id>", methods=["GET"])
 def trip_stats_api(unique_id: int):
-    df = load_data()
+    df = load_data_cached()
     trip = df[df["unique_id"] == unique_id]
     if trip.empty:
         return jsonify({"error": "Trip not found"}), 404
@@ -421,8 +420,8 @@ def trip_location_api(unique_id: int):
     if df.empty:
         return jsonify({"error": "Trip not found"}), 404
     row = df.iloc[0]
-    from_loc = reverse_geocode(row["start_latitude"], row["start_longitude"])
-    to_loc   = reverse_geocode(row["end_latitude"],   row["end_longitude"])
+    from_loc = cached_reverse_geocode(row["start_latitude"], row["start_longitude"])
+    to_loc   = cached_reverse_geocode(row["end_latitude"],   row["end_longitude"])
     return jsonify({
         "unique_id": unique_id,
         "from": f"({row['start_latitude']}, {row['start_longitude']}) → {from_loc}",
@@ -443,11 +442,10 @@ def raw_locations_api(unique_id: int):
 
 @app.route("/trips/map/<int:track_id>", methods=["GET"])
 def trip_map_api(track_id: int):
-    engine  = _connect()
     df = pd.read_sql_query(f"""
         SELECT latitude, longitude, point_date AS timestamp
         FROM {map_table} WHERE track_id = ?
-    """, engine , params=(track_id,))
+    """, engine, params=(track_id,))
     
     if df.empty:
         return jsonify({"error": "Route not found"}), 404
@@ -460,7 +458,7 @@ def trip_map_api(track_id: int):
             "latitude": row["latitude"],
             "longitude": row["longitude"],
             "timestamp": str(row["timestamp"]),
-            "location": reverse_geocode(row["latitude"], row["longitude"])
+            "location": cached_reverse_geocode(row["latitude"], row["longitude"])
         })
     return jsonify({"track_id": track_id, "route": enriched})
 
@@ -474,7 +472,7 @@ def summary_graph():
     metric = params.get("metric")
     filter_val = params.get("filter_val")
 
-    df = load_data()
+    df = load_data_cached()
     now = df["timestamp"].max()
     start_date = get_time_range(filter_val, now)
     if start_date is None:
@@ -536,37 +534,43 @@ def driver_distribution():
     params = request.json or {}
     filter_val = params.get("filter_val", "last_1_month")
 
-    df = load_data()
+    # Predefine bins and labels once
+    bins = [0, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+    labels = ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"]
+
+    df = load_data_cached()
+    if df.empty or not {"timestamp","safe_score","device_id"} <= set(df.columns):
+        return jsonify({"labels": labels, "data": [0]*len(labels)})
+
     now = df["timestamp"].max()
     start_date = get_time_range(filter_val, now)
     if start_date is None:
         return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
 
-    df = df[(df["timestamp"] >= start_date) & (df.get("safe_score").notna() if "safe_score" in df.columns else False)]
+    # Filter first (reduces data size before sorting/grouping)
+    df = df[(df["timestamp"] >= start_date) & (df["safe_score"].notna())]
     if df.empty:
-        labels = ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"]
         return jsonify({"labels": labels, "data": [0]*len(labels)})
 
-    # latest record per driver
-    if "device_id" not in df.columns:
-        return jsonify({"error": f"Missing column: device_id in {main_table}"}), 400
+    # Faster way: sort once per group and take last row
+    latest = df.sort_values("timestamp").groupby("device_id", observed=True).tail(1)
 
-    df_sorted = df.sort_values(["device_id", "timestamp"])
-    idx = df_sorted.groupby("device_id")["timestamp"].idxmax()
-    latest_per_driver = df_sorted.loc[idx, ["device_id", "safe_score"]].copy()
+    # Bin into ranges
+    distribution = (
+        pd.cut(latest["safe_score"], bins=bins, labels=labels, right=False)
+          .value_counts()
+          .reindex(labels, fill_value=0)
+    )
 
-    bins = [0, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
-    labels = ["<45.0","45-50","50-55","55-60","60-65","65-70","70-75","75-80","80-85","85-90","90-95","95-100"]
-    latest_per_driver["score_range"] = pd.cut(latest_per_driver["safe_score"], bins=bins, labels=labels, right=False)
-    distribution = latest_per_driver["score_range"].value_counts().reindex(labels, fill_value=0)
     return jsonify({"labels": labels, "data": distribution.tolist()})
+
 
 @app.route("/safety_params", methods=["POST"])
 def safety_params():
     params = request.json or {}
     filter_val = params.get("filter_val")
 
-    df = load_data()
+    df = load_data_cached()
     now = df["timestamp"].max()
     start_date = get_time_range(filter_val, now)
     if start_date is None:
@@ -595,7 +599,7 @@ def safety_graph_trend():
     filter_val = params.get("filter_val", "last_1_month")
     metric = params.get("metric", "safe_score")  # safe_score, acc_score, dec_score, cor_score, spd_score, phone_score
 
-    df = load_data()
+    df = load_data_cached()
     now = df["timestamp"].max()
     start_date = get_time_range(filter_val, now)
     if start_date is None:
@@ -622,7 +626,7 @@ def mileage_daily():
     params = request.json or {}
     filter_val = params.get("filter_val", "last_1_month")
 
-    df = load_data()
+    df = load_data_cached()
     now = df["timestamp"].max()
     start = get_time_range(filter_val, now)
     if not start:
@@ -658,7 +662,7 @@ def driving_time_daily():
     params = request.json or {}
     filter_val = params.get("filter_val", "last_1_month")
 
-    df = load_data()
+    df = load_data_cached()
     now = df["timestamp"].max()
     start = get_time_range(filter_val, now)
     if not start:
@@ -690,15 +694,27 @@ def driving_time_daily():
         "data": daily_time["drive_time_min"].round(2).tolist()
     })
 
+# Health check endpoint
+@app.route("/health")
+def health_check():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return jsonify({"status": "healthy", "database": "connected"})
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "error": str(e)}), 500
+
 # =========================
 # Run
 # =========================
 if __name__ == "__main__":
-    try:
-        engine = _connect()
+    # Initialize database connection
+    setup_database()
+    
+    if engine:
         print("[INFO] Database connection successful ✅")
-    except Exception as e:
-        print(f"[ERROR] Could not connect to database: {e}")
+    else:
+        print("[ERROR] Could not connect to database")
         exit(1)
 
     app.run(host="0.0.0.0", port=5000, debug=True)
