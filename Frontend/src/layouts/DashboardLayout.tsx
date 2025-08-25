@@ -6,7 +6,7 @@ import Sidebar from '../components/New_Sidebar';
 
 const DashboardLayout = () => {
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen gap-[32px] overflow-hidden">
       <Sidebar />
 
       <div className="flex flex-col flex-1">

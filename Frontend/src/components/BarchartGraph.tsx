@@ -105,9 +105,9 @@ console.log("selectedDays",selectedDays);
   return (
     // div className="w-[1081px] h-[482px] rounded-[15px] bg-white shadow p-6 flex flex-col">
 
-    <div className="bg-white  rounded-xl  shadow-sm p-7">
+    <div className="bg-white md:w-[1500px]  rounded-xl  shadow-sm p-7">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between w-[1081px] items-center mb-6">
         <div className="flex items-center gap-3">
           <span className="text-gray-600 font-medium">Performance for</span>
           <select

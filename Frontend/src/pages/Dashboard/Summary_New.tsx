@@ -225,7 +225,7 @@ const Summary: React.FC = () => {
   return (
     <div className="min-h-screen py-6 px-4 md:px-10 font-inter">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 w-[80vw]  border-rounded-lg  rounded-full bg-white shadow-sm p-4  ">
+      <div className="flex items-center justify-between mb-4 w-[79vw]  border-rounded-lg  rounded-full bg-white shadow-sm p-4  ">
         <div>
           <p className="text-xs  text-gray-500  mb-1">Good Morning,</p>
           <h1 className="text-lg font-semibold text-gray-800">Atharva D</h1>
@@ -261,7 +261,7 @@ const Summary: React.FC = () => {
       </p>
 
       {/* Tabs + Filter */}
-      <div className="flex flex-wrap items-center justify-between w-[80vw] gap-4 mb-8 ">
+      <div className="flex flex-wrap items-center justify-between w-[78vw] gap-4 mb-8 ">
         <div className="flex gap-6">
           {["performance", "safe", "eco"].map((tab) => (
             <button
@@ -286,7 +286,7 @@ const Summary: React.FC = () => {
           <select
             value={selectedDays}
             onChange={(e) => setSelectedDays(Number(e.target.value))}
-            className="border border-green-600 text-green-600 bg-white px-3 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="border border-green-600 text-green-600 bg-white  py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value={7}>Last 7 Days</option>
             <option value={14}>Last 14 Days</option>
@@ -297,7 +297,7 @@ const Summary: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8 w-[80vw]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8 w-[78vw]">
         {getCurrentTabData().map((stat) => (
           <div
             key={stat.metric}
