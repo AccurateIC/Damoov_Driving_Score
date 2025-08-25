@@ -72,7 +72,7 @@ console.log("selectedDays",selectedDays);
                   const lastIndex = values.length - 1;
                   return index === lastIndex
                     ? "#4338CA"
-                    : "rgba(79,70,229,0.3)"; // dark blue for latest
+                    : "rgba(105, 118, 235, 0.39)"; // dark blue for latest
                 },
                 borderRadius: 8,
               },
@@ -105,15 +105,15 @@ console.log("selectedDays",selectedDays);
   return (
     // div className="w-[1081px] h-[482px] rounded-[15px] bg-white shadow p-6 flex flex-col">
 
-    <div className="bg-white  rounded-xl  shadow-sm p-7">
+    <div className=" md:w-[1081px] md:h-[482px]  rounded-xl  shadow-sm ">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <span className="text-gray-600 font-medium">Performance for</span>
+      <div className="flex justify-between p items-center ">
+        <div className="flex items-center gap-3 text-base font-medium md:w-[1081px] md:h-[41px] pt-[48px] pb-[35px] pl-[50px]">
+          <span className="text-gray-600 text-base font-medium ">Performance for</span>
           <select
             onChange={(e) => setSelectedParam(e.target.value)}
             value={selectedParam}
-            className="border border-gray-300 rounded px-3 py-2 text-gray-700"
+            className="border border-gray-300 rounded  text-gray-700"
           >
             {Object.keys(chartDataSets).map((param) => (
               <option key={param} value={param}>
@@ -122,31 +122,8 @@ console.log("selectedDays",selectedDays);
             ))}
           </select>
         </div>
-
-        {/* <select
-          onChange={(e) => setSelectedPeriod(e.target.value)}
-          value={selectedPeriod}
-          className="border border-gray-300 rounded px-3 py-2 text-gray-700"
-        >
-          {Object.keys(filterMap).map((period) => (
-            <option key={period} value={period}>
-              {period}
-            </option>
-          ))}
-        </select> */}
       </div>
-
-      {/* Chart */}
-      {/* <div className="flex-1">
-        {chartDataSets[selectedParam]?.labels?.length > 0 && (
-          <Bar
-            data={chartDataSets[selectedParam]}
-            options={options}
-          />
-        )}
-      </div> */}
-
-      <div className=" w-full md:h-[482px]">
+      <div className="md:h-[352px] md:w-[1070px] pl-[45.86px]  ">
         <Bar
           data={chartDataSets[selectedParam]}
           options={{

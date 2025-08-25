@@ -223,18 +223,19 @@ const Summary: React.FC = () => {
   // );
 
   return (
-    <div className="min-h-screen py-6 px-4 md:px-10 font-inter">
+    <div className="min-h-screen md:mx-[32px] px-4  ">
+      
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 w-[80vw]  border-rounded-lg  rounded-full bg-white shadow-sm p-4  ">
+      {/* <div className="flex items-center justify-between mb-4 w-[80vw]  border-rounded-lg  rounded-full bg-white shadow-sm p-4  ">
         <div>
           <p className="text-xs  text-gray-500  mb-1">Good Morning,</p>
           <h1 className="text-lg font-semibold text-gray-800">Atharva D</h1>
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Notification Bell */}
+          
           <button className="relative p-2 rounded-full hover:bg-gray-100">
-            {/* Red Dot Ping */}
+           
             <span className="absolute top-1 right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -243,7 +244,7 @@ const Summary: React.FC = () => {
             <Bell className="w-6 h-6 text-gray-600" />
           </button>
 
-          {/* Avatar */}
+        
           <button className="relative p-2 rounded-full hover:bg-gray-100">
             <div className="w-10 h-10 rounded-full bg-violet-200 flex items-center justify-center text-lg">
               <span role="img" aria-label="avatar">
@@ -252,84 +253,82 @@ const Summary: React.FC = () => {
             </div>
           </button>
         </div>
-      </div>
-
+      </div> */}
       {/* Breadcrumb */}
-      <p className="mb-4 text-x text-gray-400 ">
-        Dashboard &gt;{" "}
-        <span className="font-bold text-xl  text-gray-800">Summary</span>
-      </p>
-
+      <div>
+        <p className="md:w-[204px] md:h-[30px] font-medium text-gray-400 mb-[23px]">
+          Dashboard &gt;{" "}
+          <span className="font-bold text-xl  text-gray-800">Summary</span>
+        </p>
+      </div>
       {/* Tabs + Filter */}
-      <div className="flex flex-wrap items-center justify-between w-[80vw] gap-4 mb-8 ">
-        <div className="flex gap-6">
-          {["performance", "safe", "eco"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as any)}
-              className={`text-sm font-semibold capitalize pb-2 transition-colors duration-200 ${
-                activeTab === tab
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab === "performance"
-                ? "Performance"
-                : tab === "safe"
-                ? "Safe Driving"
-                : "Eco Driving"}
-            </button>
-          ))}
-        </div>
-        
-        <div>
-          <select
-            value={selectedDays}
-            onChange={(e) => setSelectedDays(Number(e.target.value))}
-            className="border border-green-600 text-green-600 bg-white px-3 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <option value={7}>Last 7 Days</option>
-            <option value={14}>Last 14 Days</option>
-            <option value={30}>Last 30 Days</option>
-            <option value={60}>Last 60 Days</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8 w-[80vw]">
-        {getCurrentTabData().map((stat) => (
-          <div
-            key={stat.metric}
-            className="bg-white mb-4  rounded-xl shadow-sm px-6 py-5 hover:shadow-md transition-shadow"
-          >
-            <p className="text-sm text-gray-400">{stat.metric}</p>
-            <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
+        <div className="flex flex-col -full max-w-[1080px] mx-auto  gap-8  ">
+        <div className=" flex  justify-between  ">
+            <div className="flex md:gap-[32px] md:mx-[12px]   ">
+            {["performance", "safe", "eco"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`text-[18px] font-semibold capitalize pb-2 transition-colors duration-200 ${
+                  activeTab === tab
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab === "performance"
+                  ? "Performance"
+                  : tab === "safe"
+                  ? "Safe Driving"
+                  : "Eco Driving"}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-
-      
+            <select
+              value={selectedDays}
+              onChange={(e) => setSelectedDays(Number(e.target.value))}
+              className="border shrink-0 md:w-[115px] md:h-[42px] bg-white px-3 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value={7}>Last 7 Days</option>
+              <option value={14}>Last 14 Days</option>
+              <option value={30}>Last 30 Days</option>
+              <option value={60}>Last 60 Days</option>
+            </select>
+        </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2  gap-8 md:grid-cols-5  mb-8">
+            {getCurrentTabData().map((stat) => (
+              <div
+                key={stat.metric}
+                className="bg-white  mb-4 md:w-[186px] md:h-[162px] rounded-xl shadow-sm p-8  hover:shadow-md transition-shadow"
+              >
+                <p className="text-sm font-medium  text-gray-400  ">{stat.metric}</p>
+                <p className="text-4xl  font-bold text-gray-800">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+     
 
       {/* Chart + Tables Section */}
-      <div className="space-y-8 w-[80vw]">
+      <div className=" md:w-[1081px]">
         <div className=" ">
           <BarChartGraph selectedDays={selectedDays} />
         </div>
 
-        <div className=" w-[80vw] ">
+        <div className=" w-[80vw]  mt-[32px]">
           <Dashboard selectedDays={selectedDays} />
-          Accurate Group
+         
         </div>
 
-        <div className=" p-">
+        <div className=" mt-[32px]">
           <TopDriversTable top10Aggresive={top10Aggresive} />
         </div>
 
-        <div className=" p-">
+        <div className=" mt-[32px]">
           <TopDriversTable top10Aggresive={top10Safe} />
         </div>
       </div>
+
     </div>
   );
 };
