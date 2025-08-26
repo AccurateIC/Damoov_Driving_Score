@@ -2,7 +2,7 @@ import pandas as pd
 from flask import request, jsonify
 from src.app.db_queries import (
     load_main_table, load_main_table_cached,
-    get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df
+    get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df, get_trip_points
 )
 from src.app.utils.helpers import get_time_range
 
@@ -253,42 +253,65 @@ def safety_dashboard_summary():
     return jsonify(summary)
 
 def performance_summary():
-    filter_val = request.args.get("filter", "last_1_month")
+    filter_val = request.args.get("filter")
 
-    # Load datasets
-    df = get_performance_data()
-    devices = get_devices_table()
-
+    # Load only required columns
+    cols = ["unique_id", "device_id", "trip_distance_used", "timestamp"]
+    df = load_df(required_cols=cols)
+    df = df.dropna(subset=["timestamp"])
     if df.empty:
         return jsonify({"error": "No data"}), 404
 
+    # Time range filter
     now = df["timestamp"].max()
     start = get_time_range(filter_val, now)
-    if start is None:
+    if not start:
         return jsonify({"error": "Invalid filter"}), 400
 
     df = df[df["timestamp"] >= start]
     if df.empty:
-        return jsonify({"error": "No data"}), 404
+        return jsonify({"error": "No data in selected range"}), 404
 
-    # Latest record per device
-    latest = (
-        df.sort_values("timestamp")
-          .groupby("device_id", observed=True)
-          .tail(1)
-    )
+    # One row per trip
+    trip_df = df.drop_duplicates("unique_id")
 
-    # Metrics
+    # Filter trips with valid distance
+    trip_df = trip_df[trip_df["trip_distance_used"] <= 500]
+
+    if trip_df.empty:
+        return jsonify({"error": "No valid trips"}), 404
+
+    # --- BATCH LOAD TRIP POINTS ---
+    trip_ids = trip_df["unique_id"].tolist()
+    all_points = pd.concat([get_trip_points(uid) for uid in trip_ids])
+    
+    # Group by trip and check validity in vectorized way
+    grouped = all_points.groupby("UNIQUE_ID")
+    valid_trip_ids = grouped.filter(
+        lambda g: (
+            g.iloc[0]["start_latitude"] != 0 and g.iloc[0]["end_latitude"] != 0 and
+            g.iloc[0]["start_longitude"] != 0 and g.iloc[0]["end_longitude"] != 0 and
+            pd.notna(g.iloc[0]["start_time"]) and pd.notna(g.iloc[0]["end_time"])
+        )
+    )["UNIQUE_ID"].unique()
+
+    if len(valid_trip_ids) == 0:
+        return jsonify({"error": "No valid trips"}), 404
+
+    # Filter original data
+    trip_df = trip_df[trip_df["unique_id"].isin(valid_trip_ids)]
+    df = df[df["unique_id"].isin(valid_trip_ids)]
+
+    # Driving time
+    trip_times = df.groupby("unique_id")["timestamp"].agg(["min", "max"])
+    total_drive_time_min = ((trip_times["max"] - trip_times["min"]).dt.total_seconds().sum()) / 60
+
     summary = {
-        "safety_score": round(latest["safe_score"].mean(), 2),
-        "acceleration": round(latest["acc_score"].mean(), 2),
-        "braking": round(latest["dec_score"].mean(), 2),
-        "cornering": round(latest["cor_score"].mean(), 2),
-        "speeding": round(latest["spd_score"].mean(), 2),
-        "phone_usage": round(latest["phone_score"].mean(), 2),
-        "registered_assets": int(devices["device_id"].nunique()),
-        "active_assets": int(latest["device_id"].nunique()),
-        "trips": int(df["unique_id"].nunique()),
-        "driving_time_minutes": round((df["timestamp"].max() - df["timestamp"].min()).total_seconds() / 60.0, 2)
+        "new_drivers": trip_df["device_id"].nunique(),
+        "active_drivers": trip_df["device_id"].nunique(),
+        "trips_number": trip_df["unique_id"].nunique(),
+        "mileage": round(trip_df["trip_distance_used"].sum(), 2),
+        "time_of_driving": round(total_drive_time_min, 2)
     }
+
     return jsonify(summary)
