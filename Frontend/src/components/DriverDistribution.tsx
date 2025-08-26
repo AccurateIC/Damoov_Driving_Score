@@ -155,14 +155,14 @@ console.log("selectedDays",selectedDays);
 //   </div>
 // </div>
 
-<div className="flex flex-col md:flex-row gap-6">
+<div className="flex flex-col md:flex-row gap-8 md:wd-[]  md:w-[1081px]">
   {/* Left card - Driver Distribution */}
-  <div className="bg-white rounded-2xl md:w-[1060px] shadow p-6 ">
+  <div className=" rounded-2xl shadow p-6  md:w-[773px]">
     <div className="flex justify-between items-center mb-4">
       <h2 className="text-lg font-semibold">Driver Distribution</h2>
     </div>
 
-    <ResponsiveContainer height={400}>
+    <ResponsiveContainer  height={400}>
       <BarChart data={driverData} layout="vertical" margin={{ left: 40 }}>
         <XAxis type="number" />
         <YAxis dataKey="range" type="category" />
@@ -176,7 +176,7 @@ console.log("selectedDays",selectedDays);
   </div>
 
   {/* Right card - Safety Parameters */}
-  <div className="bg-white rounded-2xl shadow p-6 flex flex-col md:w-[410px]">
+  <div className=" rounded-2xl shadow p-6 flex flex-col md:w-[276px]">
     <h2 className="text-lg font-semibold mb-4">Safety Parameters</h2>
 
     <div className="flex justify-center">
@@ -195,7 +195,7 @@ console.log("selectedDays",selectedDays);
           name="Score"
           dataKey="A"
           stroke="#4f46e5"
-          fill="#6366f1"
+          fill="#B5B6D5"
           fillOpacity={0.6}
         />
       </RadarChart>
