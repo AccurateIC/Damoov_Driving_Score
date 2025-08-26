@@ -2,7 +2,7 @@ import pandas as pd
 from flask import request, jsonify
 from src.app.db_queries import (
     load_main_table, load_main_table_cached,
-    get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df, get_trip_points
+    get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df, get_trip_points_batch
 )
 from src.app.utils.helpers import get_time_range
 
@@ -252,7 +252,7 @@ def safety_dashboard_summary():
 
     return jsonify(summary)
 
-def performance_summary():
+"""def performance_summary():
     filter_val = request.args.get("filter")
 
     # Load only required columns
@@ -314,4 +314,63 @@ def performance_summary():
         "time_of_driving": round(total_drive_time_min, 2)
     }
 
+    return jsonify(summary)"""
+
+def performance_summary():
+    filter_val = request.args.get("filter")
+
+    # Load minimal data
+    cols = ["unique_id", "device_id", "trip_distance_used", "timestamp"]
+    df = load_df(required_cols=cols).dropna(subset=["timestamp"])
+    if df.empty:
+        return jsonify({"error": "No data"}), 404
+
+    # Time range
+    now = df["timestamp"].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+    df = df[df["timestamp"] >= start]
+    if df.empty:
+        return jsonify({"error": "No data in selected range"}), 404
+
+    # One row per trip
+    trip_df = df.drop_duplicates("unique_id")
+    trip_df = trip_df[trip_df["trip_distance_used"] <= 500]
+    if trip_df.empty:
+        return jsonify({"error": "No valid trips"}), 404
+
+    # --- OPTIMIZED: Batch load trip points ---
+    trip_ids = trip_df["unique_id"].tolist()
+    all_points = get_trip_points_batch(trip_ids)  # new batch function
+
+    # Vectorized validity filter
+    mask = (
+        (all_points["start_latitude"] != 0) &
+        (all_points["end_latitude"] != 0) &
+        (all_points["start_longitude"] != 0) &
+        (all_points["end_longitude"] != 0) &
+        (all_points["start_time"].notna()) &
+        (all_points["end_time"].notna())
+    )
+    valid_trip_ids = all_points.loc[mask, "UNIQUE_ID"].unique()
+    if len(valid_trip_ids) == 0:
+        return jsonify({"error": "No valid trips"}), 404
+
+    # Final filtered data
+    trip_df = trip_df[trip_df["unique_id"].isin(valid_trip_ids)]
+    df = df[df["unique_id"].isin(valid_trip_ids)]
+
+    # Driving time
+    trip_times = df.groupby("unique_id")["timestamp"].agg(["min", "max"])
+    total_drive_time_min = ((trip_times["max"] - trip_times["min"]).dt.total_seconds().sum()) / 60
+
+    summary = {
+        "new_drivers": trip_df["device_id"].nunique(),
+        "active_drivers": trip_df["device_id"].nunique(),
+        "trips_number": trip_df["unique_id"].nunique(),
+        "mileage": round(trip_df["trip_distance_used"].sum(), 2),
+        "time_of_driving": round(total_drive_time_min, 2)
+    }
     return jsonify(summary)
+

@@ -14,7 +14,6 @@ map_table   = db_cfg["map_table"]
 # Always fetch a valid engine just before querying
 def get_engine():
     return setup_database()
-
 # ---------- core loaders ----------
 
 def load_main_table() -> pd.DataFrame:
@@ -97,6 +96,31 @@ def get_trip_points(unique_id: int) -> pd.DataFrame:
         WHERE s.UNIQUE_ID = :uid
     """)
     return pd.read_sql(sql, con=engine, params={"uid": unique_id})
+
+def get_trip_points_batch(unique_ids: list[int]) -> pd.DataFrame:
+    """
+    Fetch start and end points for multiple trips in one query.
+    Much faster than calling get_trip_points() inside a loop.
+    """
+    if not unique_ids:
+        return pd.DataFrame()
+
+    engine = get_engine()
+    sql = text(f"""
+        SELECT s.UNIQUE_ID,
+               s.latitude  AS start_latitude,
+               s.longitude AS start_longitude,
+               s.timeStart AS start_time,
+               e.latitude  AS end_latitude,
+               e.longitude AS end_longitude,
+               e.timeStart AS end_time
+        FROM {start_table} s
+        LEFT JOIN {stop_table} e 
+               ON s.UNIQUE_ID = e.UNIQUE_ID
+        WHERE s.UNIQUE_ID IN :uids
+    """)
+    
+    return pd.read_sql(sql, con=engine, params={"uids": tuple(unique_ids)})
 
 def get_all_trip_locations(unique_id: int) -> pd.DataFrame:
     engine = get_engine()

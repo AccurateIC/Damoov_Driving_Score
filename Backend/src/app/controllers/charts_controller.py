@@ -6,7 +6,7 @@ from src.app.utils.helpers import get_time_range
 from src.app.db_queries import get_safety_graph_data
 
 # ---------- /summary_graph (POST) ----------
-def summary_graph():
+"""def summary_graph():
     params = request.json or {}
     metric = params.get("metric")
     filter_val = params.get("filter_val")
@@ -96,6 +96,47 @@ def summary_graph():
         "data": series.tolist(),
     })
 
+"""
+
+def summary_graph():
+    params = request.json or {}
+    metric = params.get("metric")
+    filter_val = params.get("filter_val")
+
+    metric_map = {
+        "Safety score": "safe_score", "Acceleration": "acc_score",
+        "Braking": "dec_score", "Cornering": "cor_score",
+        "Speeding": "spd_score", "Phone usage": "phone_score",
+        "Registered assets": "device_id", "Active assets": "device_id",
+        "Trips": "unique_id", "Driving time": "timestamp",
+    }
+    if metric not in metric_map:
+        return jsonify({"error": f"Unsupported metric: {metric}"}), 400
+
+    col = metric_map[metric]
+    df = load_df(["timestamp", col])  # ✅ only needed cols
+    if df.empty:
+        return jsonify({"metric": metric, "labels": [], "data": []})
+
+    now, start_date = df["timestamp"].max(), get_time_range(filter_val, df["timestamp"].max())
+    if not start_date: return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
+
+    df = df[df["timestamp"] >= start_date]
+    if df.empty: return jsonify({"metric": metric, "labels": [], "data": []})
+
+    # Special cases
+    if metric == "Trips":
+        grp = df.groupby(df["timestamp"].dt.date)["unique_id"].nunique()
+    elif metric == "Driving time":
+        grp = df.groupby(df["timestamp"].dt.date).apply(
+            lambda g: (g["timestamp"].max() - g["timestamp"].min()).total_seconds()/60
+        )
+    elif metric in ["Registered assets", "Active assets"]:
+        return jsonify({"metric": metric, "labels": [metric], "data": [df["device_id"].nunique()]})
+    else:
+        grp = df.groupby(df["timestamp"].dt.date)[col].mean().round(2)
+
+    return jsonify({"metric": metric, "labels": grp.index.astype(str).tolist(), "data": grp.tolist()})
 
 # ---------- /driver_distribution (POST) ----------
 def driver_distribution():
