@@ -1,0 +1,90 @@
+
+acceleration:
+  threshold: 0.047
+  min_speed: 20
+  min_duration: 0.5
+  max_gap: 3
+
+deceleration:
+  dec_threshold: 0.466
+  min_speed: 20
+  min_duration: 0.5
+  max_gap: 3
+
+cornering:
+  accy_threshold: 0.18
+  min_speed: 20
+  min_duration: 0.6
+  max_gap: 3
+
+speeding:
+  speed_limit: 40
+  min_duration: 3
+  max_gap: 5
+
+phone_usage:
+  min_duration: 3
+  max_gap: 20
+
+weights:
+  speeding_weight: 0.20
+  phone_usage_weight: 0.20
+  acceleration_weight: 0.20
+  cornering_weight: 0.20
+  braking_weight: 0.20
+
+database:
+  type: mysql            # "mysql" or "sqlite"
+  # SQLite fallback (still supported)
+  sqlite_path: "D:/Downloadss/tracking_db/tracking_db.db"
+  # MySQL connection
+  host: "192.168.10.41"
+  port: 3306
+  user: "fleet"
+  password: "fleetpass"
+  name: "accurate_tracking_db"
+  main_table: "newSampleTable"          
+  start_table: "EventsStartPointTable"
+  stop_table: "EventsStopPointTable"
+  old_table: "SampleTable"
+  map_table: "LastKnownPointTable"
+
+thresholds:
+  trip_distance_high: 0.8
+  trip_distance_medium: 0.6
+  trip_distance_min: 0.25
+
+event_thresholds:
+  acceleration_threshold: 0.8
+  braking_threshold: 0.6
+  cornering_threshold: 0.25
+
+score_weights:
+  acc_rate_fuel: 3
+  brake_rate_fuel: 2
+  speed_std_fuel: 1.5
+  acc_rate_tire: 2
+  brake_rate_tire: 2
+  corner_rate_tire: 2
+  brake_rate_brake: 4
+  distance_brake: 0.2
+  fuel_score_weight: 0.4
+  tire_score_weight: 0.3
+  brake_score_weight: 0.3
+
+model_path: models/driving_model.pkl
+target_column: safety_score
+numerical_features:
+  - acceleration_x_original
+  - acceleration_y_original
+  - acceleration_z_original
+  - acceleration
+  - deceleration
+  - midSpeed
+
+files:
+  main_data: "csv/Cleaned_SampleTable.csv"
+  sample_data: "csv/SampleTable.csv"
+  events_start: "csv/EventsStartPointTable.csv"
+  events_stop: "csv/EventsStopPointTable.csv"
+  trip_distances_output: "csv/trip_distances_from_spherical_formula.csv"
