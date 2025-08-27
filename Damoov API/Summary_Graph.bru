@@ -1,0 +1,19 @@
+meta {
+  name: Summary_Graph
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://127.0.0.1:5000/summary_graph
+  body: json
+  auth: inherit
+}
+
+body:json {
+  { "filter_val": "last_2_months", "metric": "Driving time" }
+}
+
+settings {
+  encodeUrl: true
+}
