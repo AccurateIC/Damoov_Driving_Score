@@ -25,7 +25,7 @@ const Sidebar = () => {
           <img
             src={logo} // replace with your actual logo path
             alt="Accurate Group"
-            className="h-12 object-contain"
+            className="object-contain "
           />
         </div>
 
