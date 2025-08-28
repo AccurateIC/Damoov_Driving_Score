@@ -12,7 +12,7 @@ const drivers = [
 
 const TopDriversTable = ({ top10Aggresive }: { top10Aggresive: string }) => {
   return (
-    <div className="bg-white rounded-2xl shadow p-6 md:-w-[100px]">
+    <div className="bg-white rounded-2xl shadow p-6 md:-w-[100px] mb-4">
       <h2 className="text-gray-800 text-lg font-semibold mb-4">
         {top10Aggresive}
       </h2>

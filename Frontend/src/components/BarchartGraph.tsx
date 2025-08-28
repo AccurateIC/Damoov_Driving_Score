@@ -28,22 +28,22 @@ const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
   const [chartDataSets, setChartDataSets] = useState<
     Record<string, ChartDataset>
   >({
-    "Trips": { labels: [], datasets: [] },
+    Trips: { labels: [], datasets: [] },
     "Driving time": { labels: [], datasets: [] },
     "Safety score": { labels: [], datasets: [] },
-    "Acceleration": { labels: [], datasets: [] },
-    "Braking": { labels: [], datasets: [] },
-    "Cornering": { labels: [], datasets: [] },
-    "Speeding": { labels: [], datasets: [] },
+    Acceleration: { labels: [], datasets: [] },
+    Braking: { labels: [], datasets: [] },
+    Cornering: { labels: [], datasets: [] },
+    Speeding: { labels: [], datasets: [] },
     "Phone usage": { labels: [], datasets: [] },
   });
 
-const filterMap: Record<number, string> = {
-  7: "last_1_week",
-  14: "last_2_weeks",
-  30: "last_1_month",
-  60: "last_2_months",
-};
+  const filterMap: Record<number, string> = {
+    7: "last_1_week",
+    14: "last_2_weeks",
+    30: "last_1_month",
+    60: "last_2_months",
+  };
 
   useEffect(() => {
     fetch("http://127.0.0.1:5000/summary_graph", {
@@ -57,7 +57,7 @@ const filterMap: Record<number, string> = {
       .then((res) => res.json())
       .then((data) => {
         const { labels, data: values, metric } = data;
-console.log("selectedDays",selectedDays);
+        console.log("selectedDays", selectedDays);
         setChartDataSets((prev) => ({
           ...prev,
           [metric]: {
@@ -105,25 +105,38 @@ console.log("selectedDays",selectedDays);
   return (
     // div className="w-[1081px] h-[482px] rounded-[15px] bg-white shadow p-6 flex flex-col">
 
-    <div className=" md:w-[1081px] md:h-[482px]  rounded-xl  shadow-sm ">
+    <div
+      className=" 
+    // 2xl:max-w-[1530px] 
+  //  2xl:max-h-[830px]
+    2xl:bg-white
+    2xl:min-h-[310px]
+     max-w-[1081px]  xl:max-w-[1200px] 2xl:max-h-[1840px]  
+    rounded-xl  shadow-sm "
+    >
       {/* Header */}
-      <div className="flex justify-between p items-center ">
-        <div className="flex items-center gap-3 text-base font-medium md:w-[1081px] md:h-[41px] pt-[48px] pb-[35px] pl-[50px]">
-          <span className="text-gray-600 text-base font-medium ">Performance for</span>
-          <select
-            onChange={(e) => setSelectedParam(e.target.value)}
-            value={selectedParam}
-            className="border border-gray-300 rounded  text-gray-700"
-          >
-            {Object.keys(chartDataSets).map((param) => (
-              <option key={param} value={param}>
-                {param}
-              </option>
-            ))}
-          </select>
-        </div>
+
+      <div className="flex items-center gap-3 text-base font-medium  2xl:max-w-[1500px]   pt-[20px] pb-[5px] pl-[50px]">
+        <span className="text-gray-600 text-base font-medium ">
+          Performance for
+        </span>
+        <select
+          onChange={(e) => setSelectedParam(e.target.value)}
+          value={selectedParam}
+          className="border border-gray-300 rounded 2xl:max-w-[158px] text-gray-700 px-3 focus:outline-none p-1"
+        >
+          {Object.keys(chartDataSets).map((param) => (
+            <option key={param} value={param}>
+              {param}
+            </option>
+          ))}
+        </select>
       </div>
-      <div className="md:h-[352px] md:w-[1070px] pl-[45.86px]  ">
+
+      <div className=" 2xl:max-w-[1470px]  
+      // 2xl:max-h-[830px] 
+      2xl:min-h-[380px]
+      pl-[45.86px]  ">
         <Bar
           data={chartDataSets[selectedParam]}
           options={{

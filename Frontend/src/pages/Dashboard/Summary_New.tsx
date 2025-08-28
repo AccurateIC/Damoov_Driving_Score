@@ -144,7 +144,6 @@ const Summary: React.FC = () => {
     return performanceData;
   };
 
-  //   <div className="bg-gray-50 min-h-screen py-8 px-4 md:px-12 font-inter">
   //     {/* Header */}
   //     <div className="flex items-center justify-between mb-2">
   //       <div>
@@ -223,112 +222,138 @@ const Summary: React.FC = () => {
   // );
 
   return (
-    <div className="min-h-screen md:mx-[32px] px-4  ">
-      
-      {/* Header */}
-      {/* <div className="flex items-center justify-between mb-4 w-[80vw]  border-rounded-lg  rounded-full bg-white shadow-sm p-4  ">
-        <div>
-          <p className="text-xs  text-gray-500  mb-1">Good Morning,</p>
-          <h1 className="text-lg font-semibold text-gray-800">Atharva D</h1>
-        </div>
-
-        <div className="flex items-center gap-4">
-          
-          <button className="relative p-2 rounded-full hover:bg-gray-100">
-           
-            <span className="absolute top-1 right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </span>
-
-            <Bell className="w-6 h-6 text-gray-600" />
-          </button>
-
-        
-          <button className="relative p-2 rounded-full hover:bg-gray-100">
-            <div className="w-10 h-10 rounded-full bg-violet-200 flex items-center justify-center text-lg">
-              <span role="img" aria-label="avatar">
-                🧑‍💼
-              </span>
-            </div>
-          </button>
-        </div>
-      </div> */}
-      {/* Breadcrumb */}
+    <div className="min-h-screen  px-4 pt-1  ">
       <div>
-        <p className="md:w-[204px] md:h-[30px] font-medium text-gray-400 mb-[23px]">
-          Dashboard &gt;{" "}
-          <span className="font-bold text-xl  text-gray-800">Summary</span>
-        </p>
-      </div>
-      {/* Tabs + Filter */}
-        <div className="flex flex-col -full max-w-[1080px] mx-auto  gap-8  ">
-        <div className=" flex  justify-between  ">
+        {/* Breadcrumb */}
+        <div
+          className="  2xl:mx-[32px] xl:mx-[32px] 
+       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px]
+       "
+        >
+          <p className="md:w-[204px]  md:h-[30px] font-medium text-gray-400 mb-[23px]">
+            Dashboard &gt;{" "}
+            <span className="font-bold text-xl  text-gray-800">Summary</span>
+          </p>
+        </div>
+        {/* Tabs + Filter */}
+        <div
+          className="flex flex-col 
+        // 2xl:max-h-[478px]
+        //  max-w-[1080px]   xl:max-w-[1200px]  2xl:max-w-[1530px] 
+        max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] 
+        gap-8  "
+        >
+          <div className=" flex  justify-between  ">
             <div className="flex md:gap-[32px] md:mx-[12px]   ">
-            {["performance", "safe", "eco"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`text-[18px] font-semibold capitalize pb-2 transition-colors duration-200 ${
-                  activeTab === tab
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {tab === "performance"
-                  ? "Performance"
-                  : tab === "safe"
-                  ? "Safe Driving"
-                  : "Eco Driving"}
-              </button>
-            ))}
-          </div>
-            <select
+              {["performance", "safe", "eco"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as any)}
+                  className={`text-[18px] font-semibold capitalize pb-2 transition-colors duration-200 ${
+                    activeTab === tab
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {tab === "performance"
+                    ? "Performance"
+                    : tab === "safe"
+                    ? "Safe Driving"
+                    : "Eco Driving"}
+                </button>
+              ))}
+            </div>
+            {/* <select
               value={selectedDays}
               onChange={(e) => setSelectedDays(Number(e.target.value))}
-              className="border shrink-0 md:w-[115px] md:h-[42px] bg-white px-3 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="border shrink-0 md:w-[115px] md:h-[42px] 2xl:w-[145px] 2xl:h-[42px] bg-white  px-2 2xl:mx-[10px]   
+              rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value={7}>Last 7 Days</option>
               <option value={14}>Last 14 Days</option>
               <option value={30}>Last 30 Days</option>
               <option value={60}>Last 60 Days</option>
-            </select>
-        </div>
+            </select> */}
+            <div className="relative">
+  <select
+    value={selectedDays}
+    onChange={(e) => setSelectedDays(Number(e.target.value))}
+    className="
+      border 
+      md:w-[115px] md:h-[42px] 2xl:w-[145px] 2xl:h-[42px]
+      bg-white px-2 pr-8 2xl:mx-[1px]   
+      rounded-md text-sm
+       focus:outline-none
+      appearance-none
+    "
+  >
+    <option value={7}>Last 7 Days</option>
+    <option value={14}>Last 14 Days</option>
+    <option value={30}>Last 30 Days</option>
+    <option value={60}>Last 60 Days</option>
+  </select>
+
+  {/* Custom dropdown arrow */}
+  <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-500">
+    ▼
+  </div>
+</div>
+
+          </div>
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2  gap-8 md:grid-cols-5  mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">
             {getCurrentTabData().map((stat) => (
               <div
                 key={stat.metric}
-                className="bg-white  mb-4 md:w-[186px] md:h-[162px] rounded-xl shadow-sm p-8  hover:shadow-md transition-shadow"
+                className="flex flex-col bg-white mb-4 gap-4 2xl:max-w-[209px] 2xl:max-h-[192px] rounded-xl shadow-sm p-8  hover:shadow-md transition-shadow"
               >
-                <p className="text-sm font-medium  text-gray-400  ">{stat.metric}</p>
-                <p className="text-4xl  font-bold text-gray-800">{stat.value}</p>
+                <p className="text-sm font-medium  text-gray-400  ">
+                  {stat.metric}
+                </p>
+                <p className="text-4xl  font-bold text-gray-800">
+                  {stat.value}
+                </p>
+                <p className=" font-normal text-sm -2 flex gap-3 ">
+                  Last Month{" "}
+                  <span className="font-medium text-xs text-green-500 border-1 px-2 border-gray-700 p-1 rounded-xl">
+                    {" "}
+                    25%
+                  </span>
+                </p>
               </div>
             ))}
           </div>
         </div>
-     
 
-      {/* Chart + Tables Section */}
-      <div className=" md:w-[1081px]">
-        <div className=" ">
-          <BarChartGraph selectedDays={selectedDays} />
-        </div>
+        {/* Chart + Tables Section */}
 
-        <div className=" w-[80vw]  mt-[32px]">
-          <Dashboard selectedDays={selectedDays} />
-         
-        </div>
+        <div
+          className="
+       
+       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] 
+"
+        >
+          <div className=" text-base font-medium py-4">
+            {" "}
+            Performance Overview Dropdown List{" "}
+          </div>
+          <div className=" 2xl:max-h-[620px]  2xl:min-h-[430px]">
+            <BarChartGraph selectedDays={selectedDays} />
+          </div>
 
-        <div className=" mt-[32px]">
-          <TopDriversTable top10Aggresive={top10Aggresive} />
-        </div>
+          <div className=" mt-[32px]">
+            <Dashboard selectedDays={selectedDays} />
+          </div>
 
-        <div className=" mt-[32px]">
-          <TopDriversTable top10Aggresive={top10Safe} />
+          <div className=" mt-[32px]">
+            <TopDriversTable top10Aggresive={top10Aggresive} />
+          </div>
+
+          <div className=" mt-[32px]">
+            <TopDriversTable top10Aggresive={top10Safe} />
+          </div>
         </div>
       </div>
-
     </div>
   );
 };

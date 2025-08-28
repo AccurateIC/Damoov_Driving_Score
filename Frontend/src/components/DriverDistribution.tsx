@@ -155,9 +155,13 @@ console.log("selectedDays",selectedDays);
 //   </div>
 // </div>
 
-<div className="flex flex-col md:flex-row gap-8 md:wd-[]  md:w-[1081px]">
+<div className="flex flex-col md:flex-row gap-8  
+ max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 
+ ">
   {/* Left card - Driver Distribution */}
-  <div className=" rounded-2xl shadow p-6  md:w-[773px]">
+  <div className=" rounded-2xl shadow p-6 
+  2xl:min-w-[957px]  w-full  2xl:bg-white
+  ">
     <div className="flex justify-between items-center mb-4">
       <h2 className="text-lg font-semibold">Driver Distribution</h2>
     </div>
@@ -176,7 +180,9 @@ console.log("selectedDays",selectedDays);
   </div>
 
   {/* Right card - Safety Parameters */}
-  <div className=" rounded-2xl shadow p-6 flex flex-col md:w-[276px]">
+  <div className=" rounded-2xl shadow p-6 flex flex-col w-full 2xl:bg-white 
+  2xl:max-w-[581px] 
+  ">
     <h2 className="text-lg font-semibold mb-4">Safety Parameters</h2>
 
     <div className="flex justify-center">

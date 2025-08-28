@@ -18,7 +18,7 @@ const Sidebar = () => {
   const [openDashboard, setOpenDashboard] = useState(true);
 
   return (
-    <aside className=" md:w-[295px]   md:h-[1024px]  text-white h-screen sticky top-0 flex flex-col items-center py-6">
+    <aside className=" xl:w-[295px]  2xl:max-w-[295px] 2xl:max-h-[1080px]  md:h-[1024px] xl:bg-gray-200 text-white h-screen sticky top-0 flex flex-col items-center py-6">
       {/* Logo */}
       <div className="md:w-[231px]  md:h-[944px] mx-[32px] my-[42px]">
         <div className="flex flex-col items-center w-[231px] h-[50px] mb-12">
@@ -34,10 +34,10 @@ const Sidebar = () => {
           <div className="items-center  md:w-[231px]  gap-5  ">
             <button
               onClick={() => setOpenDashboard(!openDashboard)}
-              className="w-[231px] h-[71px] flex items-center justify-between bg-neutral-900 rounded-full px-4 py-2 hover:bg-neutral-800"
+              className="xl:w-[231px] xl:h-[71px] 2xl:w-[231px] text-xl 2xl:h-[71px] p-6 font-medium  flex items-center justify-between bg-neutral-900 rounded-full  hover:bg-neutral-800"
             >
-              <span className="flex items-center ">
-                <LayoutDashboard size={18} />
+              <span className="flex items-center gap-2">
+                <LayoutDashboard size={22} />
                 <span>Dashboard</span>
               </span>
               {openDashboard ? (
@@ -49,14 +49,14 @@ const Sidebar = () => {
 
             {/* Dashboard Sub-links */}
             {openDashboard && (
-              <div className="mt-4 flex flex-col   gap-4 ml-6">
+              <div className="mt-4 flex flex-col  pl-8 gap-4 ml-6">
                 <NavLink
                   to="/dashboard/summary_New"
                   className={({ isActive }) =>
                     `flex items-center gap-2   h-[57px] font-semibold text-xl pt-4 pr-12 pb-4 pl-12px ${
                       isActive
                         ? "text-indigo-500"
-                        : "text-gray-400 hover:text-white"
+                        : "text-gray-400 hover:text-black"
                     }`
                   }
                 >
@@ -70,7 +70,7 @@ const Sidebar = () => {
                     `flex items-center   h-[57px] gap-2 font-semibold text-xl pt-4 pr-12 pb-4 pl-12px  ${
                       isActive
                         ? "text-indigo-500"
-                        : "text-gray-400 hover:text-white"
+                        : "text-gray-400 hover:text-black"
                     }`
                   }
                 >
@@ -89,7 +89,7 @@ const Sidebar = () => {
                 `flex items-center gap-2 font-semibold text-xl  ${
                   isActive
                     ? "text-indigo-500"
-                    : "text-gray-400 hover:text-white"
+                    : "text-gray-400 hover:text-black"
                 }`
               }
             >
@@ -104,7 +104,7 @@ const Sidebar = () => {
                 `flex items-center gap-2 font-semibold text-xl py-6 ${
                   isActive
                     ? "text-indigo-500"
-                    : "text-gray-400 hover:text-white"
+                    : "text-gray-400 hover:text-black"
                 }`
               }
             >
@@ -118,7 +118,7 @@ const Sidebar = () => {
                 `flex items-center gap-2 font-semibold text-xl ${
                   isActive
                     ? "text-indigo-500"
-                    : "text-gray-400 hover:text-white"
+                    : "text-gray-400 hover:text-black"
                 }`
               }
             >
