@@ -110,8 +110,8 @@ const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
     // 2xl:max-w-[1530px] 
   //  2xl:max-h-[830px]
     2xl:bg-white
-    2xl:min-h-[310px]
-     max-w-[1081px]  xl:max-w-[1200px] 2xl:max-h-[1840px]  
+    2xl:min-h-[500px]
+     2xl:min-w-[1530px]   2xl:max-w-[1830px]  xl:max-w-[1200px] 2xl:max-h-[990px]  
     rounded-xl  shadow-sm "
     >
       {/* Header */}
@@ -133,7 +133,7 @@ const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
         </select>
       </div>
 
-      <div className=" 2xl:max-w-[1470px]  
+      {/* <div className=" 2xl:max-w-[1470px]  
       // 2xl:max-h-[830px] 
       2xl:min-h-[380px]
       pl-[45.86px]  ">
@@ -144,7 +144,15 @@ const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
             maintainAspectRatio: false,
           }}
         />
-      </div>
+      </div> */}
+      <div
+  className="2xl:max-w-[1470px] 2xl:min-h-[450px] pl-[45.86px]"
+>
+  <Bar
+    data={chartDataSets[selectedParam]}
+    options={options}
+  />
+</div>
     </div>
   );
 };

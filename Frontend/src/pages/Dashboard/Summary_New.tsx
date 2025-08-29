@@ -301,7 +301,7 @@ const Summary: React.FC = () => {
 
           </div>
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">
+          <div className="grid  grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">
             {getCurrentTabData().map((stat) => (
               <div
                 key={stat.metric}
@@ -335,7 +335,7 @@ const Summary: React.FC = () => {
         >
           <div className=" text-base font-medium py-4">
             {" "}
-            Performance Overview Dropdown List{" "}
+            Performance Overview
           </div>
           <div className=" 2xl:max-h-[620px]  2xl:min-h-[430px]">
             <BarChartGraph selectedDays={selectedDays} />
