@@ -82,9 +82,6 @@ numerical_features:
   - deceleration
   - midSpeed
 
-database:
-  sqlite_path: "csv/tracking_raw_DB_150525 (2).db"
-
 files:
   main_data: "csv/Cleaned_SampleTable.csv"
   sample_data: "csv/SampleTable.csv"

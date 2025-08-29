@@ -2,103 +2,12 @@ import pandas as pd
 from flask import request, jsonify
 #from src.app.db_queries import load_main_table_cached as load_df
 from src.app.db_queries import load_df
-from src.app.utils.helpers import get_time_range
+from src.app.utils.helpers import get_time_range, normalize_timestamp
 from src.app.db_queries import get_safety_graph_data
 
 # ---------- /summary_graph (POST) ----------
+
 """def summary_graph():
-    params = request.json or {}
-    metric = params.get("metric")
-    filter_val = params.get("filter_val")
-
-    # Map metric names to DB columns
-    metric_map = {
-        "Safety score": "safe_score",
-        "Acceleration": "acc_score",
-        "Braking": "dec_score",
-        "Cornering": "cor_score",
-        "Speeding": "spd_score",
-        "Phone usage": "phone_score",
-        "Registered assets": "device_id",
-        "Active assets": "device_id",
-        "Trips": "unique_id",
-        "Driving time": "timestamp",
-    }
-
-    if metric not in metric_map:
-        return jsonify({"error": f"Unsupported metric: {metric}"})
-
-    # Decide which columns to load
-    col = metric_map[metric]
-    if isinstance(col, str):
-        cols = ["timestamp", col]
-    else:
-        cols = ["timestamp"] + col
-
-    # ✅ Load only required columns
-    df = load_df(cols)
-    if df.empty:
-        return jsonify({"metric": metric, "labels": [], "data": []})
-
-    now = df["timestamp"].max()
-    start_date = get_time_range(filter_val, now)
-    if start_date is None:
-        return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
-
-    filtered_df = df[df["timestamp"] >= start_date]
-    if filtered_df.empty:
-        return jsonify({"metric": metric, "labels": [], "data": []})
-
-    # Handle special metrics
-    if metric == "Trips":
-        daily = (
-            filtered_df.groupby(filtered_df["timestamp"].dt.date)["unique_id"]
-            .nunique()
-            .dropna()
-        )
-        return jsonify({
-            "metric": metric,
-            "labels": daily.index.astype(str).tolist(),
-            "data": daily.tolist(),
-        })
-
-    if metric == "Driving time":
-        daily = (
-            filtered_df.groupby(filtered_df["timestamp"].dt.date)
-            .apply(lambda g: (g["timestamp"].max() - g["timestamp"].min()).total_seconds() / 60.0)
-            .dropna()
-        )
-        return jsonify({
-            "metric": metric,
-            "labels": daily.index.astype(str).tolist(),
-            "data": daily.tolist(),
-        })
-
-    if metric in ["Registered assets", "Active assets"]:
-        total_value = float(filtered_df["device_id"].nunique())
-        return jsonify({
-            "metric": metric,
-            "labels": [metric],
-            "data": [total_value],
-        })
-
-    # Default: numeric per-day averages
-    series = (
-        filtered_df.groupby(filtered_df["timestamp"].dt.date)[col]
-        .mean()
-        .round(2)
-        .dropna()
-    )
-
-    return jsonify({
-        "metric": metric,
-        "labels": series.index.astype(str).tolist(),
-        "data": series.tolist(),
-    })
-
-"""
-
-def summary_graph():
     params = request.json or {}
     metric = params.get("metric")
     filter_val = params.get("filter_val")
@@ -114,29 +23,86 @@ def summary_graph():
         return jsonify({"error": f"Unsupported metric: {metric}"}), 400
 
     col = metric_map[metric]
-    df = load_df(["timestamp", col])  # ✅ only needed cols
+
+    # 🟢 Handle special case: Driving time → only timestamp needed
+    if metric == "Driving time":
+        df = load_df(["timestamp"])
+    else:
+        df = load_df(["timestamp", col] if col != "timestamp" else ["timestamp"])
+
     if df.empty:
         return jsonify({"metric": metric, "labels": [], "data": []})
 
     now, start_date = df["timestamp"].max(), get_time_range(filter_val, df["timestamp"].max())
-    if not start_date: return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
+    if not start_date:
+        return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
 
     df = df[df["timestamp"] >= start_date]
-    if df.empty: return jsonify({"metric": metric, "labels": [], "data": []})
+    if df.empty:
+        return jsonify({"metric": metric, "labels": [], "data": []})
 
     # Special cases
     if metric == "Trips":
         grp = df.groupby(df["timestamp"].dt.date)["unique_id"].nunique()
     elif metric == "Driving time":
         grp = df.groupby(df["timestamp"].dt.date).apply(
-            lambda g: (g["timestamp"].max() - g["timestamp"].min()).total_seconds()/60
+            lambda g: (g["timestamp"].max() - g["timestamp"].min()).total_seconds() / 60
         )
     elif metric in ["Registered assets", "Active assets"]:
-        return jsonify({"metric": metric, "labels": [metric], "data": [df["device_id"].nunique()]})
+        return jsonify({
+            "metric": metric,
+            "labels": [metric],
+            "data": [df["device_id"].nunique()]
+        })
     else:
         grp = df.groupby(df["timestamp"].dt.date)[col].mean().round(2)
 
-    return jsonify({"metric": metric, "labels": grp.index.astype(str).tolist(), "data": grp.tolist()})
+    return jsonify({
+        "metric": metric,
+        "labels": grp.index.astype(str).tolist(),
+        "data": grp.tolist()
+    })
+"""
+def summary_graph():
+    try:
+        params = request.json or {}
+        metric = params.get("metric")
+        filter_val = params.get("filter_val")  # e.g., "last_1_week"
+
+        if not metric:
+            return jsonify({"error": "Metric is required"}), 400
+
+        # Load required cols
+        cols = ["timestamp", metric]
+        df = load_df(required_cols=cols)
+
+        if df is None or df.empty:
+            return jsonify({"error": "No data found"}), 404
+
+        df = normalize_timestamp(df)
+        if df.empty:
+            return jsonify({"error": "No valid timestamps"}), 404
+
+        # ✅ special handling for driving_time
+        if metric.lower() in ["driving_time", "Driving Time"]:
+            # Convert timedelta or string to minutes
+            df[metric] = pd.to_timedelta(df[metric], errors="coerce").dt.total_seconds() / 60.0
+
+        # Group by date
+        df["date"] = df["timestamp"].dt.date
+        grouped = df.groupby("date")[metric].sum().reset_index()   # sum makes sense for time
+
+        result = {
+            "data": [float(x) if pd.notna(x) else 0 for x in grouped[metric]],
+            "labels": [str(d) for d in grouped["date"]],
+            "metric": metric
+        }
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # ---------- /driver_distribution (POST) ----------
 def driver_distribution():

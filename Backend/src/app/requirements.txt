@@ -5,4 +5,7 @@ pandas
 numpy
 geopy
 uvicorn
-
+sqlalchemy
+pydantic
+pyyaml
+pymysql
