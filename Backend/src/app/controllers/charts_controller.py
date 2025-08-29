@@ -7,17 +7,22 @@ from src.app.db_queries import get_safety_graph_data
 
 # ---------- /summary_graph (POST) ----------
 
-"""def summary_graph():
+def summary_graph():
     params = request.json or {}
     metric = params.get("metric")
     filter_val = params.get("filter_val")
 
     metric_map = {
-        "Safety score": "safe_score", "Acceleration": "acc_score",
-        "Braking": "dec_score", "Cornering": "cor_score",
-        "Speeding": "spd_score", "Phone usage": "phone_score",
-        "Registered assets": "device_id", "Active assets": "device_id",
-        "Trips": "unique_id", "Driving time": "timestamp",
+        "Safety score": "safe_score", 
+        "Acceleration": "acc_score",
+        "Braking": "dec_score", 
+        "Cornering": "cor_score",
+        "Speeding": "spd_score", 
+        "Phone usage": "phone_score",
+        "Registered assets": "device_id", 
+        "Active assets": "device_id",
+        "Trips": "unique_id", 
+        "Driving time": "timestamp",
     }
     if metric not in metric_map:
         return jsonify({"error": f"Unsupported metric: {metric}"}), 400
@@ -62,8 +67,8 @@ from src.app.db_queries import get_safety_graph_data
         "labels": grp.index.astype(str).tolist(),
         "data": grp.tolist()
     })
-"""
-def summary_graph():
+
+"""def summary_graph():
     try:
         params = request.json or {}
         metric = params.get("metric")
@@ -101,7 +106,7 @@ def summary_graph():
         return jsonify(result), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500"""
 
 
 # ---------- /driver_distribution (POST) ----------
