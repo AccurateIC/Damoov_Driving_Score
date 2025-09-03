@@ -6,8 +6,12 @@ meta {
 
 post {
   url: http://127.0.0.1:5000/driving_time_daily
-  body: none
+  body: json
   auth: inherit
+}
+
+body:json {
+  { "filter_val": "last_2_months"}
 }
 
 settings {
