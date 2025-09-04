@@ -160,22 +160,78 @@ def safety_graph_trend():
         "data": daily_avg[metric].round(2).tolist()
     })
 # ---------- /mileage_daily (POST) ----------
-def mileage_daily():
+"""def mileage_daily():
     params = request.json or {}
     filter_val = params.get("filter_val", "last_1_month")
 
-    #engine = get_engine()
-    now = df["timestamp"].max()
-    start = get_time_range(filter_val, now)
-    if start is None:
-        return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
-
-    df = get_mileage_graph_data(start)
+    df = get_mileage_graph_data(filter_val)
     if df.empty:
         return jsonify({"labels": [], "data": []})
 
     df["date"] = df["timestamp"].dt.date
     daily_mileage = df.groupby("date")["trip_distance_used"].sum().reset_index().dropna()
+
+    return jsonify({
+        "labels": daily_mileage["date"].astype(str).tolist(),
+        "data": daily_mileage["trip_distance_used"].round(2).tolist()
+    })
+
+"""
+
+"""def mileage_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    # Step 1: Get latest timestamp
+    engine = get_engine()
+    df_now = pd.read_sql("SELECT MAX(timestamp) AS max_ts FROM newSampleTable", con=engine)
+
+    if df_now.empty or df_now["max_ts"].isna().all():
+        return jsonify({"labels": [], "data": []})
+
+    now = df_now["max_ts"].iloc[0]
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
+
+    # Step 2: Fetch data
+    df = get_mileage_graph_data(start)
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    # Step 3: Process for chart
+    df["date"] = df["timestamp"].dt.date
+    daily_mileage = df.groupby("date")["trip_distance_used"].sum().reset_index().dropna()
+
+    return jsonify({
+        "labels": daily_mileage["date"].astype(str).tolist(),
+        "data": daily_mileage["trip_distance_used"].round(2).tolist()
+    })"""
+
+def mileage_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    df = get_mileage_graph_data()
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    now = df["timestamp"].max()
+    start_date = get_time_range(filter_val, now)
+    if start_date is None:
+        return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
+
+    filtered_df = df[df["timestamp"] >= start_date].copy()
+    if filtered_df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    filtered_df["date"] = filtered_df["timestamp"].dt.date
+    daily_mileage = (
+        filtered_df.groupby("date")["trip_distance_used"]
+        .sum()
+        .reset_index()
+        .dropna()
+    )
 
     return jsonify({
         "labels": daily_mileage["date"].astype(str).tolist(),

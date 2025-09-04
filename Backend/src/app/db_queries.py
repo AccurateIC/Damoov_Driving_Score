@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import text
 from functools import lru_cache
 from .utils.db import setup_database, CONFIG
-from .utils.helpers import normalize_timestamp, optimize_columns
+from .utils.helpers import normalize_timestamp, optimize_columns, get_time_range
 
 db_cfg = CONFIG.get("database", {})
 
@@ -192,7 +192,7 @@ def get_safety_graph_data() -> pd.DataFrame:
     """
     engine = get_engine()
     sql = text(f"""
-        SELECT timestamp
+        SELECT timestamp,
                acc_score,
                dec_score,
                cor_score,
@@ -205,15 +205,22 @@ def get_safety_graph_data() -> pd.DataFrame:
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
 
-def get_mileage_graph_data(start):
-    engine = get_engine()
-    query = """
-        SELECT DISTINCT unique_id, timestamp, trip_distance_used
-        FROM newSampleTable
-        WHERE timestamp >= :start
-          AND trip_distance_used <= 500
+
+def get_mileage_graph_data() -> pd.DataFrame:
     """
-    return pd.read_sql(query, con=engine, params={"start": start})
+    Load only the columns required for /mileage_daily
+    instead of SELECT * which is very slow.
+    """
+    engine = get_engine()
+    sql = text(f"""
+        SELECT timestamp,
+               unique_id,
+               trip_distance_used
+        FROM newSampleTable
+        WHERE trip_distance_used <= 500
+    """)
+    df = pd.read_sql(sql, con=engine)
+    return normalize_timestamp(df)
 
 
 def get_performance_data():
