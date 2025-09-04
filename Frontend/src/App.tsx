@@ -7,8 +7,9 @@ import SDK from "./pages/Dashboard/SDK";
 // import Safety from "./pages/Dashboard/Safety";
 import Safety from "./pages/Dashboard/New_Safety";
 
-import UsersList from "./pages/Users/List";
-import Profiles from "./pages/Users/Profiles";
+import UsersList from "./pages/Users/New_Users";
+// import UsersList from "./pages/Users/List";
+ import Profiles from "./pages/Users/Profiles";
 // import Permissions from "./pages/Users/Permissions";
 
 import TripsList from "./pages/trips/TripsList";
