@@ -83,7 +83,6 @@ def load_df(required_cols=None) -> pd.DataFrame:
 
 
 
-
 @lru_cache(maxsize=1)
 def load_main_table_cached():
     """Simple cache for repeated reads (no TTL, but cuts repeated hits)."""
@@ -193,7 +192,7 @@ def get_safety_graph_data() -> pd.DataFrame:
     """
     engine = get_engine()
     sql = text(f"""
-        SELECT timestamp,
+        SELECT timestamp
                acc_score,
                dec_score,
                cor_score,
@@ -205,6 +204,17 @@ def get_safety_graph_data() -> pd.DataFrame:
     """)
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
+
+def get_mileage_graph_data(start):
+    engine = get_engine()
+    query = """
+        SELECT DISTINCT unique_id, timestamp, trip_distance_used
+        FROM newSampleTable
+        WHERE timestamp >= :start
+          AND trip_distance_used <= 500
+    """
+    return pd.read_sql(query, con=engine, params={"start": start})
+
 
 def get_performance_data():
     """
@@ -219,4 +229,6 @@ def get_performance_data():
     """)
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
+
+
 

@@ -3,7 +3,7 @@ from flask import request, jsonify
 #from src.app.db_queries import load_main_table_cached as load_df
 from src.app.db_queries import load_df
 from src.app.utils.helpers import get_time_range, normalize_timestamp
-from src.app.db_queries import get_safety_graph_data
+from src.app.db_queries import get_safety_graph_data, get_mileage_graph_data, get_engine
 
 # ---------- /summary_graph (POST) ----------
 
@@ -13,102 +13,49 @@ def summary_graph():
     filter_val = params.get("filter_val")
 
     metric_map = {
-        "Safety score": "safe_score", 
+        "Safety score": "safe_score",
         "Acceleration": "acc_score",
-        "Braking": "dec_score", 
+        "Braking": "dec_score",
         "Cornering": "cor_score",
-        "Speeding": "spd_score", 
+        "Speeding": "spd_score",
         "Phone usage": "phone_score",
-        "Registered assets": "device_id", 
+        "Registered assets": "device_id",
         "Active assets": "device_id",
-        "Trips": "unique_id", 
+        "Trips": "unique_id",
         "Driving time": "timestamp",
     }
     if metric not in metric_map:
         return jsonify({"error": f"Unsupported metric: {metric}"}), 400
 
     col = metric_map[metric]
-
-    # 🟢 Handle special case: Driving time → only timestamp needed
-    if metric == "Driving time":
-        df = load_df(["timestamp"])
-    else:
-        df = load_df(["timestamp", col] if col != "timestamp" else ["timestamp"])
-
+    df = load_df(["timestamp", col] if metric not in ["Driving time"] else ["timestamp", "device_id"])
     if df.empty:
         return jsonify({"metric": metric, "labels": [], "data": []})
 
-    now, start_date = df["timestamp"].max(), get_time_range(filter_val, df["timestamp"].max())
+    # filter by date range
+    start_date = get_time_range(filter_val, df["timestamp"].max())
     if not start_date:
         return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
-
-    df = df[df["timestamp"] >= start_date]
+    df = df[df["timestamp"] >= start_date].dropna()
     if df.empty:
         return jsonify({"metric": metric, "labels": [], "data": []})
 
-    # Special cases
+    # metrics
     if metric == "Trips":
         grp = df.groupby(df["timestamp"].dt.date)["unique_id"].nunique()
     elif metric == "Driving time":
-        grp = df.groupby(df["timestamp"].dt.date).apply(
-            lambda g: (g["timestamp"].max() - g["timestamp"].min()).total_seconds() / 60
-        )
+        df = df.sort_values(["device_id", "timestamp"])
+        df["delta"] = df.groupby("device_id")["timestamp"].diff().dt.total_seconds().div(60)
+        df["driving_minutes"] = df["delta"].where((df["delta"] > 0) & (df["delta"] <= 5), 0)
+        grp = df.groupby(df["timestamp"].dt.date)["driving_minutes"].sum().round(2)
+
+
     elif metric in ["Registered assets", "Active assets"]:
-        return jsonify({
-            "metric": metric,
-            "labels": [metric],
-            "data": [df["device_id"].nunique()]
-        })
+        return jsonify({"metric": metric, "labels": [metric], "data": [df["device_id"].nunique()]})
     else:
         grp = df.groupby(df["timestamp"].dt.date)[col].mean().round(2)
 
-    return jsonify({
-        "metric": metric,
-        "labels": grp.index.astype(str).tolist(),
-        "data": grp.tolist()
-    })
-
-"""def summary_graph():
-    try:
-        params = request.json or {}
-        metric = params.get("metric")
-        filter_val = params.get("filter_val")  # e.g., "last_1_week"
-
-        if not metric:
-            return jsonify({"error": "Metric is required"}), 400
-
-        # Load required cols
-        cols = ["timestamp", metric]
-        df = load_df(required_cols=cols)
-
-        if df is None or df.empty:
-            return jsonify({"error": "No data found"}), 404
-
-        df = normalize_timestamp(df)
-        if df.empty:
-            return jsonify({"error": "No valid timestamps"}), 404
-
-        # ✅ special handling for driving_time
-        if metric.lower() in ["driving_time", "Driving Time"]:
-            # Convert timedelta or string to minutes
-            df[metric] = pd.to_timedelta(df[metric], errors="coerce").dt.total_seconds() / 60.0
-
-        # Group by date
-        df["date"] = df["timestamp"].dt.date
-        grouped = df.groupby("date")[metric].sum().reset_index()   # sum makes sense for time
-
-        result = {
-            "data": [float(x) if pd.notna(x) else 0 for x in grouped[metric]],
-            "labels": [str(d) for d in grouped["date"]],
-            "metric": metric
-        }
-
-        return jsonify(result), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500"""
-
-
+    return jsonify({"metric": metric, "labels": grp.index.astype(str).tolist(), "data": grp.fillna(0).tolist()})
 # ---------- /driver_distribution (POST) ----------
 def driver_distribution():
     params = request.json or {}
@@ -151,28 +98,35 @@ def safety_params():
     params = request.json or {}
     filter_val = params.get("filter_val")
 
-    df = load_df()
-    now = df["timestamp"].max()
-    start_date = get_time_range(filter_val, now)
-    if start_date is None:
-        return jsonify({"error": f"Unsupported filter: {filter_val}"})
-
-    filtered_df = df[df["timestamp"] >= start_date]
-    if filtered_df.empty:
+    # ✅ only fetch required columns
+    cols = ["timestamp","acc_score","dec_score","cor_score","spd_score","phone_score"]
+    df = load_df(cols)
+    if df.empty:
         return jsonify({"labels": [], "data": []})
 
-    for col in ["acc_score","dec_score","cor_score","spd_score","phone_score"]:
-        if col not in filtered_df.columns:
-            filtered_df[col] = pd.NA
+    # ✅ filter quickly
+    now = df["timestamp"].max()
+    start_date = get_time_range(filter_val, now)
+    if not start_date:
+        return jsonify({"error": f"Unsupported filter: {filter_val}"})
 
-    avg_params = {
-        "Acceleration": round(filtered_df["acc_score"].mean(), 2),
-        "Braking":      round(filtered_df["dec_score"].mean(), 2),
-        "Cornering":    round(filtered_df["cor_score"].mean(), 2),
-        "Speeding":     round(filtered_df["spd_score"].mean(), 2),
-        "Phone usage":  round(filtered_df["phone_score"].mean(), 2)
+    df = df[df["timestamp"] >= start_date]
+
+    # ✅ vectorized, dropna automatically
+    avg_params = df[cols[1:]].mean(skipna=True).round(2).to_dict()
+
+    # rename keys to match your labels
+    rename_map = {
+        "acc_score": "Acceleration",
+        "dec_score": "Braking",
+        "cor_score": "Cornering",
+        "spd_score": "Speeding",
+        "phone_score": "Phone usage"
     }
+    avg_params = {rename_map[k]: v for k, v in avg_params.items()}
+
     return jsonify({"labels": list(avg_params.keys()), "data": list(avg_params.values())})
+
 
 # ---------- /safety_graph_trend (POST) ----------
 def safety_graph_trend():
@@ -210,36 +164,24 @@ def mileage_daily():
     params = request.json or {}
     filter_val = params.get("filter_val", "last_1_month")
 
-    df = load_df()
+    #engine = get_engine()
     now = df["timestamp"].max()
     start = get_time_range(filter_val, now)
-    if not start:
-        return jsonify({"error": "Invalid filter"}), 400
+    if start is None:
+        return jsonify({"error": f"Unsupported filter: {filter_val}"}), 400
 
-    df = df[df["timestamp"] >= start]
+    df = get_mileage_graph_data(start)
     if df.empty:
         return jsonify({"labels": [], "data": []})
 
-    trip_df = df.drop_duplicates("unique_id")
-    if "trip_distance_used" in trip_df.columns:
-        trip_df = trip_df[trip_df["trip_distance_used"] <= 500]
-    else:
-        return jsonify({"labels": [], "data": []})
+    df["date"] = df["timestamp"].dt.date
+    daily_mileage = df.groupby("date")["trip_distance_used"].sum().reset_index().dropna()
 
-    if trip_df.empty:
-        return jsonify({"labels": [], "data": []})
-
-    trip_df["date"] = trip_df["timestamp"].dt.date
-    daily_mileage = (
-        trip_df.groupby("date")["trip_distance_used"]
-        .sum()
-        .reset_index()
-        .dropna()
-    )
     return jsonify({
         "labels": daily_mileage["date"].astype(str).tolist(),
         "data": daily_mileage["trip_distance_used"].round(2).tolist()
     })
+
 
 # ---------- /driving_time_daily (POST) ----------
 def driving_time_daily():
@@ -268,4 +210,143 @@ def driving_time_daily():
     return jsonify({
         "labels": daily_time["date"].astype(str).tolist(),
         "data": daily_time["drive_time_min"].round(2).tolist()
+    })
+
+
+def driving_trips_daily():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    df = load_df(["unique_id", "timestamp"])
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    now = df["timestamp"].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df["timestamp"] >= start]
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    trip_df = df.drop_duplicates("unique_id")
+    trip_df["date"] = trip_df["timestamp"].dt.date
+
+    daily_trips = trip_df.groupby("date")["unique_id"].nunique().reset_index()
+
+    return jsonify({
+        "labels": daily_trips["date"].astype(str).tolist(),
+        "data": daily_trips["unique_id"].tolist()
+    })
+
+
+def overall_analytics_summary():
+
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_month")
+
+    # ✅ only load required columns
+    cols = [
+        "unique_id", "device_id", "trip_distance_used", "speed_kmh",
+        "acc_score", "dec_score", "cor_score", "spd_score", "phone_score",
+        "safe_score", "timestamp"
+    ]
+    df = load_df(required_cols=cols)
+
+    if df.empty or df["timestamp"].isna().all():
+        return jsonify({"error": "No data"}), 404
+
+    # ✅ filter quickly
+    now = df["timestamp"].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df["timestamp"] >= start]
+    if df.empty:
+        return jsonify({"error": "No data"}), 404
+
+    # ✅ latest per trip
+    idx = df.groupby("unique_id")["timestamp"].idxmax()
+    latest = df.loc[idx]
+
+    # ✅ speed stats
+    speed_group = df.groupby("unique_id")["speed_kmh"]
+    max_spd = speed_group.max().clip(upper=300).max()
+    avg_spd = speed_group.mean().mean()
+
+    # ✅ time driven
+    per_trip = df.groupby("unique_id")["timestamp"].agg(["min", "max"])
+    time_min = (per_trip["max"] - per_trip["min"]).dt.total_seconds().sum() / 60.0
+
+    # ✅ aggregate scores
+    agg = latest.agg({
+        "safe_score": "mean",
+        "phone_score": "mean",
+        "spd_score": "mean",
+        "acc_score": "mean",
+        "dec_score": "mean",
+        "cor_score": "mean",
+        "trip_distance_used": "sum"
+    }).to_dict()
+
+    params = {
+        "Phone usage": round(agg["phone_score"], 2),
+        "Acceleration": round(agg["acc_score"], 2),
+        "Brakes": round(agg["dec_score"], 2),
+        "Cornering": round(agg["cor_score"], 2),
+        "Speeding": round(agg["spd_score"], 2),
+    }
+
+    overall_scoring = round(agg["safe_score"], 2)
+
+    stats = {
+        "average_speed": round(avg_spd, 2),
+        "max_speed": round(max_spd, 2) if pd.notna(max_spd) else 0.0,
+        "time_minutes": round(time_min, 2),
+        "mileage_km": round(agg["trip_distance_used"], 2)
+    }
+
+    labels = list(params.keys())
+    data = list(params.values())
+
+    return jsonify({
+        "overall_scoring": overall_scoring,
+        "params": params,
+        "stats": stats,
+        "labels": labels,
+        "data": data
+    })
+
+def speeding_analysis():
+    params = request.json or {}
+    filter_val = params.get("filter_val", "last_1_day")
+    SPEED_LIMIT = 40  # fixed
+
+    # ✅ only fetch required columns
+    df = load_df(["unique_id", "timestamp", "speed_kmh"])
+    if df.empty:
+        return jsonify({"labels": [], "speeds": [], "colors": []})
+
+    now = df["timestamp"].max()
+    start = get_time_range(filter_val, now)
+    if not start:
+        return jsonify({"error": "Invalid filter"}), 400
+
+    df = df[df["timestamp"] >= start]
+
+    # Resample into 30-minute bins
+    df = df.set_index("timestamp")
+    bins = df["speed_kmh"].resample("1H").mean().dropna().reset_index()
+
+    bins = bins[bins["speed_kmh"] > 5]   # keep speeds > 5 km/h
+
+    bins["time"] = bins["timestamp"].dt.strftime("%H:%M")
+    bins["color"] = bins["speed_kmh"].apply(lambda x: "red" if x > SPEED_LIMIT else "green")
+
+    return jsonify({
+        "labels": bins["time"].tolist(),
+        "speeds": bins["speed_kmh"].round(2).tolist(),
+        "colors": bins["color"].tolist()
     })
