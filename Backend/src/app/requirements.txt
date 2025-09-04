@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 fastapi
 flask
 flask-cors
@@ -9,3 +10,16 @@ sqlalchemy
 pydantic
 pyyaml
 
+=======
+fastapi
+flask
+flask-cors
+pandas
+numpy
+geopy
+uvicorn
+sqlalchemy
+pydantic
+pyyaml
+pymysql
+>>>>>>> feature/trip-graph-api

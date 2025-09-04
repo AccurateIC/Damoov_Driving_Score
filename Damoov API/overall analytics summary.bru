@@ -1,0 +1,19 @@
+meta {
+  name: overall analytics summary
+  type: http
+  seq: 10
+}
+
+post {
+  url: http://127.0.0.1:5000/overall_analytics_summary
+  body: json
+  auth: inherit
+}
+
+body:json {
+   {"filter_val": "last_1_week"}
+}
+
+settings {
+  encodeUrl: true
+}

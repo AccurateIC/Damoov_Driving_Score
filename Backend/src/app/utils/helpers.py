@@ -11,10 +11,15 @@ def get_time_range(filter_val: str, now: pd.Timestamp):
         "last_2_months":now - timedelta(days=60),
     }.get(filter_val)
 
+
 def normalize_timestamp(df: pd.DataFrame) -> pd.DataFrame:
-    """Ensure dataframe has a valid 'timestamp' column as pandas datetime."""
+    """Ensure dataframe has a valid 'timestamp' column as pandas datetime, safely handling duplicates."""
     if df is None or df.empty:
         return df
+
+    # ✅ drop duplicate columns first
+    df = df.loc[:, ~df.columns.duplicated()]
+
     if "timestamp" in df.columns:
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     elif "tick_timestamp" in df.columns:
@@ -26,8 +31,10 @@ def normalize_timestamp(df: pd.DataFrame) -> pd.DataFrame:
                 break
         else:
             df["timestamp"] = pd.NaT
+
     df = df.dropna(subset=["timestamp"])
     return df
+
 
 def optimize_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Lightweight dtype optimization following your original logic."""

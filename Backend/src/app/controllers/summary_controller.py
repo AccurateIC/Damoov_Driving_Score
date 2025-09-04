@@ -34,42 +34,6 @@ def safe_driving_summary():
     return jsonify(summary)
 
 # ---------- /eco_driving_summary ----------
-"""def eco_driving_summary():
-    filter_val = request.args.get("filter")
-    df = get_eco_driving_rows()
-    if df.empty:
-        return jsonify({"error": "No data"}), 404
-
-    now = df["timestamp"].max()
-    start = get_time_range(filter_val, now)
-    if not start:
-        return jsonify({"error": "Invalid filter"}), 400
-
-    filt = df[df["timestamp"] >= start]
-    if filt.empty:
-        return jsonify({"error": "No data"}), 404
-
-    latest = (
-        filt.sort_values(by=["unique_id", "timestamp"])
-            .drop_duplicates("unique_id", keep="last")
-    )
-    valid = latest[
-        (latest["eco_score"]  > 0) |
-        (latest["brake_score"]> 0) |
-        (latest["tire_score"] > 0) |
-        (latest["fuel_score"] > 0)
-    ]
-    if valid.empty:
-        return jsonify({"error": "No valid scores"}), 404
-
-    summary = {
-        "trip_count": int(valid["unique_id"].nunique()),
-        "eco_score": round(valid["eco_score"].mean(), 2),
-        "brakes_score": round(valid["brake_score"].mean(), 2),
-        "tires_score": round(valid["tire_score"].mean(), 2),
-        "fuel_score": round(valid["fuel_score"].mean(), 2)
-    }
-    return jsonify(summary)"""
 
 def eco_driving_summary():
     filter_val = request.args.get("filter")
@@ -126,71 +90,6 @@ def eco_driving_summary():
 
 
 # ---------- /safety_dashboard_summary ----------
-"""def safety_dashboard_summary():
-    from ..db_queries import load_main_table  # local import to avoid circulars
-    filter_val = request.args.get("filter")
-
-    # Base and scored frames from main table
-    base_df = load_main_table()[["timestamp", "device_id", "unique_id", "trip_distance_used"]].copy()
-    scored_df = load_main_table()[[
-        "unique_id","device_id","trip_distance_used","speed_kmh",
-        "acc_score","dec_score","cor_score","spd_score","phone_score","safe_score","timestamp"
-    ]].copy().dropna(subset=["safe_score"])
-
-    if base_df.empty or scored_df.empty:
-        return jsonify({"error": "No data"}), 404
-
-    now = pd.to_datetime(scored_df["timestamp"]).max()
-    start = get_time_range(filter_val, now)
-    if not start:
-        return jsonify({"error": "Invalid filter"}), 400
-
-    # Filter by time
-    base_df["timestamp"] = pd.to_datetime(base_df["timestamp"], errors="coerce")
-    scored_df["timestamp"] = pd.to_datetime(scored_df["timestamp"], errors="coerce")
-    base_df = base_df.dropna(subset=["timestamp"])
-    scored_df = scored_df.dropna(subset=["timestamp"])
-
-    filt = scored_df[scored_df["timestamp"] >= start]
-    if filt.empty:
-        return jsonify({"error": "No data"}), 404
-
-    latest = (
-        filt.sort_values(by=["unique_id", "timestamp"])
-            .drop_duplicates("unique_id", keep="last")
-    )
-
-    # Speed stats
-    speed = filt.groupby("unique_id")["speed_kmh"].agg(["max", "mean"]).reset_index()
-    speed = speed[speed["max"] < 300]  # sanity cap
-    max_spd = round(float(speed["max"].max()), 2) if not speed.empty else 0.0
-    avg_spd = round(float(speed["mean"].mean()), 2) if not speed.empty else 0.0
-
-    # Time driven (minutes)
-    time_df = base_df[base_df["timestamp"] >= start]
-    if time_df.empty:
-        time_min = 0.0
-    else:
-        per_trip = time_df.groupby("unique_id")["timestamp"].agg(["min", "max"])
-        time_min = round((per_trip["max"] - per_trip["min"]).dt.total_seconds().sum() / 60.0, 2)
-
-    summary = {
-        "safety_score": round(latest["safe_score"].mean(), 2),
-        "trips": int(latest["unique_id"].nunique()),
-        "driver_trips": int(latest["device_id"].nunique()),
-        "mileage_km": round(latest["trip_distance_used"].sum(), 2),
-        "time_driven_minutes": time_min,
-        "average_speed_kmh": avg_spd,
-        "max_speed_kmh": max_spd,
-        "phone_usage_percentage": round(latest["phone_score"].mean(), 2),
-        "speeding_percentage": round(latest["spd_score"].mean(), 2),
-        "phone_usage_speeding_percentage": round(
-            ((latest["phone_score"].mean() + latest["spd_score"].mean()) / 2.0), 2
-        ),
-        "unique_tags_count": int(latest["device_id"].nunique())
-    }
-    return jsonify(summary)"""
-
 def safety_dashboard_summary():
     filter_val = request.args.get("filter")
 
@@ -251,71 +150,7 @@ def safety_dashboard_summary():
     }
 
     return jsonify(summary)
-
-"""def performance_summary():
-    filter_val = request.args.get("filter")
-
-    # Load only required columns
-    cols = ["unique_id", "device_id", "trip_distance_used", "timestamp"]
-    df = load_df(required_cols=cols)
-    df = df.dropna(subset=["timestamp"])
-    if df.empty:
-        return jsonify({"error": "No data"}), 404
-
-    # Time range filter
-    now = df["timestamp"].max()
-    start = get_time_range(filter_val, now)
-    if not start:
-        return jsonify({"error": "Invalid filter"}), 400
-
-    df = df[df["timestamp"] >= start]
-    if df.empty:
-        return jsonify({"error": "No data in selected range"}), 404
-
-    # One row per trip
-    trip_df = df.drop_duplicates("unique_id")
-
-    # Filter trips with valid distance
-    trip_df = trip_df[trip_df["trip_distance_used"] <= 500]
-
-    if trip_df.empty:
-        return jsonify({"error": "No valid trips"}), 404
-
-    # --- BATCH LOAD TRIP POINTS ---
-    trip_ids = trip_df["unique_id"].tolist()
-    all_points = pd.concat([get_trip_points(uid) for uid in trip_ids])
-    
-    # Group by trip and check validity in vectorized way
-    grouped = all_points.groupby("UNIQUE_ID")
-    valid_trip_ids = grouped.filter(
-        lambda g: (
-            g.iloc[0]["start_latitude"] != 0 and g.iloc[0]["end_latitude"] != 0 and
-            g.iloc[0]["start_longitude"] != 0 and g.iloc[0]["end_longitude"] != 0 and
-            pd.notna(g.iloc[0]["start_time"]) and pd.notna(g.iloc[0]["end_time"])
-        )
-    )["UNIQUE_ID"].unique()
-
-    if len(valid_trip_ids) == 0:
-        return jsonify({"error": "No valid trips"}), 404
-
-    # Filter original data
-    trip_df = trip_df[trip_df["unique_id"].isin(valid_trip_ids)]
-    df = df[df["unique_id"].isin(valid_trip_ids)]
-
-    # Driving time
-    trip_times = df.groupby("unique_id")["timestamp"].agg(["min", "max"])
-    total_drive_time_min = ((trip_times["max"] - trip_times["min"]).dt.total_seconds().sum()) / 60
-
-    summary = {
-        "new_drivers": trip_df["device_id"].nunique(),
-        "active_drivers": trip_df["device_id"].nunique(),
-        "trips_number": trip_df["unique_id"].nunique(),
-        "mileage": round(trip_df["trip_distance_used"].sum(), 2),
-        "time_of_driving": round(total_drive_time_min, 2)
-    }
-
-    return jsonify(summary)"""
-
+# ---------- /performance_summary ----------
 def performance_summary():
     filter_val = request.args.get("filter")
 
@@ -373,4 +208,3 @@ def performance_summary():
         "time_of_driving": round(total_drive_time_min, 2)
     }
     return jsonify(summary)
-
