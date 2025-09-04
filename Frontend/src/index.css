@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
@@ -13,14 +13,4 @@
   
   --breakpoint-3xl: 120rem;
 }
-=======
-@import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 
-.custom-tooltip-box {
-  min-width: 300px;   /* force a minimum width */
-  max-width: 300px;   /* optionally limit the max */
-  min-height: 40px;   /* force a taller box */
-  white-space: normal; /* allow wrapping if needed */
-}
->>>>>>> feature/trip-graph-api
