@@ -591,8 +591,8 @@ useEffect(() => {
           {
             label: metric.replace("_", " ").toUpperCase(),
             data,
-            borderColor: "#4f46e5",
-            backgroundColor: "rgba(79, 70, 229, 0.2)",
+            borderColor: "rgba(75,192,192,1)",
+            backgroundColor: "rgba(75,192,192,0.2)",
             tension: 0.4,
             fill: true,
             pointRadius: 4,
@@ -606,6 +606,48 @@ useEffect(() => {
 
   fetchSafetyParams();
 }, [filter, metric]);
+
+
+  const [chartData1, setChartData1] = useState<any>({
+    labels: [],
+    datasets: [],
+  });
+
+  useEffect(() => {
+    const fetchMileageDailyParams = async () => {
+      try {
+        const res = await axios.post("http://127.0.0.1:5000/mileage_daily", {
+          filter_val: filter,
+        });
+
+        console.log("API Response:", res.data);
+
+        const { data, labels } = res.data;
+
+        // Build chart data
+        setChartData1({
+          labels: labels, // x-axis
+          datasets: [
+            {
+              label: metric.replace("_", " ").toUpperCase(),
+              data: data, // y-axis
+              borderColor: "rgba(75,192,192,1)",
+              backgroundColor: "rgba(75,192,192,0.2)",
+              tension: 0.4,
+              fill: true,
+              pointRadius: 4,
+            },
+          ],
+        });
+      } catch (err) {
+        console.error("Error fetching mileage daily params:", err);
+      }
+    };
+
+    fetchMileageDailyParams();
+  }, [filter, metric]);
+
+
 
   const data1 = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sept"],
@@ -623,14 +665,21 @@ useEffect(() => {
 
   const options1 = {
     responsive: true,
-    maintainAspectRatio: false,
     plugins: {
-      legend: { display: true },
+      legend: {
+        position: "top" as const,
+      },
     },
     scales: {
-      y: { beginAtZero: true },
+      x: {
+        title: { display: true, text: "Date" },
+      },
+      y: {
+        title: { display: true, text: metric },
+      },
     },
   };
+
 
   const radarData = {
   labels: ["Speed", "Braking", "Turning", "Acceleration", "Fuel", "Safety"],
@@ -642,9 +691,9 @@ useEffect(() => {
       borderColor: "rgba(75,192,192,1)",
       borderWidth: 2,
     },
-  
   ],
 }
+
 
 
 const radarOptions = {
@@ -716,7 +765,7 @@ const radarOptions = {
   <h2 className="font-medium">Safety Parameters</h2>
 </div>
 
-<div className="bg-white pt-4 rounded-lg p-4">
+<div className="bg-white  pt-4 rounded-lg p-4">
   <div>
     <span className="gap-8 m-6">
       <select
@@ -748,7 +797,7 @@ const radarOptions = {
         <div className="flex-1 min-w-[300px] h-[400px] pt-2 bg-white pb-10 pl-8 rounded-lg">
           <span className="block mb-2 font-medium">Mileage Daily (mi)</span>
           <Line
-            data={data1}
+            data={chartData1}
             options={{
               ...options1,
               responsive: true,
