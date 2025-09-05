@@ -4,9 +4,9 @@ from math import radians, sin, cos, acos
 from pathlib import Path
 import yaml
 from sqlalchemy import text
-from src.app.eco_score_calculator import EcoScoreCalculator
+from eco_score_calculator import EcoScoreCalculator
 
-from src.app.Formulation.scorers import (
+from Formulation.scorers import (
     DamoovAccelerationScorer,
     DamoovDeccelerationScorer,
     DamoovCorneringScorer,

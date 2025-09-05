@@ -1,5 +1,5 @@
 import pandas as pd
-from src.app.Formulation.utils import load_csv_with_timestamp, finalize_event
+from Formulation.utils import load_csv_with_timestamp, finalize_event
 
 class DamoovAccelerationScorer:
     def __init__(self, threshold, min_speed, min_duration, max_gap):

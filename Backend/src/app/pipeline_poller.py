@@ -3,9 +3,9 @@ import time
 import subprocess
 import yaml
 import os
-from src.app.db_utils import get_engine
-from src.app.sync_utils import sync_old_to_new
-from src.app.score_pipeline import load_config, run_score_pipeline
+from db_utils import get_engine
+from sync_utils import sync_old_to_new
+from score_pipeline import load_config, run_score_pipeline
 
 def poll_pipeline(interval_sec=300):
     """Poll every 'interval_sec' seconds (default 5 minutes)."""
