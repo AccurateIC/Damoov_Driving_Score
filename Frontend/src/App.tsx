@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 
-import Summary from "./pages/Dashboard/Summary";
+import Summary from "./pages/Dashboard/Summary_New";
+//import Summary from "./pages/Dashboard/Summary";
 import SDK from "./pages/Dashboard/SDK";
-import Safety from "./pages/Dashboard/Safety";
+// import Safety from "./pages/Dashboard/Safety";
+import Safety from "./pages/Dashboard/New_Safety";
 
 import UsersList from "./pages/Users/List";
 import Profiles from "./pages/Users/Profiles";
@@ -26,12 +28,13 @@ function App() {
           {/* Redirect /dashboard → /dashboard/summary */}
           <Route
             path="dashboard"
-            element={<Navigate to="/dashboard/summary" replace />}
+            element={<Navigate to="/dashboard/summary_New" replace />}
           />
 
-          <Route path="dashboard/summary" element={<Summary />} />
+          <Route path="dashboard/summary_New" element={<Summary />} />
           <Route path="dashboard/sdk" element={<SDK />} />
           <Route path="dashboard/safety" element={<Safety />} />
+         
 
           <Route path="users/list" element={<UsersList />} />
           <Route path="users/profiles" element={<Profiles />} />

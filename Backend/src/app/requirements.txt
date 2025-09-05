@@ -1,3 +1,4 @@
+
 fastapi
 flask
 flask-cors
@@ -9,3 +10,4 @@ sqlalchemy
 pydantic
 pyyaml
 pymysql
+
