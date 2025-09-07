@@ -2,14 +2,16 @@ import pandas as pd
 from sqlalchemy import text
 from functools import lru_cache
 from .utils.db import setup_database, CONFIG
-from .utils.helpers import normalize_timestamp, optimize_columns
+from .utils.helpers import normalize_timestamp, optimize_columns, get_time_range
 
 db_cfg = CONFIG.get("database", {})
-main_table  = db_cfg["main_table"]
-start_table = db_cfg["start_table"]
-stop_table  = db_cfg["stop_table"]
+
+main_table  = db_cfg.get("main_table")
+start_table = db_cfg.get("start_table")
+stop_table  = db_cfg.get("stop_table")
 old_table   = db_cfg.get("old_table", "")
-map_table   = db_cfg["map_table"]
+map_table   = db_cfg.get("map_table")
+
 
 # Always fetch a valid engine just before querying
 def get_engine():
@@ -24,11 +26,7 @@ def load_main_table() -> pd.DataFrame:
     df = optimize_columns(df)
     return df
 
-def load_df(required_cols=None) -> pd.DataFrame:
-    """
-    Load only the requested columns from the main table.
-    If no columns specified, fallback to SELECT *.
-    """
+"""def load_df(required_cols=None) -> pd.DataFrame:
     engine = get_engine()
     
     if required_cols:
@@ -47,7 +45,42 @@ def load_df(required_cols=None) -> pd.DataFrame:
     if "timestamp" in df.columns:
         df = normalize_timestamp(df)
     
+    return df"""
+
+def load_df(required_cols=None) -> pd.DataFrame:
+    """
+    Load only the requested columns from the main table.
+    Always deduplicates columns to avoid pandas errors.
+    """
+    engine = get_engine()
+
+    if required_cols:
+        if isinstance(required_cols, (list, tuple, set)):
+            # Deduplicate & preserve order
+            required_cols = list(dict.fromkeys(required_cols))
+            cols = ", ".join(required_cols)
+        else:
+            cols = str(required_cols)
+        sql = text(f"SELECT {cols} FROM {main_table}")
+    else:
+        sql = text(f"SELECT * FROM {main_table}")
+
+    df = pd.read_sql(sql, con=engine)
+
+    # Drop duplicate column names if any slipped in
+    df = df.loc[:, ~df.columns.duplicated()]
+
+    # Normalize timestamp if present
+    if "timestamp" in df.columns:
+        try:
+            df = normalize_timestamp(df)
+        except Exception as e:
+            print(f"[WARN] Timestamp normalization failed: {e}")
+            # fallback: just keep it raw
+            pass
+
     return df
+
 
 
 @lru_cache(maxsize=1)
@@ -172,6 +205,24 @@ def get_safety_graph_data() -> pd.DataFrame:
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
 
+
+def get_mileage_graph_data() -> pd.DataFrame:
+    """
+    Load only the columns required for /mileage_daily
+    instead of SELECT * which is very slow.
+    """
+    engine = get_engine()
+    sql = text(f"""
+        SELECT timestamp,
+               unique_id,
+               trip_distance_used
+        FROM newSampleTable
+        WHERE trip_distance_used <= 500
+    """)
+    df = pd.read_sql(sql, con=engine)
+    return normalize_timestamp(df)
+
+
 def get_performance_data():
     """
     Load only the necessary columns for performance summary.
@@ -185,4 +236,31 @@ def get_performance_data():
     """)
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
+
+def get_users_with_summary() -> pd.DataFrame:
+    """
+    Returns users with trip_count, safety_score, and status.
+    Joins trips (main_table) with users table.
+    """
+    engine = get_engine()
+    sql = text(f"""
+        SELECT u.id AS user_id,
+               u.name AS name,
+               COUNT(DISTINCT m.unique_id) AS trip_count,
+               AVG(m.safe_score) AS safety_score
+        FROM users u
+        LEFT JOIN {main_table} m ON u.id = m.user_id AND m.safe_score IS NOT NULL
+        GROUP BY u.id, u.name
+    """)
+    df = pd.read_sql(sql, con=engine)
+
+    # calculate status (1 = active if any trips, else 0)
+    df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
+
+    # round safety_score safely
+    df["safety_score"] = df["safety_score"].fillna(0).round(2)
+
+    return df
+
+
 

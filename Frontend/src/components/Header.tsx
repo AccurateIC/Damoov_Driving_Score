@@ -1,3 +1,4 @@
+
 // src/components/Header.tsx
 import { Bell, User } from "lucide-react";
 
@@ -54,3 +55,4 @@ const Header = () => {
 };
 
 export default Header;
+

@@ -2,7 +2,7 @@ import numpy as np
 from flask import jsonify
 from src.app.db_queries import (
     load_main_table_cached,
-    get_trip_points, get_all_trip_locations, get_trip_map
+    get_trip_points, get_all_trip_locations, get_trip_map, get_users_with_summary
 )
 from src.app.utils.cache import cached_reverse_geocode
 
@@ -100,3 +100,13 @@ def trip_map(track_id: int):
             "location": cached_reverse_geocode(row["latitude"], row["longitude"])
         })
     return jsonify({"track_id": track_id, "route": enriched})
+
+# ---------- /users (GET) ----------
+def list_users():
+    df = get_users_with_summary()
+
+    if df.empty:
+        return jsonify([])
+
+    result = df.to_dict(orient="records")
+    return jsonify(result)
