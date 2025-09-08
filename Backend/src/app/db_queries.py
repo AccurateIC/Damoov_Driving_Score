@@ -263,5 +263,32 @@ def get_users_with_summary() -> pd.DataFrame:
 
     return df
 
+def get_trips_with_users() -> pd.DataFrame:
+    """
+    Returns trips (distance < 1 km) joined with users table for names.
+    """
+    engine = get_engine()
+    sql = text(f"""
+                 SELECT m.unique_id,
+                        MIN(m.timestamp) AS start_time,
+                        MAX(m.timestamp) AS end_time,
+                        MAX(m.trip_distance_used) AS trip_distance_used,
+                        m.user_id,
+                        u.name
+                FROM {main_table} m
+                LEFT JOIN users u ON u.id = m.user_id
+                    AND m.trip_distance_used > 0.1
+                GROUP BY m.unique_id, m.user_id, u.name
+
+
+    """)
+    df = pd.read_sql(sql, con=engine)
+    print("Row count fetched:", len(df))  # Debug row count
+    print(df.head(5))                     # Debug preview
+
+    # Normalize timestamps
+    df = normalize_timestamp(df)
+    return df
+
 
 
