@@ -1,10 +1,16 @@
+
 import pandas as pd
 from sqlalchemy import text
 from functools import lru_cache
 from .utils.db import setup_database, CONFIG
 from .utils.helpers import normalize_timestamp, optimize_columns, get_time_range
+from .utils.helpers import normalize_timestamp, optimize_columns, get_time_range
 
 db_cfg = CONFIG.get("database", {})
+
+main_table  = db_cfg.get("main_table")
+start_table = db_cfg.get("start_table")
+stop_table  = db_cfg.get("stop_table")
 
 main_table  = db_cfg.get("main_table")
 start_table = db_cfg.get("start_table")
@@ -25,27 +31,6 @@ def load_main_table() -> pd.DataFrame:
     df = normalize_timestamp(df)
     df = optimize_columns(df)
     return df
-
-"""def load_df(required_cols=None) -> pd.DataFrame:
-    engine = get_engine()
-    
-    if required_cols:
-        # Ensure it's a list/tuple and convert to comma-separated SQL columns
-        if isinstance(required_cols, (list, tuple, set)):
-            cols = ", ".join(required_cols)
-        else:
-            cols = str(required_cols)
-        sql = text(f"SELECT {cols} FROM {main_table}")
-    else:
-        sql = text(f"SELECT * FROM {main_table}")
-
-    df = pd.read_sql(sql, con=engine)
-    
-    # Normalize only if timestamp is present
-    if "timestamp" in df.columns:
-        df = normalize_timestamp(df)
-    
-    return df"""
 
 def load_df(required_cols=None) -> pd.DataFrame:
     """
@@ -80,8 +65,6 @@ def load_df(required_cols=None) -> pd.DataFrame:
             pass
 
     return df
-
-
 
 @lru_cache(maxsize=1)
 def load_main_table_cached():
@@ -204,6 +187,24 @@ def get_safety_graph_data() -> pd.DataFrame:
     """)
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
+
+
+def get_mileage_graph_data() -> pd.DataFrame:
+    """
+    Load only the columns required for /mileage_daily
+    instead of SELECT * which is very slow.
+    """
+    engine = get_engine()
+    sql = text(f"""
+        SELECT timestamp,
+               unique_id,
+               trip_distance_used
+        FROM newSampleTable
+        WHERE trip_distance_used <= 500
+    """)
+    df = pd.read_sql(sql, con=engine)
+    return normalize_timestamp(df)
+
 
 
 def get_mileage_graph_data() -> pd.DataFrame:

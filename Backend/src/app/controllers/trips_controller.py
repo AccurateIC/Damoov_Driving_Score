@@ -1,8 +1,10 @@
+
 import numpy as np
 from flask import jsonify
 from src.app.db_queries import (
     load_main_table_cached,
     get_trip_points, get_all_trip_locations, get_trip_map, get_users_with_summary
+
 )
 from src.app.utils.cache import cached_reverse_geocode
 
@@ -110,3 +112,5 @@ def list_users():
 
     result = df.to_dict(orient="records")
     return jsonify(result)
+
+

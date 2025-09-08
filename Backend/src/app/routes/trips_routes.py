@@ -1,3 +1,4 @@
+
 from flask import Blueprint
 from src.app.controllers import trips_controller as c
 
@@ -10,4 +11,3 @@ trips_bp.route("/trips/location/<int:unique_id>", methods=["GET"])(c.trip_locati
 trips_bp.route("/locations/<int:unique_id>", methods=["GET"])(c.raw_locations)
 trips_bp.route("/trips/map/<int:track_id>", methods=["GET"])(c.trip_map)
 trips_bp.route("/users", methods=["GET"])(c.list_users)
-
