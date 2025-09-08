@@ -437,7 +437,13 @@
 import React, { useEffect, useState } from "react";
 import { FiSearch, FiDownload } from "react-icons/fi";
 
+
+const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
+
+
 const UsersList = () => {
+
+  
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchId, setSearchId] = useState("");
@@ -447,7 +453,7 @@ const UsersList = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/users");
+      const response = await fetch(`${baseURL}/users`);
       const data = await response.json();
       setUsers(data);
     } catch (error) {

@@ -685,7 +685,7 @@ useEffect(() => {
   labels: ["Speed", "Braking", "Turning", "Acceleration", "Fuel", "Safety"],
   datasets: [
     {
-      label: "Driver A",
+      label: "Driving Trips Params",
       data: [65, 59, 90, 81, 56, 55],
       backgroundColor: "rgba(75,192,192,0.2)",
       borderColor: "rgba(75,192,192,1)",
