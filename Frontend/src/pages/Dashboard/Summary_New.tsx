@@ -43,6 +43,8 @@ const performanceData: ChartData[] = [
   { name: "Dec", value: 28 },
 ];
 
+const baseURL = import.meta.env.VITE_BASE_URL || "http://1270.0.1:5000";
+
 const Summary: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"performance" | "safe" | "eco">(
     "performance"
@@ -72,7 +74,7 @@ const Summary: React.FC = () => {
   >([]);
   useEffect(() => {
     const filterValue = getFilterValue(selectedDays);
-    fetch(`http://127.0.0.1:5000/performance_summary?filter=${filterValue}`)
+    fetch(`${baseURL}/performance_summary?filter=${filterValue}`)
       .then((res) => res.json())
       .then((data) => {
         // Build array dynamically only with API data:
@@ -94,7 +96,7 @@ const Summary: React.FC = () => {
   useEffect(() => {
     console.log("selectedDays", selectedDays);
     const filterValue = getFilterValue(selectedDays);
-    fetch(`http://127.0.0.1:5000/safe_driving_summary?filter=${filterValue}`)
+    fetch(`${baseURL}/safe_driving_summary?filter=${filterValue}`)
       .then((res) => res.json())
       .then((data) => {
         setSafeDrivingData([
@@ -123,7 +125,7 @@ const Summary: React.FC = () => {
   useEffect(() => {
     const filterValue = getFilterValue(selectedDays);
 
-    fetch(`http://127.0.0.1:5000/eco_driving_summary?filter=${filterValue}`)
+    fetch(`${baseURL}/eco_driving_summary?filter=${filterValue}`)
       .then((res) => res.json())
       .then((data) => {
         setEcoDrivingData([

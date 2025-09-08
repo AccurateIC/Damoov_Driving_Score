@@ -351,6 +351,7 @@ ChartJS.register(
   Legend
 );
 
+const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
 const Dashboard = () => {
   const data = {
     labels: [
@@ -550,7 +551,7 @@ const mapApiResponseToMetrics = (data) => [
     const fetchMetrics = async () => {
       try {
         const res = await axios.get(
-          `http://127.0.0.1:5000/safety_dashboard_summary?filter=${filter}`
+          `${baseURL}/safety_dashboard_summary?filter=${filter}`
         );
         console.log(res.data);
         setMetrics(mapApiResponseToMetrics(res.data));
@@ -578,7 +579,7 @@ const metricMap = {
 useEffect(() => {
   const fetchSafetyParams = async () => {
     try {
-      const res = await axios.post("http://127.0.0.1:5000/safety_graph_trend", {
+      const res = await axios.post(`${baseURL}/safety_graph_trend`, {
         filter_val: filter, // comes from your main filter state
         metric: metric,
       });
@@ -616,7 +617,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchMileageDailyParams = async () => {
       try {
-        const res = await axios.post("http://127.0.0.1:5000/mileage_daily", {
+        const res = await axios.post(`${baseURL}/mileage_daily`, {
           filter_val: filter,
         });
 
