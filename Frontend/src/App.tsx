@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
-
+import Login from "./pages/Login";
 import Summary from "./pages/Dashboard/Summary_New";
 //import Summary from "./pages/Dashboard/Summary";
 import SDK from "./pages/Dashboard/SDK";
@@ -25,6 +25,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+         <Route index element={<Login />} />
         <Route path="/" element={<DashboardLayout />}>
           {/* Redirect /dashboard → /dashboard/summary */}
           <Route
