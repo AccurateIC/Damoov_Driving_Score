@@ -1,4 +1,3 @@
-
 // src/components/Header.tsx
 import { Bell, User } from "lucide-react";
 
@@ -41,7 +40,7 @@ const Header = () => {
 
             {/* Avatar */}
             <button className="relative p-2 rounded-full hover:bg-gray-100">
-              <div className="w-10 h-10 rounded-full bg-violet-200 flex items-center justify-center text-lg">
+              <div className="w-15 h-15 rounded-full bg-violet-200 flex items-center justify-center text-lg">
                 <span role="img" aria-label="avatar">
                   🧑‍💼
                 </span>
@@ -55,4 +54,3 @@ const Header = () => {
 };
 
 export default Header;
-

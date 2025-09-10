@@ -8,6 +8,7 @@ import SDK from "./pages/Dashboard/SDK";
 import Safety from "./pages/Dashboard/New_Safety";
 
 import UsersList from "./pages/Users/New_Users";
+import User_Details from "./pages/Users/User_Details";
 // import UsersList from "./pages/Users/List";
  import Profiles from "./pages/Users/Profiles";
 // import Permissions from "./pages/Users/Permissions";
@@ -40,6 +41,7 @@ function App() {
 
           <Route path="users/list" element={<UsersList />} />
           <Route path="users/profiles" element={<Profiles />} />
+          <Route path="users/:id" element={<User_Details/>}/>
           {/* <Route path="users/permissions" element={<Permissions />} /> */}
 
           <Route path="trips/list" element={<TripsList />} />

@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
+
 import { FiSearch, FiDownload } from "react-icons/fi";
 import NoData from "../../assets/no-user-data.png";
+import { Link as RouterLink } from "react-router-dom";
+
+// import { Link as RouterLink } from "react-router-dom";
+// import Typography from "@mui/material/Typography";
+// import Breadcrumbs from "@mui/material/Breadcrumbs";
+// import Link from "@mui/material/Link";
 
 const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
 
@@ -10,6 +17,10 @@ const UsersList = () => {
   const [searchId, setSearchId] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // NEW
 
+  // function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  //   event.preventDefault();
+  //   console.info("You clicked a breadcrumb.");
+  // }
   // Fetch all users on mount
   const loadUsers = async () => {
     setLoading(true);
@@ -80,7 +91,7 @@ const UsersList = () => {
 
       {/* Users Table */}
       <div className=" p-6 md:-w-[100px] mb-4">
-        {filteredUsers.length > 0 ?  (
+        {filteredUsers.length > 0 ? (
           // <table className="mt-4 border bg-white border-gray-300 w-full mt-12 ">
           <table className="w-full border-collapse bg-white rounded-2xl shadow ">
             <thead className="">
@@ -95,8 +106,18 @@ const UsersList = () => {
             <tbody>
               {filteredUsers.map((user) => (
                 <tr key={user.user_id} className="border-b last:border-none ">
-                  <td className="text-center">{user.user_id}</td>
+                  {/* <td className="text-center">{user.user_id}</td>
+                   */}
+                  <td className="text-center">
+                    <RouterLink
+                      to={`/users/${user.user_id}`}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      {user.user_id}
+                    </RouterLink>
+                  </td>
                   <td className="text-center">{user.name}</td>
+
                   <td className="px-4 py-3  gap-2 text-center">
                     {user.safety_score.toFixed(2)}
                   </td>
@@ -115,21 +136,45 @@ const UsersList = () => {
               ))}
             </tbody>
           </table>
-        ): (
-    <div className="flex flex-col items-center justify-center mt-12">
-      <img
-        src={NoData}
-        alt="No Data Found"
-        className="w-1/5 mb-4"
-      />
-      <h2 className="text-xl font-semibold text-gray-700">
-        No User Found :
-      </h2>
-      <p className="text-gray-500">
-      </p>
-    </div>
-    )}
+        ) : (
+          <div className="flex flex-col items-center justify-center mt-12">
+            <img src={NoData} alt="No Data Found" className="w-1/5 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-700">
+              No User Found :
+            </h2>
+            <p className="text-gray-500"></p>
+          </div>
+        )}
       </div>
+
+      {/* Breadcrumbs */}
+      {/* <div role="presentation" className="mb-4">
+  <Breadcrumbs separator="›" aria-label="breadcrumb">
+    <Link
+      component={RouterLink}
+      to="/"
+      underline="hover"
+      color="inherit"
+    >
+      Home
+    </Link>
+
+    <Link
+      component={RouterLink}
+      to="/users"
+      underline="hover"
+      color="inherit"
+    >
+      Users
+    </Link>
+
+    {searchId && filteredUsers.length === 1 ? (
+      <Typography color="text.primary">
+        {filteredUsers[0].name} (ID: {filteredUsers[0].user_id})
+      </Typography>
+    ) : null}
+  </Breadcrumbs>
+</div> */}
     </div>
   );
 };
