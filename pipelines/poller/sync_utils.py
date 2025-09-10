@@ -1,8 +1,9 @@
-
 # src/app/sync_utils.py
+import time
+import sqlalchemy
 from sqlalchemy import text
 
-def sync_old_to_new(engine, config):
+def sync_old_to_new(engine, config, retries=3, wait=5):
     old_table = config['database']['old_table']
     new_table = config['database']['main_table']
 
@@ -23,7 +24,7 @@ def sync_old_to_new(engine, config):
     select_cols = ", ".join([
        "FROM_UNIXTIME(o.`timestamp`) AS `timestamp`" if c == "timestamp" else f"o.`{c}`"
        for c in columns
-])
+    ])
 
     sql = f"""
         INSERT INTO {new_table} ({insert_cols})
@@ -33,5 +34,18 @@ def sync_old_to_new(engine, config):
         WHERE n.unique_id IS NULL
     """
 
-    with engine.begin() as conn:
-        conn.execute(text(sql))
+    # Retry logic for lock wait / deadlocks
+    for attempt in range(1, retries + 1):
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(sql))
+            print(f"✅ Sync successful on attempt {attempt}")
+            break
+        except sqlalchemy.exc.OperationalError as e:
+            if "1205" in str(e) or "1213" in str(e):  # lock wait / deadlock
+                print(f"⚠️ DB lock/timeout (attempt {attempt}/{retries}). Retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                raise
+    else:
+        raise RuntimeError("❌ Sync failed after maximum retries due to DB lock/timeout")

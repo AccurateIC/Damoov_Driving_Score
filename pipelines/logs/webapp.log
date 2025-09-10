@@ -1,0 +1,121 @@
+ * Serving Flask app 'flask_server'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.10.41:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 10:14:40] "[33mGET / HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 10:14:40] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+ * Serving Flask app 'flask_server'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.10.41:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/sync_utils.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/sync_utils.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/sync_utils.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/sync_utils.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+ * Serving Flask app 'flask_server'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.10.41:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+ * Serving Flask app 'flask_server'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.10.41:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:04] "OPTIONS /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:04] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:04] "OPTIONS /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:04] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:04] "OPTIONS /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:04] "OPTIONS /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:17] "GET /safe_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:19] "GET /eco_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:20] "POST /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:28] "POST /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:31] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:34] "POST /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:34] "GET /performance_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:41] "POST /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:43] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:44] "GET /safe_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:46] "GET /eco_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:26:48] "GET /performance_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:27:57] "OPTIONS /mileage_daily HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:27:57] "OPTIONS /safety_graph_trend HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:27:57] "OPTIONS /mileage_daily HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:27:57] "OPTIONS /safety_graph_trend HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:28:13] "POST /safety_graph_trend HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:28:13] "POST /safety_graph_trend HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:28:17] "POST /mileage_daily HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:28:18] "POST /mileage_daily HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:28:19] "GET /safety_dashboard_summary?filter=last_1_month HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:28:22] "GET /safety_dashboard_summary?filter=last_1_month HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:04] "GET /users HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:05] "GET /users HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:58] "OPTIONS /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:58] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:58] "OPTIONS /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:58] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:58] "OPTIONS /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:29:58] "OPTIONS /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:12] "GET /safe_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:13] "POST /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:14] "GET /eco_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:20] "POST /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:24] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:29] "POST /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:30] "GET /performance_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:39] "POST /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:40] "GET /safe_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:41] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:42] "GET /eco_driving_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:30:45] "GET /performance_summary?filter=last_2_weeks HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:06] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:08] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:11] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:13] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:20] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:22] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:35] "OPTIONS /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:35] "OPTIONS /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:35] "OPTIONS /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:49] "GET /safe_driving_summary?filter=last_1_month HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:50] "POST /safety_params HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:51] "GET /eco_driving_summary?filter=last_1_month HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:56] "POST /driver_distribution HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:57] "POST /summary_graph HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:32:00] "GET /performance_summary?filter=last_1_month HTTP/1.1" 200 -
