@@ -248,13 +248,14 @@ def get_users_with_summary() -> pd.DataFrame:
         SELECT u.id AS user_id,
                u.name AS name,
                COUNT(DISTINCT m.unique_id) AS trip_count,
-               AVG(m.safe_score) AS safety_score
+               AVG(m.safe_score) AS safety_score,
+               MAX(m.timestamp) AS timestamp
         FROM users u
         LEFT JOIN {main_table} m ON u.id = m.user_id AND m.safe_score IS NOT NULL
         GROUP BY u.id, u.name
     """)
     df = pd.read_sql(sql, con=engine)
-
+    df = df.where(pd.notnull(df), None)
     # calculate status (1 = active if any trips, else 0)
     df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
 

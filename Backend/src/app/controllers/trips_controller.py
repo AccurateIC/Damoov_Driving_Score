@@ -1,12 +1,14 @@
 
 import numpy as np
-from flask import jsonify
+import pandas as pd
+from flask import jsonify, request
 from src.app.db_queries import (
     load_main_table_cached,
     get_trip_points, get_all_trip_locations, get_trip_map, get_users_with_summary
 
 )
 from src.app.utils.cache import cached_reverse_geocode
+from src.app.utils.helpers import get_time_range
 
 # ---------- /trips (GET) ----------
 def list_trips():
@@ -104,7 +106,7 @@ def trip_map(track_id: int):
     return jsonify({"track_id": track_id, "route": enriched})
 
 # ---------- /users (GET) ----------
-def list_users():
+"""def list_users():
     df = get_users_with_summary()
 
     if df.empty:
@@ -112,5 +114,27 @@ def list_users():
 
     result = df.to_dict(orient="records")
     return jsonify(result)
+"""
+
+def list_users():
+    filter_val = request.args.get("filter")
+    df = get_users_with_summary()
+
+    if df.empty:
+        return jsonify([])
+
+    # Ensure timestamp is datetime and UTC
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+
+    if filter_val:
+        now = pd.Timestamp.now() # use actual current time
+        start = get_time_range(filter_val, now)
+        if not start:
+            return jsonify({"error": "Invalid filter"}), 400
+
+        df = df[df["timestamp"] >= start]
+        if df.empty:
+            return jsonify({"error": "No data"}), 404
 
 
+    return jsonify(df.to_dict(orient="records"))

@@ -219,7 +219,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def user_safety_dashboard_summary():
+"""def user_safety_dashboard_summary():
     user_id = request.args.get("user_id")
 
     if not user_id:
@@ -283,6 +283,81 @@ def user_safety_dashboard_summary():
         "average_speed_kmh": avg_spd,
         "max_speed_kmh": max_spd,
         "phone_usage_percentage": round(agg["phone_score"], 2),
+    }
+
+    return jsonify(summary)"""
+
+def user_safety_dashboard_summary():
+    user_id = request.args.get("user_id")
+    filter_val = request.args.get("filter")
+
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    cols = [
+        "unique_id", "device_id", "trip_distance_used", "speed_kmh",
+        "acc_score", "dec_score", "cor_score", "phone_score",
+        "safe_score", "timestamp", "user_id"
+    ]
+    df = load_df(required_cols=cols)
+    df = df.dropna(subset=["timestamp", "safe_score", "trip_distance_used"])
+
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return jsonify({"error": "Invalid user_id"}), 400
+
+    # filter by user
+    df = df[df["user_id"] == user_id]
+    if df.empty:
+        return jsonify({"error": "No data for this user"}), 404
+
+    # ---- time filter ----
+    if filter_val:
+        now = df["timestamp"].max()
+        start = get_time_range(filter_val, now)
+        if not start:
+            return jsonify({"error": "Invalid filter"}), 400
+        df = df[df["timestamp"] >= start]
+        if df.empty:
+            return jsonify({"error": "No data in this filter"}), 404
+
+    # ---- latest row per trip ----
+    idx = df.groupby("unique_id")["timestamp"].idxmax()
+    latest = df.loc[idx]
+
+    # ---- filter out unrealistic trips (1–300 km) ----
+    latest = latest[(latest["trip_distance_used"] >= 1) & (latest["trip_distance_used"] <= 300)]
+
+    trips = latest["unique_id"].nunique()
+    mileage = latest["trip_distance_used"].sum()
+
+    # ---- speed stats ----
+    speed = latest.groupby("unique_id")["speed_kmh"].agg(["max", "mean"])
+    speed = speed[speed["max"] < 300]
+    max_spd = round(float(speed["max"].max()), 2) if not speed.empty else 0.0
+    avg_spd = round(float(speed["mean"].mean()), 2) if not speed.empty else 0.0
+
+    # ---- time driven ----
+    per_trip = df[df["unique_id"].isin(latest["unique_id"])]
+    per_trip = per_trip.groupby("unique_id")["timestamp"].agg(["min", "max"])
+    time_min = round((per_trip["max"] - per_trip["min"]).dt.total_seconds().sum() / 60.0, 2)
+
+    # ---- averages ----
+    valid_rows = df[df["unique_id"].isin(latest["unique_id"])]
+    agg = valid_rows.agg({
+        "safe_score": "mean",
+        "phone_score": "mean"
+    }).to_dict()
+
+    summary = {
+        "safety_score": round(agg["safe_score"], 2) if not pd.isna(agg["safe_score"]) else 0.0,
+        "trips": int(trips),
+        "mileage_km": round(mileage, 2),
+        "time_driven_minutes": time_min,
+        "average_speed_kmh": avg_spd,
+        "max_speed_kmh": max_spd,
+        "phone_usage_percentage": round(agg["phone_score"], 2) if not pd.isna(agg["phone_score"]) else 0.0,
     }
 
     return jsonify(summary)
