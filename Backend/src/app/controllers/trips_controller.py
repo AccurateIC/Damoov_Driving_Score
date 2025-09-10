@@ -4,7 +4,7 @@ import pandas as pd
 from flask import jsonify, request
 from src.app.db_queries import (
     load_main_table_cached,
-    get_trip_points, get_all_trip_locations, get_trip_map, get_users_with_summary
+    get_trip_points, get_all_trip_locations, get_trip_map, get_users_with_summary, get_engine
 
 )
 from src.app.utils.cache import cached_reverse_geocode
@@ -138,3 +138,34 @@ def list_users():
 
 
     return jsonify(df.to_dict(orient="records"))
+
+def list_trips_with_user():
+    df = load_main_table_cached()
+    cols = {"unique_id", "device_id", "timestamp", "trip_distance_used", "user_id"}
+    if df.empty or not cols.issubset(df.columns):
+        missing = cols - set(df.columns)
+        return jsonify({"error": f"Missing column(s): {', '.join(missing)}"}), 400
+
+    # Drop null distances and filter for > 1 km
+    df = df.dropna(subset=["trip_distance_used"])
+    df = df[df["trip_distance_used"] > 1]
+
+    # Load users table to get names
+    engine = get_engine()
+    users_df = pd.read_sql("SELECT id, name FROM users", con=engine)
+    df = df.merge(users_df, how="left", left_on="user_id", right_on="id")
+
+    # Aggregate like original list_trips()
+    agg = {"device_id": "first", "timestamp": ["min", "max"], "name": "first"}
+    agg["trip_distance_used"] = "first"
+
+    trips = df.groupby("unique_id").agg(agg).reset_index()
+
+    # Flatten columns
+    trips.columns = ["unique_id", "device_id", "start_time", "end_time", "name", "trip_distance_used"]
+
+    trips = trips.replace({np.nan: None})
+    trips["start_time"] = trips["start_time"].astype(str)
+    trips["end_time"] = trips["end_time"].astype(str)
+
+    return jsonify(trips.to_dict(orient="records"))
