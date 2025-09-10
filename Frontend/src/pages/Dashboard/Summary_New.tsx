@@ -146,83 +146,6 @@ const Summary: React.FC = () => {
     return performanceData;
   };
 
-  //     {/* Header */}
-  //     <div className="flex items-center justify-between mb-2">
-  //       <div>
-  //         <div className="text-xs text-gray-400 mb-1">Good Morning,</div>
-  //         <div className="text-lg font-semibold text-gray-800">Atharva D</div>
-  //       </div>
-  //       <div className="w-10 h-10 rounded-full bg-violet-200 flex items-center justify-center">
-  //         <span role="img" aria-label="avatar">
-  //           🧑‍💼
-  //         </span>
-  //       </div>
-  //     </div>
-  //     <div className="mb-2 text-xs text-gray-400">
-  //       Dashboard &gt;{" "}
-  //       <span className="font-semibold text-gray-800">Summary</span>
-  //     </div>
-
-  //     {/* Tabs */}
-  //     <div className="flex gap-8 mb-8 border-b border-gray-200">
-
-  //       {["performance", "safe", "eco"].map((tab) => (
-  //         <button
-  //           key={tab}
-  //           onClick={() => setActiveTab(tab as any)}
-  //           className={`text-sm font-semibold capitalize pb-2 ${
-  //             activeTab === tab
-  //               ? "text-blue-600 border-b-4 border-blue-600"
-  //               : "text-gray-500 hover:text-gray-700"
-  //           } transition-colors duration-200`}
-  //         >
-  //           {tab === "performance"
-  //             ? "Performance"
-  //             : tab === "safe"
-  //             ? "Safe Driving"
-  //             : "Eco Driving"}
-  //         </button>
-  //       ))}
-  //       <div>
-  //       <select
-  //         value={selectedDays}
-  //         onChange={(e) => setSelectedDays(Number(e.target.value))}
-  //         className="border border-green-600 text-green-600 px-4 py-2 rounded-md text-sm"
-  //       >
-  //         <option value={7}>Last 7 Days</option>
-  //         <option value={14}>Last 14 Days</option>
-  //         <option value={30}>Last 30 Days</option>
-  //         <option value={60}>Last 60 Days</option>
-  //       </select>
-  //     </div>
-  //     </div>
-
-  //     {/* Stats Cards */}
-  //     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8">
-  //       {getCurrentTabData().map((stat) => (
-  //         <div
-  //           key={stat.metric}
-  //           className="bg-white rounded-xl shadow-sm px-6 py-5"
-  //         >
-  //           <div className="text-sm text-gray-400">{stat.metric}</div>
-  //           <div className="text-2xl font-bold text-gray-800">{stat.value}</div>
-
-  //           {/* Optional period and trend */}
-  //         </div>
-  //       ))}
-  //     </div>
-
-  //     {/* Chart Card */}
-
-  //       <div className=" w-full">
-  //      <BarChartGraph selectedDays={selectedDays}/>
-  //       {/* <OverviewChart  /> */}
-  //       <Dashboard selectedDays={selectedDays}/>
-  //       <TopDriversTable/>
-  //     </div>
-  //   </div>
-  // );
-
   return (
     <div className="min-h-screen  px-4 pt-1  ">
       <div>
@@ -277,10 +200,10 @@ const Summary: React.FC = () => {
               <option value={60}>Last 60 Days</option>
             </select> */}
             <div className="relative">
-  <select
-    value={selectedDays}
-    onChange={(e) => setSelectedDays(Number(e.target.value))}
-    className="
+              <select
+                value={selectedDays}
+                onChange={(e) => setSelectedDays(Number(e.target.value))}
+                className="
       border 
       md:w-[115px] md:h-[42px] 2xl:w-[145px] 2xl:h-[42px]
       bg-white px-2 pr-8 2xl:mx-[1px]   
@@ -288,19 +211,18 @@ const Summary: React.FC = () => {
        focus:outline-none
       appearance-none
     "
-  >
-    <option value={7}>Last 7 Days</option>
-    <option value={14}>Last 14 Days</option>
-    <option value={30}>Last 30 Days</option>
-    <option value={60}>Last 60 Days</option>
-  </select>
+              >
+                <option value={7}>Last 7 Days</option>
+                <option value={14}>Last 14 Days</option>
+                <option value={30}>Last 30 Days</option>
+                <option value={60}>Last 60 Days</option>
+              </select>
 
-  {/* Custom dropdown arrow */}
-  <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-500">
-    ▼
-  </div>
-</div>
-
+              {/* Custom dropdown arrow */}
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-500">
+                ▼
+              </div>
+            </div>
           </div>
           {/* Stats Cards */}
           <div className="grid  grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">

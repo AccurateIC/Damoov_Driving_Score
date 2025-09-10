@@ -44,12 +44,13 @@ import React from "react";
 import { FiDownload } from "react-icons/fi";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Star, AlertCircle } from "lucide-react";
+import Tabs from "./dummtTab";
 
 function User_Details() {
   const [statusFilter, setStatusFilter] = React.useState("all"); // NEW
 
   return (
-    <div className="flex flex-col gap-[5px]  min-h-screen 2xl:min-w-[1081px] 2xl:mx-10">
+    <div className="flex flex-col gap-[5px] min-h-screen 2xl:min-w-[1530px] 2xl:mx-10 pt-[43px]">
       {/* Header */}
       <div className="flex justify-between  items-center p-1">
         <div className=" text-3xl font-medium ">User Profile</div>
@@ -66,30 +67,31 @@ function User_Details() {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">Last Week</option>
+            <option value="Last Week">Last 2 Week</option>
+            <option value="Last  Month">Last Month</option>
+           < option value="Last 2 Month">Last 2 Month</option>
           </select>
         </div>
       </div>
 
-      <div className=" min-h-screen grid grid-cols-1 gap-10 p-2 bg-">
-        <div className="grid grid-cols-1 bg-white rounded-lg shadow 2xl:min-h-[220px] gap-10">
-          <div className="flex items-center  justify-between  rounded-lg  p-4 w-full">
+      <div className=" grid grid-cols-1 p-2 bg-">
+        <div className="grid grid-cols-1 px-4 2xl:min-h-[200px] ">
+          <div className="flex items-center  justify-between  rounded-lg  p-2 w-full">
             <div className="flex flex-col  items-start  gap-5 h-full pl-4 rounded-lg w-3/5">
               <div className="2xl:min-w-[80px] 2xl:min-h-[80px] rounded-full bg-[#A5A6F6] bg- flex items-center justify-center text-white font-bold text-xl">
-                 <span role="img" aria-label="avatar">
+                <span role="img" aria-label="avatar">
                   🧑‍💼
                 </span>
               </div>
               <div className="flex flex-col gap-2">
-                <h2 className="font-bold text-3xl">Atharva D</h2>
+                <h2 className="font-bold text-2xl">User 1</h2>
                 <div className="flex flex-row gap-4">
                   {" "}
-                  <p className="text-xl text-gray-500">
+                  <p className="font-[16px] text-gray-500">
                     User ID: <span className="text-gray-700">ABCDEF123</span>
                   </p>
-                  <p className="text-xl text-gray-500">
+                  <p className="font-[16px] text-gray-500">
                     Registration Date:{" "}
                     <span className="text-gray-700">10 Sepember 2025</span>
                   </p>
@@ -97,39 +99,37 @@ function User_Details() {
               </div>
             </div>
             {/* Right Section */}
-            <div className="h-full pt-2 pr-6 flex flex-col gap-6   font-medium ">
-              <div className="w-full text-2xl flex items-center gap-2  ">
-                <div className="bg-[#484AB8] text-white rounded-full 2xl:w-10 2xl:h-10 flex items-center justify-center  ">
-                  <Star size={22} />
+            <div className="h-full pt- pr-6 flex flex-col gap-4 font-medium ">
+              <div className="w-full text-base font-medium flex items-center gap-2  ">
+                <div className="bg-[#484AB8] text-white rounded-full 3xl:min-w-[42px] 3xl:min-h-[42px] flex items-center justify-center  ">
+                  <Star />
                 </div>
                 <span className=" text-gray-700">
                   #2 driver on the list this week
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 text-2xl">
-                <div className="bg-[#484AB8] text-white rounded-full 2xl:w-10 2xl:h-10 flex items-center justify-center ">
-                  <Star size={22} />
+              <div className="flex items-center text-base font-medium gap-2 ">
+                <div className="bg-[#484AB8] text-white rounded-full 3xl:min-w-[42px] 3xl:min-h-[42px] flex items-center justify-center ">
+                  <Star  />
                 </div>
-                <span className=" text-gray-700">
-                  Speed streak day 6
-                </span>
+                <span className=" text-gray-700">Speed streak day 6</span>
               </div>
 
-              <div className="flex items-center gap-2 text-2xl">
-                <div className="bg-[#AF855A] text-white rounded-full 2xl:w-10 2xl:h-10 flex items-center justify-center ">
-                  <AlertCircle size={22} />
+              <div className="flex items-center gap-2 text-base font-medium">
+                <div className="bg-[#AF855A] 3xl:min-w-[42px] 3xl:min-h-[42px] text-white rounded-full flex items-center justify-center ">
+                  <AlertCircle  />
                 </div>
-                <span className=" text-gray-700">
-                  Over speeding sometimes
-                </span>
+                <span className=" text-gray-700">Over speeding sometimes</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Other content */}
-        <div className="min-h-screen bg-amber-700">h3</div>
+        <div className="flex flex-col flex-grow  rounded-lg p-2">
+          <Tabs />
+        </div>
       </div>
     </div>
   );

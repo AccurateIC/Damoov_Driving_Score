@@ -95,8 +95,8 @@ const UsersList = () => {
           // <table className="mt-4 border bg-white border-gray-300 w-full mt-12 ">
           <table className="w-full border-collapse bg-white rounded-2xl shadow ">
             <thead className="">
-              <tr className=" text-gray-700 text-sm">
-                <th className=" text-center rounded-tl-lg">User ID</th>
+              <tr className=" text-gray-700 text-sm bg-[#B5B6D5]">
+                <th className=" text-center  rounded-tl-lg">User ID</th>
                 <th className="px-4 py-3 text-center">Name</th>
                 <th className=" text-center">Safety Score</th>
                 <th className="text-center">Trip Count</th>

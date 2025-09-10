@@ -20,7 +20,7 @@ const TopDriversTable = ({ top10Aggresive }: { top10Aggresive: string }) => {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100 text-gray-700 text-sm">
+            <tr className="bg-[#B5B6D5] text-gray-700 text-sm">
               <th className="px-4 py-3 text-left rounded-tl-lg">#</th>
               <th className="px-4 py-3 text-left">Driver Token</th>
               <th className="px-4 py-3 text-left">Name</th>
