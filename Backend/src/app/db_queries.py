@@ -264,6 +264,7 @@ def get_users_with_summary() -> pd.DataFrame:
 
     return df
 
+#Trips Page table
 def get_trips_with_users() -> pd.DataFrame:
     """
     Returns trips (distance > 0.1 km) joined with users table for names.
@@ -303,4 +304,17 @@ def get_trips_with_users() -> pd.DataFrame:
     df = normalize_timestamp(df)
     return df
 
+# User's Page trip section as per user id and filter
+def fetch_all_trips(required_cols=None) -> pd.DataFrame:
+    """
+    Fetch trips dataframe with required columns from main table.
+    """
+    engine = get_engine()
+    sql = f"SELECT * FROM {main_table}"
+    df = pd.read_sql(text(sql), con=engine)
 
+    if required_cols:
+        df = df[required_cols]
+    return df
+
+# join with users table for name
