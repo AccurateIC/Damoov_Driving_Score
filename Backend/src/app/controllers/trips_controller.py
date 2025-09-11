@@ -135,16 +135,34 @@ def list_users():
         df = df[df["timestamp"] >= start]
         if df.empty:
             return jsonify({"error": "No data"}), 404
-
+   # clean timestamps before jsonify
+    if "timestamp" in df.columns:
+        df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+        df["timestamp"] = df["timestamp"].dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        df["timestamp"] = df["timestamp"].replace({pd.NaT: None})
 
     return jsonify(df.to_dict(orient="records"))
 
+
 def list_trips_with_user():
     df = load_main_table_cached()
+    filter_val = request.args.get("filter")
     cols = {"unique_id", "device_id", "timestamp", "trip_distance_used", "user_id"}
     if df.empty or not cols.issubset(df.columns):
         missing = cols - set(df.columns)
         return jsonify({"error": f"Missing column(s): {', '.join(missing)}"}), 400
+    
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+    
+    if filter_val:
+        now = pd.Timestamp.now() # use actual current time
+        start = get_time_range(filter_val, now)
+        if not start:
+            return jsonify({"error": "Invalid filter"}), 400
+
+        df = df[df["timestamp"] >= start]
+        if df.empty:
+            return jsonify({"error": "No data"}), 404
 
     # Drop null distances and filter for > 1 km
     df = df.dropna(subset=["trip_distance_used"])
