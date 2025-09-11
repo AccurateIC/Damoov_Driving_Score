@@ -119,3 +119,37 @@ INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:51] "GET /eco_driving_summary?fil
 INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:56] "POST /driver_distribution HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:31:57] "POST /summary_graph HTTP/1.1" 200 -
 INFO:werkzeug:127.0.0.1 - - [10/Sep/2025 11:32:00] "GET /performance_summary?filter=last_1_month HTTP/1.1" 200 -
+ * Serving Flask app 'flask_server'
+ * Debug mode: on
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.10.41:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/pipeline_poller.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/pipeline_poller.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/pipeline_poller.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/pipeline_poller.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/pipeline_poller.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427
+INFO:werkzeug: * Detected change in '/home/ai_server/Desktop/Damoov_python_backend/repo/pipelines/poller/pipeline_poller.py', reloading
+INFO:werkzeug: * Restarting with stat
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 470-039-427

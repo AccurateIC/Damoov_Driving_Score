@@ -206,3 +206,57 @@ Sleeping for 60 seconds...
 --- Syncing old → new table ---
 ✅ Sync successful on attempt 1
 --- Triggering scoring pipeline ---
+Polling started... running every 60 seconds.
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---
+✅ newSampleTable updated with Safe Score and Eco Score.
+Sleeping for 60 seconds...
+
+
+--- Syncing old → new table ---
+✅ Sync successful on attempt 1
+--- Triggering scoring pipeline ---

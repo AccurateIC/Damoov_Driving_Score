@@ -2,10 +2,9 @@
 > datahub-dashboard@0.0.0 dev
 > vite
 
-11:24:30 AM [vite] (client) Re-optimizing dependencies because vite config has changed
 Port 5173 is in use, trying another one...
 
-  VITE v7.1.3  ready in 474 ms
+  VITE v7.1.3  ready in 440 ms
 
   ➜  Local:   http://localhost:5174/
   ➜  Network: http://192.168.10.41:5174/
