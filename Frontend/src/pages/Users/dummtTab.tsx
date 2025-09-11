@@ -52,7 +52,7 @@ const Tabs = () => {
     //     {activeTab === "Trips" && <div>Trips</div>}
     //   </div>
     // </div>
-    <div className="flex flex-col  w-full min-h-[580px]">
+    <div className="flex flex-col  w-full ">
       {/* Tab Buttons */}
       <div className="flex  w-1/4 mb-4 text-xl">
         <button

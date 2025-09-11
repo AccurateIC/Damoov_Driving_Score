@@ -62,7 +62,7 @@ const TripsTable = () => {
   return (
     <div className="m-2 md:w-full mb-4 ">
       {/* Scroll container */}
-      <div className="max-h-[500px] overflow-auto bg-white rounded-lg">
+      <div className="max-h-[450px] overflow-auto bg-white rounded-lg">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[#B5B6D5] text-gray-700 sticky top-0">
