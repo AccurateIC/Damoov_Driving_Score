@@ -13,7 +13,7 @@ const DashboardLayout = () => {
        2xl:bg-[#f7f7f7] 
     // 2xl:bg-gray-150 
     flex-col 2xl:w-full xl-w-full">
-        {/* <Header /> */}
+        <Header />
         <main className=" overflow-y-auto  ">
           <Outlet />
         </main>
