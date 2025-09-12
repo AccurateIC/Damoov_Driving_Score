@@ -41,7 +41,7 @@ function App() {
 
           <Route path="users/list" element={<UsersList />} />
           <Route path="users/profiles" element={<Profiles />} />
-          <Route path="users/:id" element={<User_Details/>}/>
+          <Route path="users/:userId" element={<User_Details/>}/>
           {/* <Route path="users/permissions" element={<Permissions />} /> */}
 
           <Route path="trips/list" element={<TripsList />} />

@@ -16,7 +16,7 @@ const Tabs = () => {
     { title: "Phone Usage", value: "0.00", unit: "%", extra: "Last Month" },
     { title: "Speeding", value: "0.74", unit: "%", extra: "Last Month" },
     { title: "Phone Usage Speed", value: "0.37", unit: "%", extra: "Last Month" },
-    { title: "Unique Tags Count", value: "1", unit: "", extra: "Last Month" },
+    // { title: "Unique Tags Count", value: "1", unit: "", extra: "Last Month" },
   ];
 
   return (

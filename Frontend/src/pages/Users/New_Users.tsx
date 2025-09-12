@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from "react";
-
 import { FiSearch, FiDownload } from "react-icons/fi";
 import NoData from "../../assets/no-user-data.png";
 import { Link as RouterLink } from "react-router-dom";
-
-// import { Link as RouterLink } from "react-router-dom";
-// import Typography from "@mui/material/Typography";
-// import Breadcrumbs from "@mui/material/Breadcrumbs";
-// import Link from "@mui/material/Link";
 
 const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
 
@@ -16,18 +10,15 @@ const UsersList = () => {
   const [loading, setLoading] = useState(false);
   const [searchId, setSearchId] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // NEW
+  const [detailedUser, setDetailedUser] = useState(null);
 
-  // function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-  //   event.preventDefault();
-  //   console.info("You clicked a breadcrumb.");
-  // }
-  // Fetch all users on mount
   const loadUsers = async () => {
     setLoading(true);
     try {
       const response = await fetch(`${baseURL}/users`);
       const data = await response.json();
       setUsers(data);
+      console.log("/users",users);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -35,11 +26,22 @@ const UsersList = () => {
     }
   };
 
+  const loadUserDetails = async () => {
+    try {
+      const response = await fetch(`${baseURL}/user_safety_dashboard_summary?user_id=11`);
+      const data = await response.json();
+      setDetailedUser(data);
+      console.log(detailedUser);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
+ 
+
   useEffect(() => {
     loadUsers();
+    loadUserDetails();
   }, []);
-
-  // Apply both search + dropdown filter
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchId.toLowerCase()) ||
@@ -146,35 +148,6 @@ const UsersList = () => {
           </div>
         )}
       </div>
-
-      {/* Breadcrumbs */}
-      {/* <div role="presentation" className="mb-4">
-  <Breadcrumbs separator="›" aria-label="breadcrumb">
-    <Link
-      component={RouterLink}
-      to="/"
-      underline="hover"
-      color="inherit"
-    >
-      Home
-    </Link>
-
-    <Link
-      component={RouterLink}
-      to="/users"
-      underline="hover"
-      color="inherit"
-    >
-      Users
-    </Link>
-
-    {searchId && filteredUsers.length === 1 ? (
-      <Typography color="text.primary">
-        {filteredUsers[0].name} (ID: {filteredUsers[0].user_id})
-      </Typography>
-    ) : null}
-  </Breadcrumbs>
-</div> */}
     </div>
   );
 };
