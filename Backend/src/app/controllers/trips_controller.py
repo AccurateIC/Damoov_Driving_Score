@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import text
 from flask import jsonify, request
+from src.app.utils.helpers import normalize_timestamp
 from src.app.db_queries import (
     load_main_table_cached,
     get_trip_points, get_all_trip_locations, get_trip_map, get_users_with_summary, get_engine, fetch_all_trips
@@ -217,71 +218,6 @@ def list_trips_with_user():
 
     return jsonify(trips.to_dict(orient="records"))
 
-#@app.route("/user_trips", methods=["GET"])
-
-"""def user_page_trips():
-    user_id = request.args.get("user_id")
-    filter_val = request.args.get("filter")
-
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
-
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        return jsonify({"error": "Invalid user_id"}), 400
-
-    # required columns
-    cols = ["unique_id", "device_id", "trip_distance_used",
-            "timestamp", "user_id"]
-
-    df = fetch_all_trips(required_cols=cols)
-
-    # filter by user
-    df = df[df["user_id"] == user_id]
-    if df.empty:
-        return jsonify([])
-
-    # time filter
-    if filter_val:
-        now = df["timestamp"].max()
-        start = get_time_range(filter_val, now)
-        if not start:
-            return jsonify({"error": "Invalid filter"}), 400
-        df = df[df["timestamp"] >= start]
-        if df.empty:
-            return jsonify([])
-
-    # trips → take min/max timestamp per trip
-    trips = (
-        df.groupby(["unique_id", "device_id", "user_id"])
-          .agg(start_time=("timestamp", "min"),
-               end_time=("timestamp", "max"),
-               trip_distance_used=("trip_distance_used", "max"))
-          .reset_index()
-    )
-
-    # normalize timestamps
-    trips["start_time"] = pd.to_datetime(trips["start_time"]).dt.strftime("%Y-%m-%d %H:%M:%S")
-    trips["end_time"]   = pd.to_datetime(trips["end_time"]).dt.strftime("%Y-%m-%d %H:%M:%S")
-
-    # join with users table for name
-    engine = get_engine()
-    users_df = pd.read_sql(text("SELECT id, name FROM users"), con=engine)
-
-    # fix dtype mismatch
-    trips["user_id"] = trips["user_id"].astype(int)
-    users_df["id"] = users_df["id"].astype(int)
-
-    trips = trips.merge(users_df, left_on="user_id", right_on="id", how="left")
-
-    # final response
-    result = trips[["unique_id", "device_id", "name", "start_time", "end_time", "trip_distance_used"]].to_dict(orient="records")
-
-    return jsonify(result)
-"""
-
-from src.app.utils.helpers import normalize_timestamp
 
 def user_page_trips():
     user_id = request.args.get("user_id")
