@@ -305,16 +305,22 @@ def get_trips_with_users() -> pd.DataFrame:
     return df
 
 # User's Page trip section as per user id and filter
-def fetch_all_trips(required_cols=None) -> pd.DataFrame:
+def fetch_all_trips(user_id: int, start=None, required_cols=None) -> pd.DataFrame:
     """
-    Fetch trips dataframe with required columns from main table.
+    Fetch trips dataframe with required columns from main table,
+    but filter early in SQL for performance.
     """
     engine = get_engine()
-    sql = f"SELECT * FROM {main_table}"
-    df = pd.read_sql(text(sql), con=engine)
+    cols = ", ".join(required_cols) if required_cols else "*"
 
-    if required_cols:
-        df = df[required_cols]
-    return df
+    query = f"SELECT {cols} FROM {main_table} WHERE user_id = :user_id"
+    params = {"user_id": user_id}
+
+    if start:
+        query += " AND timestamp >= :start"
+        params["start"] = start
+
+    return pd.read_sql(text(query), con=engine, params=params)
+
 
 # join with users table for name
