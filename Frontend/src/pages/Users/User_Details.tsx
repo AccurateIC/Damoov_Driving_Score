@@ -320,7 +320,7 @@ const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
 
 function UserDetailsWithTabs() {
   const { userId } = useParams();
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("last_1_month");
   const [activeTab, setActiveTab] = useState("Safety Parameters");
   const [safetySummary, setSafetySummary] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -329,10 +329,12 @@ useEffect(() => {
   if (!userId) return;
 
   const fetchSafetySummary = async () => {
+    console.log("statusFilter", statusFilter);
     setLoading(true);
     try {
       const res = await fetch(
-        `${baseURL}/user_safety_dashboard_summary?user_id=${userId}`
+        `${baseURL}/user_safety_dashboard_summary?user_id=${userId}&filter=${statusFilter}`
+        //  http://127.0.0.1:5000/user_safety_dashboard_summary?user_id=11&filter=last_1_month
       );
       const data = await res.json();
       setSafetySummary(data);
@@ -344,7 +346,7 @@ useEffect(() => {
   };
 
   fetchSafetySummary();
-}, [userId]);
+}, [userId , statusFilter], );
 
   if (loading) return <div className=" flex items-center justify-center">Loading...</div>;
   if (!safetySummary)
@@ -380,10 +382,10 @@ useEffect(() => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="all">Last Week</option>
-            <option value="Last Week">Last 2 Weeks</option>
-            <option value="Last Month">Last Month</option>
-            <option value="Last 2 Month">Last 2 Months</option>
+            <option value="last_1_week">Last Week</option>
+            <option value="last_2_weeks">Last 2 Weeks</option>
+            <option value="last_1_month">Last Month</option>
+            <option value="last_2_months">Last 2 Months</option>
           </select>
         </div>
       </div>
