@@ -264,31 +264,63 @@ def get_users_with_summary() -> pd.DataFrame:
 
     return df
 
+#Trips Page table
 def get_trips_with_users() -> pd.DataFrame:
     """
-    Returns trips (distance < 1 km) joined with users table for names.
+    Returns trips (distance > 0.1 km) joined with users table for names.
+    Ensures correct start_time and end_time are picked from trip events.
     """
     engine = get_engine()
     sql = text(f"""
-                 SELECT m.unique_id,
-                        MIN(m.timestamp) AS start_time,
-                        MAX(m.timestamp) AS end_time,
-                        MAX(m.trip_distance_used) AS trip_distance_used,
-                        m.user_id,
-                        u.name
-                FROM {main_table} m
-                LEFT JOIN users u ON u.id = m.user_id
-                    AND m.trip_distance_used > 0.1
-                GROUP BY m.unique_id, m.user_id, u.name
-
-
+        WITH trip_bounds AS (
+            SELECT
+                m.unique_id,
+                m.user_id,
+                u.name,
+                m.trip_distance_used,
+                m.timestamp,
+                ROW_NUMBER() OVER (PARTITION BY m.unique_id ORDER BY m.timestamp ASC)  AS rn_start,
+                ROW_NUMBER() OVER (PARTITION BY m.unique_id ORDER BY m.timestamp DESC) AS rn_end
+            FROM {main_table} m
+            LEFT JOIN users u ON u.id = m.user_id
+            WHERE m.trip_distance_used > 0.1
+        )
+        SELECT
+            t.unique_id,
+            MIN(CASE WHEN rn_start = 1 THEN t.timestamp END) AS start_time,
+            MIN(CASE WHEN rn_end = 1 THEN t.timestamp END)   AS end_time,
+            MAX(t.trip_distance_used) AS trip_distance_used,
+            t.user_id,
+            t.name
+        FROM trip_bounds t
+        GROUP BY t.unique_id, t.user_id, t.name;
     """)
+    
     df = pd.read_sql(sql, con=engine)
     print("Row count fetched:", len(df))  # Debug row count
     print(df.head(5))                     # Debug preview
 
-    # Normalize timestamps
+    # Normalize timestamps (convert Unix → human-readable)
     df = normalize_timestamp(df)
     return df
 
+# User's Page trip section as per user id and filter
+def fetch_all_trips(user_id: int, start=None, required_cols=None) -> pd.DataFrame:
+    """
+    Fetch trips dataframe with required columns from main table,
+    but filter early in SQL for performance.
+    """
+    engine = get_engine()
+    cols = ", ".join(required_cols) if required_cols else "*"
 
+    query = f"SELECT {cols} FROM {main_table} WHERE user_id = :user_id"
+    params = {"user_id": user_id}
+
+    if start:
+        query += " AND timestamp >= :start"
+        params["start"] = start
+
+    return pd.read_sql(text(query), con=engine, params=params)
+
+
+# join with users table for name
