@@ -324,3 +324,74 @@ def fetch_all_trips(user_id: int, start=None, required_cols=None) -> pd.DataFram
 
 
 # join with users table for name
+def get_top_safe_drivers(limit: int = 3) -> pd.DataFrame:
+    """
+    Fetch top N safe drivers by average score per driver.
+    """
+    engine = get_engine()
+    sql = text("""
+        SELECT u.name,
+               d.device_id,
+               AVG(n.safe_score) AS avg_score,
+               SUM(n.trip_distance_used) AS total_distance
+        FROM newSampleTable n
+        JOIN devices d ON n.device_id = d.device_id
+        JOIN users u   ON d.user_id = u.id
+        WHERE n.safe_score IS NOT NULL
+          AND n.safe_score > 0
+          AND n.trip_distance_used > 1
+          AND n.trip_distance_used <= 500
+        GROUP BY u.name, d.device_id
+        ORDER BY avg_score DESC
+        LIMIT :lim
+    """)
+    return pd.read_sql(sql, con=engine, params={"lim": limit})
+
+
+def get_top_aggressive_drivers(limit: int = 3) -> pd.DataFrame:
+    """
+    Fetch top N aggressive drivers by average score per driver.
+    """
+    engine = get_engine()
+    sql = text("""
+        SELECT u.name,
+               d.device_id,
+               AVG(n.safe_score) AS avg_score,
+               SUM(n.trip_distance_used) AS total_distance
+        FROM newSampleTable n
+        JOIN devices d ON n.device_id = d.device_id
+        JOIN users u   ON d.user_id = u.id
+        WHERE n.safe_score IS NOT NULL
+          AND n.safe_score > 0
+          AND n.trip_distance_used > 1
+          AND n.trip_distance_used <= 500
+        GROUP BY u.name, d.device_id
+        ORDER BY avg_score ASC
+        LIMIT :lim
+    """)
+    return pd.read_sql(sql, con=engine, params={"lim": limit})
+
+def get_trip_level_data() -> pd.DataFrame:
+    """
+    Fetch trip-level data with filtering:
+    - safe_score > 0
+    - trip_distance_used between 1 and 500
+    """
+    engine = get_engine()
+    sql = text("""
+        SELECT 
+            n.unique_id,
+            d.device_id,
+            u.name,
+            n.safe_score,
+            n.trip_distance_used
+        FROM newSampleTable n
+        JOIN devices d ON n.device_id = d.device_id
+        JOIN users u   ON d.user_id = u.id
+        WHERE n.safe_score IS NOT NULL
+          AND n.safe_score > 0
+          AND n.trip_distance_used > 1
+          AND n.trip_distance_used <= 500
+    """)
+    df = pd.read_sql(sql, con=engine)
+    return df

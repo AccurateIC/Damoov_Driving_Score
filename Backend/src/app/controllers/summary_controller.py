@@ -1,8 +1,8 @@
 import pandas as pd
 from flask import request, jsonify
 from src.app.db_queries import (
-    load_main_table, load_main_table_cached,
-    get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df, get_trip_points_batch
+    load_main_table, load_main_table_cached, get_engine, get_trip_level_data,
+    get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df, get_trip_points_batch, get_top_safe_drivers, get_top_aggressive_drivers
 )
 from src.app.utils.helpers import get_time_range
 
@@ -361,3 +361,48 @@ def user_safety_dashboard_summary():
     }
 
     return jsonify(summary)
+
+"""def fetch_top_drivers():
+    safe_df = get_top_safe_drivers()
+    aggressive_df = get_top_aggressive_drivers()
+
+    return {
+        "safe_drivers": safe_df.to_dict(orient="records"),
+        "aggressive_drivers": aggressive_df.to_dict(orient="records"),
+    }"""
+
+def fetch_top_drivers(limit: int = 3):
+    """
+    Returns top safe and aggressive drivers (avg score basis).
+    """
+    df = get_trip_level_data()
+    if df.empty:
+        return {"safe_drivers": [], "aggressive_drivers": []}
+
+    # Ensure 1 row per trip (unique_id)
+    trip_level = df.groupby(["unique_id", "device_id", "name"]).agg(
+        score=("safe_score", "max"),
+        distance=("trip_distance_used", "max")
+    ).reset_index()
+
+    # Aggregate at driver level
+    driver_stats = trip_level.groupby(["device_id", "name"]).agg(
+        avg_score=("score", "mean"),
+        total_distance=("distance", "sum")
+    ).reset_index()
+
+    # Top safe (highest avg_score)
+    safe_drivers = (
+        driver_stats.sort_values("avg_score", ascending=False)
+        .head(limit)
+        .to_dict(orient="records")
+    )
+
+    # Top aggressive (lowest avg_score)
+    aggressive_drivers = (
+        driver_stats.sort_values("avg_score", ascending=True)
+        .head(limit)
+        .to_dict(orient="records")
+    )
+
+    return {"safe_drivers": safe_drivers, "aggressive_drivers": aggressive_drivers}
