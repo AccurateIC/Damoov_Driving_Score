@@ -1,7 +1,7 @@
 import pandas as pd
 from flask import request, jsonify
 from src.app.db_queries import (
-    load_main_table, load_main_table_cached, get_engine, get_trip_level_data,
+    load_main_table, load_main_table_cached, get_engine, get_trip_level_data, get_badge_aggregates,
     get_safe_driving_rows, get_eco_driving_rows, get_devices_table, get_performance_data, load_df, get_trip_points_batch, get_top_safe_drivers, get_top_aggressive_drivers
 )
 from src.app.utils.helpers import get_time_range
@@ -219,74 +219,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-"""def user_safety_dashboard_summary():
-    user_id = request.args.get("user_id")
-
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
-
-    cols = [
-        "unique_id", "device_id", "trip_distance_used", "speed_kmh",
-        "acc_score", "dec_score", "cor_score", "phone_score",
-        "safe_score", "timestamp", "user_id"
-    ]
-    df = load_df(required_cols=cols)
-    df = df.dropna(subset=["timestamp", "safe_score", "trip_distance_used"])
-
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        return jsonify({"error": "Invalid user_id"}), 400
-
-    df = df[df["user_id"] == user_id]
-    if df.empty:
-        return jsonify({"error": "No data for this user"}), 404
-
-    # ---- latest row per trip ----
-    idx = df.groupby("unique_id")["timestamp"].idxmax()
-    latest = df.loc[idx]
-
-    # ---- filter out unrealistic trips (1–300 km) ----
-    latest = latest[(latest["trip_distance_used"] >= 1) & (latest["trip_distance_used"] <= 300)]
-
-    trips = latest["unique_id"].nunique()
-    mileage = latest["trip_distance_used"].sum()
-
-    # ---- debug logging ----
-    logger.info(f"User {user_id}: total rows = {len(df)}")
-    logger.info(f"User {user_id}: valid trips (1–300 km) = {trips}")
-    logger.info(f"User {user_id}: corrected mileage (filtered) = {mileage}")
-
-    # ---- speed stats (use only valid trips) ----
-    speed = latest.groupby("unique_id")["speed_kmh"].agg(["max", "mean"])
-    speed = speed[speed["max"] < 300]
-    max_spd = round(float(speed["max"].max()), 2) if not speed.empty else 0.0
-    avg_spd = round(float(speed["mean"].mean()), 2) if not speed.empty else 0.0
-
-    # ---- time driven (valid trips only) ----
-    per_trip = df[df["unique_id"].isin(latest["unique_id"])]
-    per_trip = per_trip.groupby("unique_id")["timestamp"].agg(["min", "max"])
-    time_min = round((per_trip["max"] - per_trip["min"]).dt.total_seconds().sum() / 60.0, 2)
-
-    # ---- averages (all rows from valid trips only) ----
-    valid_rows = df[df["unique_id"].isin(latest["unique_id"])]
-    agg = valid_rows.agg({
-        "safe_score": "mean",
-        "phone_score": "mean"
-    }).to_dict()
-
-    summary = {
-        "safety_score": round(agg["safe_score"], 2),
-        "trips": int(trips),
-        "mileage_km": round(mileage, 2),  # ✅ corrected mileage
-        "time_driven_minutes": time_min,
-        "average_speed_kmh": avg_spd,
-        "max_speed_kmh": max_spd,
-        "phone_usage_percentage": round(agg["phone_score"], 2),
-    }
-
-    return jsonify(summary)"""
-
 def user_safety_dashboard_summary():
     user_id = request.args.get("user_id")
     filter_val = request.args.get("filter")
@@ -361,16 +293,7 @@ def user_safety_dashboard_summary():
     }
 
     return jsonify(summary)
-
-"""def fetch_top_drivers():
-    safe_df = get_top_safe_drivers()
-    aggressive_df = get_top_aggressive_drivers()
-
-    return {
-        "safe_drivers": safe_df.to_dict(orient="records"),
-        "aggressive_drivers": aggressive_df.to_dict(orient="records"),
-    }"""
-
+# ---------- /top_drivers ----------
 def fetch_top_drivers(limit: int = 3):
     """
     Returns top safe and aggressive drivers (avg score basis).
@@ -404,5 +327,62 @@ def fetch_top_drivers(limit: int = 3):
         .head(limit)
         .to_dict(orient="records")
     )
-
     return {"safe_drivers": safe_drivers, "aggressive_drivers": aggressive_drivers}
+
+# ==========================
+#        BADGES LOGIC
+# ==========================
+def assign_badges(agg, trips: int):
+    badges = []
+
+    avg_star = int(agg.get("star_rating") or 0)
+    avg_speed_score = float(agg.get("spd_score") or 0.0)
+
+    # ⭐ Star performer (excellent rating)
+    if avg_star >= 5:
+        badges.append("Star performer ⭐")
+
+    # 🏆 Top driver candidate (very good rating)
+    if avg_star >= 4:
+        badges.append("Top driver candidate 🏆")
+
+    # 📈 Consistency streak (good drivers with 5+ trips)
+    if avg_star >= 4 and trips >= 30:
+        badges.append(f"Consistency streak ({trips} trips) 📈")
+
+    # ⚠️ Overspeed analysis (on scale 1–10, higher means more overspeeding)
+    if avg_speed_score > 5:
+        badges.append("Overspeeding frequently⚠️")
+    elif avg_speed_score > 3:
+        badges.append("Overspeeding Occasionally🚦")
+    elif avg_speed_score > 2:
+        badges.append("Usually drives within limits 🚘")
+    else:
+        badges.append("Maintains safe speed ✅")
+
+    return badges
+
+def assign_badges_api():
+    user_id = request.args.get("user_id", type=int)
+    filter_val = request.args.get("filter", "last_1_month")
+    
+    try:
+        agg, trips = get_badge_aggregates(user_id=user_id, filter_val=filter_val)
+
+    except ValueError as e:
+        if str(e) == "user_not_found":
+            return jsonify({"error": "User not found", "user_id": user_id}), 404
+        
+        else:
+            raise
+
+    badges = assign_badges(agg, trips)
+
+    return jsonify({
+        "filter": filter_val,
+        "user_id": user_id,
+        "agg": agg,
+        "trips": trips,
+        "badges": badges
+    })
+

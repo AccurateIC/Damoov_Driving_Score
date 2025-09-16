@@ -395,3 +395,36 @@ def get_trip_level_data() -> pd.DataFrame:
     """)
     df = pd.read_sql(sql, con=engine)
     return df
+
+def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") -> tuple[dict, int]:
+   
+    engine = get_engine()
+    now = pd.Timestamp.now()
+    start_date = get_time_range(filter_val, now)
+    if not start_date:
+        start_date = pd.Timestamp.min  # fallback
+
+    sql = f"""
+        SELECT
+            AVG(star_rating) AS avg_star,
+            AVG(spd_score) AS avg_speed,
+            COUNT( DISTINCT unique_id ) AS trips
+        FROM newSampleTable
+        WHERE timestamp >= :start_date
+         AND user_id = :user_id
+    """
+    params = {"start_date": start_date.strftime("%Y-%m-%d")}
+
+    if user_id:
+        sql += " AND user_id = :user_id"
+        params["user_id"] = user_id
+
+    row = pd.read_sql(text(sql), con=engine, params=params).iloc[0]
+
+    agg = {
+        "star_rating": row["avg_star"] or 0,
+        "spd_score": row["avg_speed"] or 0.0
+    }
+    trips = int(row["trips"] or 0)
+
+    return agg, trips
