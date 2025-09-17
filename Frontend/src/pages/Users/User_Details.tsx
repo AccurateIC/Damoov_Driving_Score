@@ -497,7 +497,7 @@ useEffect(() => {
 
             {activeTab === "Trips" && (
               <div>
-                <TripsTable userId={userId} />
+                <TripsTable userId={userId}  statusFilter={statusFilter}/>
               </div>
             )}
           </div>
