@@ -369,16 +369,16 @@ useEffect(() => {
         <div className="text-3xl font-medium">User Profile</div>
 
         <div className="flex 2xl:min-w-[350px] gap-4">
-          <button className="border rounded-md p-2 flex items-center gap-2">
+          {/* <button className="border rounded-md p-2 flex items-center gap-2">
             Delete User <DeleteIcon />
-          </button>
+          </button> */}
 
-          <button className="flex items-center border h-[50px] px-8 rounded-md hover:bg-green-700">
+          <button className="flex items-center border h-[50px] px-4 rounded-md hover:bg-green-700">
             Export PDF <FiDownload className="ml-2" />
           </button>
 
           <select
-            className="border px-10 py-2 rounded-md"
+            className="border px-1 py-2  rounded-md"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >

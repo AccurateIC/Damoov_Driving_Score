@@ -35,7 +35,7 @@ const UsersList = () => {
       );
       const data = await response.json();
       setDetailedUser(data);
-      console.log(detailedUser);
+      console.log("User details loaded [Safety Dashboard]:", data);
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
@@ -45,6 +45,10 @@ const UsersList = () => {
     loadUsers();
     loadUserDetails();
   }, [timeDuration]);
+
+  useEffect(() => {
+    loadUserDetails();
+  }, []);
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchId.toLowerCase()) ||
@@ -60,6 +64,17 @@ const UsersList = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const handleDeleteUser = (userId: string) => {
+    console.log("Deleting user with ID:", userId);
+
+    // Example logic: Call your API to delete user
+    // fetch(`${baseURL}/delete_user?user_id=${userId}`, { method: 'DELETE' })
+
+    // For now, we can filter out the user locally
+    // setFilteredUsers1((prev) => prev.filter((user) => user.user_id !== userId));
+    setUsers((prev) => prev.filter((user) => user.user_id !== userId));
+  };
+
   return (
     <div className="2xl:px-8 min-h-screen text-sm gap-6 flex flex-col ">
       <div className="flex justify-between items-center ">
@@ -71,7 +86,7 @@ const UsersList = () => {
 
           {/* Dropdown */}
           <select
-            className="border px-10 py-2 rounded-md "
+            className="border px-2 py-2 rounded-md "
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -80,7 +95,7 @@ const UsersList = () => {
             <option value="inactive">Inactive</option>
           </select>
           <select
-            className="border px-10 py-2 rounded-md "
+            className="border px-1 py-2 rounded-md "
             value={timeDuration}
             onChange={(e) => setTimeDuration(e.target.value)}
           >
@@ -116,6 +131,7 @@ const UsersList = () => {
                 <th className=" text-center">Safety Score</th>
                 <th className="text-center">Trip Count</th>
                 <th className="px-4 py-3 text-center">Status</th>
+                 <th className="px-4 py-3 text-center">Actions</th>{" "}
               </tr>
             </thead>
             <tbody>
@@ -147,10 +163,72 @@ const UsersList = () => {
                       {user.status === 1 ? "Active" : "Inactive"}
                     </div>
                   </td>
+                     <td className="px-4 py-3 text-center">
+                    <button
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                      onClick={() => handleDeleteUser(user.user_id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          // <table className="w-full border-collapse bg-white rounded-2xl shadow">
+          //   <thead>
+          //     <tr className="text-gray-700 text-sm bg-[#B5B6D5]">
+          //       <th className="text-center rounded-tl-lg">User ID</th>
+          //       <th className="px-4 py-3 text-center">Name</th>
+          //       <th className="text-center">Safety Score</th>
+          //       <th className="text-center">Trip Count</th>
+          //       <th className="px-4 py-3 text-center">Status</th>
+          //       <th className="px-4 py-3 text-center">Actions</th>{" "}
+          //       {/* New Column */}
+          //     </tr>
+          //   </thead>
+
+          //   <tbody>
+          //     {filteredUsers.map((user) => (
+          //       <tr key={user.user_id} className="border-b last:border-none">
+          //         <td className="text-center">
+          //           <RouterLink
+          //             to={`/users/${user.user_id}`}
+          //             className="text-indigo-600 hover:underline"
+          //           >
+          //             {user.user_id}
+          //           </RouterLink>
+          //         </td>
+
+          //         <td className="text-center">{user.name}</td>
+          //         <td className="px-4 py-3 gap-2 text-center">
+          //           {user.safety_score.toFixed(2)}
+          //         </td>
+          //         <td className="px-4 py-3 text-center">{user.trip_count}</td>
+          //         <td className="px-4 py-3 text-center">
+          //           <div className="px-4 py-3 flex items-center justify-center gap-2 text-center">
+          //             <span
+          //               className={`h-3 w-3 rounded-full ${
+          //                 user.status === 1 ? "bg-green-500" : "bg-red-500"
+          //               }`}
+          //             ></span>
+          //             {user.status === 1 ? "Active" : "Inactive"}
+          //           </div>
+          //         </td>
+
+          //         {/* ✅ New Delete Button Column */}
+          //         <td className="px-4 py-3 text-center">
+          //           <button
+          //             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+          //             onClick={() => handleDeleteUser(user.user_id)}
+          //           >
+          //             Delete
+          //           </button>
+          //         </td>
+          //       </tr>
+          //     ))}
+          //   </tbody>
+          // </table>
         ) : (
           <div className="flex flex-col items-center justify-center mt-12">
             <img src={NoData} alt="No Data Found" className="w-1/5 mb-4" />
