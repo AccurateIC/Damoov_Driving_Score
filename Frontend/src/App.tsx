@@ -10,11 +10,11 @@ import Safety from "./pages/Dashboard/New_Safety";
 import UsersList from "./pages/Users/New_Users";
 import User_Details from "./pages/Users/User_Details";
 // import UsersList from "./pages/Users/List";
- import Profiles from "./pages/Users/Profiles";
+import Profiles from "./pages/Users/Profiles";
 // import Permissions from "./pages/Users/Permissions";
 
-import TripsList from "./pages/trips/TripsList";
-import TripDetails from "./pages/trips/TripDetails";
+import Trips from "././pages/trips/TripsList";
+import TripDetails from "././pages/trips/TripDetails";
 
 import Management from "./pages/Management";
 import Billing from "./pages/Billing";
@@ -26,7 +26,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-         {/* <Route index element={<Login />} /> */}
+        {/* <Route index element={<Login />} /> */}
         <Route path="/" element={<DashboardLayout />}>
           {/* Redirect /dashboard → /dashboard/summary */}
           <Route
@@ -37,15 +37,16 @@ function App() {
           <Route path="dashboard/summary_New" element={<Summary />} />
           <Route path="dashboard/sdk" element={<SDK />} />
           <Route path="dashboard/safety" element={<Safety />} />
-         
 
           <Route path="users/list" element={<UsersList />} />
           <Route path="users/profiles" element={<Profiles />} />
-          <Route path="users/:userId" element={<User_Details/>}/>
+          <Route path="users/:userId" element={<User_Details />} />
           {/* <Route path="users/permissions" element={<Permissions />} /> */}
 
-          <Route path="trips/list" element={<TripsList />} />
-          <Route path="/trips/details" element={<TripDetails />} />
+          {/* {/* <Route path="trips/list" element={<TripsList />} /> 
+          <Route path="/trips/details" element={<TripDetails />} /> */}
+          <Route path="/trips" element={<Trips />} />
+          <Route path="/trips/:deviceId" element={<TripDetails />} />
 
           <Route path="Management" element={<Management />} />
           <Route path="billing" element={<Billing />} />
