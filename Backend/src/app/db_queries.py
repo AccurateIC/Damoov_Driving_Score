@@ -238,9 +238,10 @@ def get_performance_data():
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
 
+
 def get_users_with_summary() -> pd.DataFrame:
     """
-    Returns users with trip_count, safety_score, and status.
+    Returns users with trip_count, safety_score, and last trip timestamp.
     Joins trips (main_table) with users table.
     """
     engine = get_engine()
@@ -251,15 +252,15 @@ def get_users_with_summary() -> pd.DataFrame:
                AVG(m.safe_score) AS safety_score,
                MAX(m.timestamp) AS timestamp
         FROM users u
-        LEFT JOIN {main_table} m ON u.id = m.user_id AND m.safe_score IS NOT NULL
+        LEFT JOIN {main_table} m 
+               ON u.id = m.user_id 
+              AND m.safe_score IS NOT NULL
         GROUP BY u.id, u.name
     """)
     df = pd.read_sql(sql, con=engine)
-    df = df.where(pd.notnull(df), None)
-    # calculate status (1 = active if any trips, else 0)
-    df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
 
-    # round safety_score safely
+    df = df.where(pd.notnull(df), None)
+    df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
     df["safety_score"] = df["safety_score"].fillna(0).round(2)
 
     return df
@@ -324,3 +325,107 @@ def fetch_all_trips(user_id: int, start=None, required_cols=None) -> pd.DataFram
 
 
 # join with users table for name
+def get_top_safe_drivers(limit: int = 3) -> pd.DataFrame:
+    """
+    Fetch top N safe drivers by average score per driver.
+    """
+    engine = get_engine()
+    sql = text("""
+        SELECT u.name,
+               d.device_id,
+               AVG(n.safe_score) AS avg_score,
+               SUM(n.trip_distance_used) AS total_distance
+        FROM newSampleTable n
+        JOIN devices d ON n.device_id = d.device_id
+        JOIN users u   ON d.user_id = u.id
+        WHERE n.safe_score IS NOT NULL
+          AND n.safe_score > 0
+          AND n.trip_distance_used > 1
+          AND n.trip_distance_used <= 500
+        GROUP BY u.name, d.device_id
+        ORDER BY avg_score DESC
+        LIMIT :lim
+    """)
+    return pd.read_sql(sql, con=engine, params={"lim": limit})
+
+
+def get_top_aggressive_drivers(limit: int = 3) -> pd.DataFrame:
+    """
+    Fetch top N aggressive drivers by average score per driver.
+    """
+    engine = get_engine()
+    sql = text("""
+        SELECT u.name,
+               d.device_id,
+               AVG(n.safe_score) AS avg_score,
+               SUM(n.trip_distance_used) AS total_distance
+        FROM newSampleTable n
+        JOIN devices d ON n.device_id = d.device_id
+        JOIN users u   ON d.user_id = u.id
+        WHERE n.safe_score IS NOT NULL
+          AND n.safe_score > 0
+          AND n.trip_distance_used > 1
+          AND n.trip_distance_used <= 500
+        GROUP BY u.name, d.device_id
+        ORDER BY avg_score ASC
+        LIMIT :lim
+    """)
+    return pd.read_sql(sql, con=engine, params={"lim": limit})
+
+def get_trip_level_data() -> pd.DataFrame:
+    """
+    Fetch trip-level data with filtering:
+    - safe_score > 0
+    - trip_distance_used between 1 and 500
+    """
+    engine = get_engine()
+    sql = text("""
+        SELECT 
+            n.unique_id,
+            d.device_id,
+            u.name,
+            n.safe_score,
+            n.trip_distance_used
+        FROM newSampleTable n
+        JOIN devices d ON n.device_id = d.device_id
+        JOIN users u   ON d.user_id = u.id
+        WHERE n.safe_score IS NOT NULL
+          AND n.safe_score > 0
+          AND n.trip_distance_used > 1
+          AND n.trip_distance_used <= 500
+    """)
+    df = pd.read_sql(sql, con=engine)
+    return df
+
+def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") -> tuple[dict, int]:
+   
+    engine = get_engine()
+    now = pd.Timestamp.now()
+    start_date = get_time_range(filter_val, now)
+    if not start_date:
+        start_date = pd.Timestamp.min  # fallback
+
+    sql = f"""
+        SELECT
+            AVG(star_rating) AS avg_star,
+            AVG(spd_score) AS avg_speed,
+            COUNT( DISTINCT unique_id ) AS trips
+        FROM newSampleTable
+        WHERE timestamp >= :start_date
+         AND user_id = :user_id
+    """
+    params = {"start_date": start_date.strftime("%Y-%m-%d")}
+
+    if user_id:
+        sql += " AND user_id = :user_id"
+        params["user_id"] = user_id
+
+    row = pd.read_sql(text(sql), con=engine, params=params).iloc[0]
+
+    agg = {
+        "star_rating": row["avg_star"] or 0,
+        "spd_score": row["avg_speed"] or 0.0
+    }
+    trips = int(row["trips"] or 0)
+
+    return agg, trips
