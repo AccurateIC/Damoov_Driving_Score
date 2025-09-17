@@ -354,33 +354,33 @@ ChartJS.register(
 
 const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
 const Dashboard = () => {
-  const data = {
-    labels: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    datasets: [
-      {
-        label: "Safety Parameters",
-        data: [10, 30, 50, 75, 40, 50, 45, 60, 95, 70, 40, 55],
-        borderColor: "#4f46e5",
-        backgroundColor: "rgba(79, 70, 229, 0.2)",
-        tension: 0.4,
-        fill: true,
-        pointRadius: 4,
-      },
-    ],
-  };
+  // const data = {
+  //   labels: [
+  //     "Jan",
+  //     "Feb",
+  //     "Mar",
+  //     "Apr",
+  //     "May",
+  //     "Jun",
+  //     "Jul",
+  //     "Aug",
+  //     "Sep",
+  //     "Oct",
+  //     "Nov",
+  //     "Dec",
+  //   ],
+  //   datasets: [
+  //     {
+  //       label: "Safety Parameters",
+  //       data: [10, 30, 50, 75, 40, 50, 45, 60, 95, 70, 40, 55],
+  //       borderColor: "##6976EB",
+  //       backgroundColor: "rgba(79, 70, 229, 0.2)",
+  //       tension: 0.4,
+  //       fill: true,
+  //       pointRadius: 4,
+  //     },
+  //   ],
+  // };
 
   const options = {
     responsive: true,
@@ -592,10 +592,10 @@ const Dashboard = () => {
             {
               label: metric.replace("_", " ").toUpperCase(),
               data,
-              borderColor: "rgba(75,192,192,1)",
-              backgroundColor: "rgba(75,192,192,0.2)",
+              borderColor: "#6976EB",
+              // backgroundColor: "#6976EB",
               tension: 0.4,
-              fill: true,
+              // fill: true,
               pointRadius: 4,
             },
           ],
@@ -631,10 +631,9 @@ const Dashboard = () => {
             {
               label: metric.replace("_", " ").toUpperCase(),
               data: data, // y-axis
-              borderColor: "rgba(75,192,192,1)",
-              backgroundColor: "rgba(75,192,192,0.2)",
+              borderColor: "#6976EB",
               tension: 0.4,
-              fill: true,
+              // fill: true,
               pointRadius: 4,
             },
           ],
@@ -647,7 +646,7 @@ const Dashboard = () => {
     fetchMileageDailyParams();
   }, [filter, metric]);
 
-    const [dailyTrips, setDailyTrips] = useState<any>({
+  const [dailyTrips, setDailyTrips] = useState<any>({
     labels: [],
     datasets: [],
   });
@@ -670,10 +669,9 @@ const Dashboard = () => {
             {
               label: metric.replace("_", " ").toUpperCase(),
               data: data, // y-axis
-              borderColor: "rgba(75,192,192,1)",
-              backgroundColor: "rgba(75,192,192,0.2)",
+              borderColor: "#6976EB",
               tension: 0.4,
-              fill: true,
+              // fill: true,
               pointRadius: 4,
             },
           ],
@@ -686,21 +684,6 @@ const Dashboard = () => {
 
     fetchDrivingTripsDaily();
   }, [filter]);
-
-
-  const data1 = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sept"],
-    datasets: [
-      {
-        label: "Sales",
-        data: [10, 20, 15, 30, 25, 40, 15, 90, 40],
-        borderColor: "rgba(75,192,192,1)",
-        backgroundColor: "rgba(75,192,192,0.2)",
-        tension: 0.4, // smooth curve
-        fill: true,
-      },
-    ],
-  };
 
   const options1 = {
     responsive: true,
@@ -718,7 +701,6 @@ const Dashboard = () => {
       },
     },
   };
-
 
   useEffect(() => {
     const fetchDrivingTripsDaily = async () => {
@@ -749,8 +731,8 @@ const Dashboard = () => {
       {
         label: "Safety Parameters",
         data: [],
-        borderColor: "rgba(75,192,192,1)",
-        backgroundColor: "rgba(75,192,192,0.2)",
+        backgroundColor: "#B5B6D5",
+        borderColor: "#6976EB",
         tension: 0.4,
         fill: true,
       },
@@ -758,7 +740,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/safety_params", {
+    fetch(`${baseURL}/safety_params`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filter_val: filter }),
@@ -778,8 +760,8 @@ const Dashboard = () => {
             {
               label: "Safety Parameters",
               data: dataArray,
-              borderColor: "rgba(75,192,192,1)",
-              backgroundColor: "rgba(75,192,192,0.2)",
+              backgroundColor: "#B5B6D5",
+              borderColor: "#6976EB",
               tension: 0.4,
               fill: true,
             },
@@ -794,18 +776,76 @@ const Dashboard = () => {
       });
   }, [filter]);
 
-  const radarData = {
-    labels: ["Speed", "Braking", "Turning", "Acceleration", "Fuel", "Safety"],
+  const [radarData, setRadarData] = useState({
+    labels: [],
     datasets: [
       {
-        label: "Driving Trips Params",
-        data: [65, 59, 90, 81, 56, 55],
-        backgroundColor: "rgba(75,192,192,0.2)",
-        borderColor: "rgba(75,192,192,1)",
-        borderWidth: 2,
+        label: "Safety Parameters",
+        data: [],
+        backgroundColor: "#B5B6D5",
+        borderColor: "#6976EB",
+        tension: 0.4,
+        fill: true,
       },
     ],
-  };
+  });
+
+  // const radarData = {
+  //   labels: ["Speed", "Braking", "Turning", "Acceleration", "Fuel", "Safety"],
+  //   datasets: [
+  //     {
+  //       label: "Driving Trips Params",
+  //       data: [65, 59, 90, 81, 56, 55],
+  //       backgroundColor: "#B5B6D5",
+  //       borderColor: "#6976EB",
+  //       borderWidth: 2,
+  //     },
+  //   ],
+  // };
+  const [drivingTimeData, setDrivingTimeData] = useState<any>({
+    labels: [],
+    datasets: [],
+  });
+  // useEffect(() => {
+  //   fetch(`${baseURL}/driving_time_daily`, {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ filter_val: filter }),
+  //   })
+  //     })
+
+  useEffect(() => {
+    const fetchDrivingTimesDaily = async () => {
+      try {
+        const res = await axios.post(`${baseURL}/driving_time_daily`, {
+          filter_val: filter,
+        });
+
+        console.log("API Response for Daliy  trips :", res.data);
+
+        const { data, labels } = res.data;
+
+        // Build chart data
+        setDrivingTimeData({
+          labels: labels, // x-axis
+          datasets: [
+            {
+              label: metric.replace("_", " ").toUpperCase(),
+              data: data, // y-axis
+              borderColor: "#6976EB",
+              tension: 0.4,
+              // fill: true,
+              pointRadius: 4,
+            },
+          ],
+        });
+        console.log("object dailyTrips", drivingTimeData);
+      } catch (err) {
+        console.error("Error fetching mileage daily params:", err);
+      }
+    };
+    fetchDrivingTimesDaily();
+  }, [filter]);
 
   const radarOptions = {
     responsive: true,
@@ -828,9 +868,9 @@ const Dashboard = () => {
           <span className="font-bold text-xl text-gray-800">Safety</span>
         </p>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
+          {/* <button className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
             Export as PDF
-          </button>
+          </button> */}
           {/* <select className="px-3 py-2 border rounded-md bg-amber-500">
             <option>Last Year</option>
             <option>Last Month</option>
@@ -915,9 +955,7 @@ const Dashboard = () => {
         </div>
         {/* Chart 2 */}
         <div className="flex-1 min-w-[300px] h-[400px] pt-2 bg-white pb-10 pl-8 rounded-lg">
-          <span className="block mb-2 font-medium">
-            Driving Trips Daily 
-          </span>
+          <span className="block mb-2 font-medium">Driving Trips Daily</span>
           <Line
             data={dailyTrips}
             options={{
@@ -931,9 +969,16 @@ const Dashboard = () => {
 
       <div className="flex flex-wrap  2xl:max-w-[1830px] mb-8 gap-10 mt-7 ">
         {/* Chart 1 */}
-        <div className="flex-1 max-w-[735px] h-[400px] pt-2 bg-white pb-10 pl-8 rounded-lg">
-          <span className="block mb-2 font-medium">Driving Time Daily</span>
-          <Radar data={radarData} options={radarOptions} />
+        <div className="flex-1 min-w-[300px] h-[400px] pt-2 bg-white pb-10 pl-8 rounded-lg">
+          <span className="block mb-2 font-medium">Driving Trips Daily</span>
+          <Line
+            data={drivingTimeData}
+            options={{
+              ...options1,
+              responsive: true,
+              maintainAspectRatio: false,
+            }}
+          />
         </div>
         <div className=" flex-1 max-w-[735px] h-[400px] pt-2 bg-white">
           <span className="font-medium p-2"> Safety Parameters</span>

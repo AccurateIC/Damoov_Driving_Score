@@ -12,7 +12,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { AiOutlineSafety } from "react-icons/ai";
-import logo from "../assets/logo.png"; // Adjust the path as necessary
+import logo from "../assets/ACCURATE LOGO.png"; // Adjust the path as necessary
 
 const Sidebar = () => {
   const [openDashboard, setOpenDashboard] = useState(true);
