@@ -238,9 +238,10 @@ def get_performance_data():
     df = pd.read_sql(sql, con=engine)
     return normalize_timestamp(df)
 
+
 def get_users_with_summary() -> pd.DataFrame:
     """
-    Returns users with trip_count, safety_score, and status.
+    Returns users with trip_count, safety_score, and last trip timestamp.
     Joins trips (main_table) with users table.
     """
     engine = get_engine()
@@ -251,15 +252,15 @@ def get_users_with_summary() -> pd.DataFrame:
                AVG(m.safe_score) AS safety_score,
                MAX(m.timestamp) AS timestamp
         FROM users u
-        LEFT JOIN {main_table} m ON u.id = m.user_id AND m.safe_score IS NOT NULL
+        LEFT JOIN {main_table} m 
+               ON u.id = m.user_id 
+              AND m.safe_score IS NOT NULL
         GROUP BY u.id, u.name
     """)
     df = pd.read_sql(sql, con=engine)
-    df = df.where(pd.notnull(df), None)
-    # calculate status (1 = active if any trips, else 0)
-    df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
 
-    # round safety_score safely
+    df = df.where(pd.notnull(df), None)
+    df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
     df["safety_score"] = df["safety_score"].fillna(0).round(2)
 
     return df
