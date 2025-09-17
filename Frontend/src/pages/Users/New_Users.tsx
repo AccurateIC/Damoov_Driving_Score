@@ -10,15 +10,17 @@ const UsersList = () => {
   const [loading, setLoading] = useState(false);
   const [searchId, setSearchId] = useState("");
   const [statusFilter, setStatusFilter] = useState("all"); // NEW
+  const [timeDuration, setTimeDuration] = useState("last_1_month"); // NEW
   const [detailedUser, setDetailedUser] = useState(null);
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${baseURL}/users`);
+      const response = await fetch(`${baseURL}/users?filter=${timeDuration}`);
       const data = await response.json();
       setUsers(data);
-      console.log("/users",users);
+      console.log("timeDuration filter", timeDuration);
+      console.log("/users", users);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
@@ -28,7 +30,9 @@ const UsersList = () => {
 
   const loadUserDetails = async () => {
     try {
-      const response = await fetch(`${baseURL}/user_safety_dashboard_summary?user_id=11`);
+      const response = await fetch(
+        `${baseURL}/user_safety_dashboard_summary?user_id=11`
+      );
       const data = await response.json();
       setDetailedUser(data);
       console.log(detailedUser);
@@ -36,12 +40,11 @@ const UsersList = () => {
       console.error("Error fetching user details:", error);
     }
   };
- 
 
   useEffect(() => {
     loadUsers();
     loadUserDetails();
-  }, []);
+  }, [timeDuration]);
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchId.toLowerCase()) ||
@@ -61,7 +64,7 @@ const UsersList = () => {
     <div className="2xl:px-8 min-h-screen text-sm gap-6 flex flex-col ">
       <div className="flex justify-between items-center ">
         <div className=" text-4xl font-bold ">Users </div>
-        <div className="flex  2xl:w-[350px] gap-4 ">
+        <div className="flex  2xl:min-w-[350px] gap-4 ">
           <button className="flex items-center bg-green-600 text-white h-[50px] px-10  rounded-md hover:bg-green-700">
             <FiDownload className="mr-2 " /> Export
           </button>
@@ -75,6 +78,16 @@ const UsersList = () => {
             <option value="all">All</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
+          </select>
+          <select
+            className="border px-10 py-2 rounded-md "
+            value={timeDuration}
+            onChange={(e) => setTimeDuration(e.target.value)}
+          >
+            <option value="last_1_week">Last Week</option>
+            <option value="last_2_weeks">LAst 2 Weeks</option>
+            <option value="last_1_month">Last Month</option>
+            <option value="last_2_months">Last 2 Months</option>
           </select>
         </div>
       </div>
