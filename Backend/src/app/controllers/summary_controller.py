@@ -351,7 +351,7 @@ def assign_badges(agg, trips: int):
         badges.append(f"Consistency streak ({trips} trips) 📈")
 
     # ⚠️ Overspeed analysis (on scale 1–10, higher means more overspeeding)
-    if avg_speed_score > 5:
+    if avg_speed_score > 4.5:
         badges.append("Overspeeding frequently⚠️")
     elif avg_speed_score > 3:
         badges.append("Overspeeding Occasionally🚦")
@@ -367,12 +367,10 @@ def assign_badges_api():
     filter_val = request.args.get("filter", "last_1_month")
     
     try:
-        agg, trips = get_badge_aggregates(user_id=user_id, filter_val=filter_val)
-
+        agg, trips, user_name = get_badge_aggregates(user_id=user_id, filter_val=filter_val)
     except ValueError as e:
         if str(e) == "user_not_found":
             return jsonify({"error": "User not found", "user_id": user_id}), 404
-        
         else:
             raise
 
@@ -381,8 +379,8 @@ def assign_badges_api():
     return jsonify({
         "filter": filter_val,
         "user_id": user_id,
+        "user_name": user_name,
         "agg": agg,
         "trips": trips,
         "badges": badges
     })
-

@@ -260,7 +260,7 @@ def get_users_with_summary() -> pd.DataFrame:
     df = pd.read_sql(sql, con=engine)
 
     df = df.where(pd.notnull(df), None)
-    df["status"] = df["trip_count"].apply(lambda x: 1 if x > 0 else 0)
+    df["status"] = df.apply(lambda row: 1 if row["trip_count"] and row["trip_count"] > 0 else 0, axis=1)
     df["safety_score"] = df["safety_score"].fillna(0).round(2)
 
     return df
@@ -397,8 +397,10 @@ def get_trip_level_data() -> pd.DataFrame:
     df = pd.read_sql(sql, con=engine)
     return df
 
-def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") -> tuple[dict, int]:
-   
+def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") -> tuple[dict, int, str]:
+    """
+    Returns aggregates (star_rating, speed score), trip count, and user name.
+    """
     engine = get_engine()
     now = pd.Timestamp.now()
     start_date = get_time_range(filter_val, now)
@@ -407,25 +409,35 @@ def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") 
 
     sql = f"""
         SELECT
-            AVG(star_rating) AS avg_star,
-            AVG(spd_score) AS avg_speed,
-            COUNT( DISTINCT unique_id ) AS trips
-        FROM newSampleTable
-        WHERE timestamp >= :start_date
-         AND user_id = :user_id
+            u.name AS user_name,
+            AVG(n.star_rating) AS avg_star,
+            AVG(n.spd_score)   AS avg_speed,
+            COUNT(DISTINCT n.unique_id) AS trips
+        FROM newSampleTable n
+        JOIN users u ON u.id = n.user_id
+        WHERE n.timestamp >= :start_date
     """
+
     params = {"start_date": start_date.strftime("%Y-%m-%d")}
 
     if user_id:
-        sql += " AND user_id = :user_id"
+        sql += " AND n.user_id = :user_id"
         params["user_id"] = user_id
 
-    row = pd.read_sql(text(sql), con=engine, params=params).iloc[0]
+    sql += " GROUP BY u.name"
 
+    df = pd.read_sql(text(sql), con=engine, params=params)
+
+    if df.empty:
+        # return zeroed stats if user has no trips
+        return {"star_rating": 0, "spd_score": 0.0}, 0, None
+
+    row = df.iloc[0]
     agg = {
         "star_rating": row["avg_star"] or 0,
         "spd_score": row["avg_speed"] or 0.0
     }
     trips = int(row["trips"] or 0)
+    user_name = row["user_name"]
 
-    return agg, trips
+    return agg, trips, user_name
