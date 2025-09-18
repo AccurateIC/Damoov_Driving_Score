@@ -46,9 +46,6 @@ const UsersList = () => {
     loadUserDetails();
   }, [timeDuration]);
 
-  useEffect(() => {
-    loadUserDetails();
-  }, []);
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchId.toLowerCase()) ||
