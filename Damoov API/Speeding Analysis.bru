@@ -1,0 +1,21 @@
+meta {
+  name: Speeding Analysis
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://127.0.0.1:5000/speeding_analysis
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "filter_val": "last_2_weeks"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

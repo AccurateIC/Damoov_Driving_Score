@@ -1,0 +1,13 @@
+name,seq
+HeartbeatTable,116
+TrackTable,15
+SampleTable,5128
+LastKnownPointTable,110
+EventsTable,223
+EventsStartPointTable,223
+EventsStopPointTable,223
+RangeDirectTable,223
+RangeLateralTable,223
+RangeVerticalTable,223
+RangeAccuracyTable,223
+RangeSpeedTable,223
