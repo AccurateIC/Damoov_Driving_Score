@@ -308,7 +308,6 @@
 
 // export default UserDetailsWithTabs;
 
-
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FiDownload } from "react-icons/fi";
@@ -325,41 +324,66 @@ function UserDetailsWithTabs() {
   const [safetySummary, setSafetySummary] = useState(null);
   const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  if (!userId) return;
+  useEffect(() => {
+    if (!userId) return;
 
-  const fetchSafetySummary = async () => {
-    console.log("statusFilter", statusFilter);
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${baseURL}/user_safety_dashboard_summary?user_id=${userId}&filter=${statusFilter}`
-        //  http://127.0.0.1:5000/user_safety_dashboard_summary?user_id=11&filter=last_1_month
-      );
-      const data = await res.json();
-      setSafetySummary(data);
-    } catch (error) {
-      console.error("Error fetching safety summary:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchSafetySummary = async () => {
+      console.log("statusFilter", statusFilter);
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${baseURL}/user_safety_dashboard_summary?user_id=${userId}&filter=${statusFilter}`
+          //  http://127.0.0.1:5000/user_safety_dashboard_summary?user_id=11&filter=last_1_month
+        );
+        const data = await res.json();
+        setSafetySummary(data);
+      } catch (error) {
+        console.error("Error fetching safety summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchSafetySummary();
-}, [userId , statusFilter], );
+    fetchSafetySummary();
+  }, [userId, statusFilter]);
 
-  if (loading) return <div className=" flex items-center justify-center">Loading...</div>;
+  if (loading)
+    return <div className=" flex items-center justify-center">Loading...</div>;
   if (!safetySummary)
     return <div className="text-center text-gray-700">No Data Found</div>;
 
   const cards = [
-    { title: "Safety Score", value: safetySummary.safety_score.toFixed(2), unit: "" },
+    {
+      title: "Safety Score",
+      value: safetySummary.safety_score.toFixed(2),
+      unit: "",
+    },
     { title: "Trips", value: safetySummary.trips, unit: "" },
-    { title: "Mileage (km)", value: safetySummary.mileage_km.toFixed(2), unit: "km" },
-    { title: "Time Driven (min)", value: safetySummary.time_driven_minutes.toFixed(2), unit: "min" },
-    { title: "Average Speed (km/h)", value: safetySummary.average_speed_kmh.toFixed(2), unit: "km/h" },
-    { title: "Max Speed (km/h)", value: safetySummary.max_speed_kmh.toFixed(2), unit: "km/h" },
-    { title: "Phone Usage (%)", value: safetySummary.phone_usage_percentage.toFixed(2), unit: "%" },
+    {
+      title: "Mileage (km)",
+      value: safetySummary.mileage_km.toFixed(2),
+      unit: "km",
+    },
+    {
+      title: "Time Driven (min)",
+      value: safetySummary.time_driven_minutes.toFixed(2),
+      unit: "min",
+    },
+    {
+      title: "Average Speed (km/h)",
+      value: safetySummary.average_speed_kmh.toFixed(2),
+      unit: "km/h",
+    },
+    {
+      title: "Max Speed (km/h)",
+      value: safetySummary.max_speed_kmh.toFixed(2),
+      unit: "km/h",
+    },
+    {
+      title: "Phone Usage (%)",
+      value: safetySummary.phone_usage_percentage.toFixed(2),
+      unit: "%",
+    },
   ];
 
   return (
@@ -393,7 +417,7 @@ useEffect(() => {
       {/* User Info */}
       <div className="grid grid-cols-1 p-2">
         <div className="grid grid-cols-1 px-4 2xl:min-h-[200px]">
-          <div className="flex items-center justify-between rounded-lg p-2 w-full">
+          <div className="flex items-center justify-between rounded-lg p-2 w-full bg-yellow-200">
             <div className="flex flex-col items-start gap-5 h-full pl-4 rounded-lg w-3/5">
               <div className="2xl:min-w-[80px] 2xl:min-h-[80px] rounded-full bg-[#A5A6F6] flex items-center justify-center text-white font-bold text-xl">
                 <span role="img" aria-label="avatar">
@@ -485,11 +509,11 @@ useEffect(() => {
                       {card.value} {card.unit}
                     </div>
                     <p className="font-normal text-sm flex gap-3">
-                       Last Month{" "}
-                       <span className="font-medium text-xs text-green-500 border px-2 rounded-xl">
-                         25%
-                       </span>
-                     </p>
+                      Last Month{" "}
+                      <span className="font-medium text-xs text-green-500 border px-2 rounded-xl">
+                        25%
+                      </span>
+                    </p>
                   </div>
                 ))}
               </div>
@@ -497,7 +521,7 @@ useEffect(() => {
 
             {activeTab === "Trips" && (
               <div>
-                <TripsTable userId={userId}  statusFilter={statusFilter}/>
+                <TripsTable userId={userId} statusFilter={statusFilter} />
               </div>
             )}
           </div>
