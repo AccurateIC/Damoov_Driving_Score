@@ -317,12 +317,27 @@ import TripsTable from "./User_TripTable";
 
 const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
 
+interface BadgeResponse {
+  agg: {
+    spd_score: number;
+    star_rating: number;
+  };
+  badges: string[];
+  filter: string;
+  trips: number;
+  user_id: number;
+  user_name: string;
+}
+
 function UserDetailsWithTabs() {
   const { userId } = useParams();
   const [statusFilter, setStatusFilter] = useState("last_1_month");
   const [activeTab, setActiveTab] = useState("Safety Parameters");
   const [safetySummary, setSafetySummary] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const [data, setData] = useState<BadgeResponse | null>(null);
+  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!userId) return;
@@ -343,8 +358,23 @@ function UserDetailsWithTabs() {
         setLoading(false);
       }
     };
+     const fetchBadgeData = async () => {
+      try {
+        const res = await fetch(
+          `http://127.0.0.1:5000/badge_aggregates?user_id=${userId}&filter=last_1_week`
+        );
+        const json: BadgeResponse = await res.json();
+        setData(json);
+      } catch (error) {
+        console.error("Failed to fetch badge data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchSafetySummary();
+
+    fetchBadgeData();
   }, [userId, statusFilter]);
 
   if (loading)
@@ -413,11 +443,10 @@ function UserDetailsWithTabs() {
           </select>
         </div>
       </div>
-
       {/* User Info */}
       <div className="grid grid-cols-1 p-2">
         <div className="grid grid-cols-1 px-4 2xl:min-h-[200px]">
-          <div className="flex items-center justify-between rounded-lg p-2 w-full bg-yellow-200">
+          {/* <div className="flex items-center justify-between rounded-lg p-2 w-full bg-yellow-200">
             <div className="flex flex-col items-start gap-5 h-full pl-4 rounded-lg w-3/5">
               <div className="2xl:min-w-[80px] 2xl:min-h-[80px] rounded-full bg-[#A5A6F6] flex items-center justify-center text-white font-bold text-xl">
                 <span role="img" aria-label="avatar">
@@ -463,7 +492,63 @@ function UserDetailsWithTabs() {
                 <span className="text-gray-700">Over speeding sometimes</span>
               </div>
             </div>
+          </div> */}
+           <div className="flex items-center justify-between rounded-lg p-2 w-full">
+      <div className="flex flex-col items-start gap-5 h-full pl-4 rounded-lg w-3/5">
+        <div className="2xl:min-w-[80px] 2xl:min-h-[80px] rounded-full bg-[#A5A6F6] flex items-center justify-center text-white font-bold text-xl">
+          <span role="img" aria-label="avatar">
+            🧑‍💼
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h2 className="font-bold text-2xl">{data.user_id}</h2>
+          <div className="flex flex-row gap-4">
+            <p className="text-gray-500">
+              User ID: <span className="text-gray-700">{data.user_id}</span>
+            </p>
+            <p className="text-gray-500">
+              Registration Date: <span className="text-gray-700">10 September 2025</span>
+            </p>
           </div>
+        </div>
+      </div>
+
+      <div className="h-full pt-4 pr-6 flex flex-col gap-4 font-medium">
+        {/* Star Rating */}
+        <div className="w-full text-base font-medium flex items-center gap-2">
+          <div className="bg-[#484AB8] text-white rounded-full min-w-[42px] min-h-[42px] flex items-center justify-center">
+            <Star />
+          </div>
+          <span className="text-gray-700">
+            {`#${data.agg.star_rating.toFixed(1)} driver on the list this week`}
+          </span>
+        </div>
+
+        {/* Speed score / streak */}
+        <div className="flex items-center text-base font-medium gap-2">
+          <div className="bg-[#484AB8] text-white rounded-full min-w-[42px] min-h-[42px] flex items-center justify-center">
+            <Star />
+          </div>
+          <span className="text-gray-700">
+            {`Speed streak day ${Math.round(data.agg.spd_score)}`}
+          </span>
+        </div>
+
+        {/* Example badge */}
+        {data.badges.map((badge, idx) => (
+          <div
+            key={idx}
+            className="flex items-center gap-2 text-base font-medium"
+          >
+            <div className="bg-[#AF855A] text-white rounded-full min-w-[42px] min-h-[42px] flex items-center justify-center">
+              <AlertCircle />
+            </div>
+            <span className="text-gray-700">{badge}</span>
+          </div>
+        ))}
+      </div>
+    </div>
         </div>
 
         {/* Tabs Section */}
