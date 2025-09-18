@@ -24,11 +24,13 @@ cd Damoov_Driving_Score
 
 🚀 Quick Start
 
-## 🎨 Frontend Setup  
+---
+
+## 🖥️ Frontend Setup  
 
 The frontend is built with **React + JavaScript**.  
 
-### Navigate to frontend
+## Navigate to frontend
 ```bash
 cd Frontend
 ```
@@ -36,6 +38,10 @@ cd Frontend
 ### Install dependencies
 ```bash
 npm install
+```
+
+```bash
+npm i 
 ```
 
 ### Start frontend development server
@@ -55,11 +61,13 @@ Frontend will start at:
 cd Backend/src
 ```
 
-### Create and activate virtual environment
+### Activate virtual environment
 ```bash
-python3 -m venv venv
+ Navigate to src for activating environment.
+
 source venv/bin/activate
 ```
+or 
 
 ### Install dependencies
 ```bash
@@ -96,9 +104,13 @@ Backend will start at:
 Damoov_Driving_Score/
 │── Backend/
 │   ├── src/
-│   │   ├── app/           # API & controllers
-│   │   ├── utils/         # Utilities
-│   │   └── flask_server.py
+│   │   ├── app/    # API & controllers
+            ├── controllers
+            ├── routes
+            ├── utils   # Utilities
+                   
+│   │           
+│   │   └── flask_server.py  #main sevrer file
 │   └── requirements.txt
 │
 │── Frontend/              # React app
