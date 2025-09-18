@@ -287,7 +287,6 @@
 
 // export default TripDetails;
 
-
 import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -317,11 +316,11 @@ const polygonCoords: [number, number][] = [
 
 const radarData = [
   { subject: "Acceleration", A: 85 },
-  { subject: "Phone Usage", A: 85 },
-  { subject: "Speeding", A: 85 },
-  { subject: "Cornering", A: 85 },
-  { subject: "Braking", A: 85 },
-  { subject: "Handling", A: 85 },
+  { subject: "Phone Usage", A: 70 },
+  { subject: "Speeding", A: 60 },
+  { subject: "Cornering", A: 75 },
+  { subject: "Braking", A: 90 },
+  { subject: "Handling", A: 80 },
 ];
 
 const barData = [
@@ -346,9 +345,9 @@ const BAR_COLORS = [
 function FitBounds({ coords }: { coords: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
-    if (!coords || coords.length === 0) return;
-    const bounds = coords.map((c) => [c[0], c[1]]);
-    map.fitBounds(bounds as any, { padding: [40, 40] });
+    if (coords.length > 0) {
+      map.fitBounds(coords as any, { padding: [40, 40] });
+    }
   }, [map, coords]);
   return null;
 }
@@ -368,67 +367,66 @@ const TripDetails: React.FC = () => {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <h2 className="text-lg font-semibold text-gray-800">
-        Trips Details -{" "}
+    <div className="p-6 lg:p-8 h-screen overflow-hidden">
+      <h2 className="text-lg font-semibold text-gray-800 mb-6">
+        Trips Details –{" "}
         <span className="font-bold text-gray-900">{tripInfo.tripId}</span>
       </h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-md p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#EDEAFE] flex items-center justify-center text-[#5B4CAA] font-bold">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr h-[calc(100%-3rem)]">
+
+        {/* Trip Info */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col justify-between h-full">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-[#EDEAFE] flex items-center justify-center text-[#5B4CAA] font-bold text-lg">
               {tripInfo.name.charAt(0)}
             </div>
-            <div className="flex-1">
-              <h3 className="text-base font-semibold text-gray-800">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
                 {tripInfo.name}
               </h3>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm text-gray-500">
                 Trip Id: <span className="font-medium">{tripInfo.tripId}</span>
-              </p>
-
-              <div className="mt-5 flex gap-4">
-                <div className="flex flex-col items-center">
-                  <span className="w-3 h-3 rounded-full bg-[#6A56F1] block" />
-                  <div className="w-px h-28 border-l-2 border-dashed border-gray-300 my-2" />
-                  <span className="w-3 h-3 rounded-full bg-[#6A56F1] block" />
-                </div>
-
-                <div className="flex-1 text-sm text-gray-700">
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      {tripInfo.startAddress}
-                    </p>
-                    <p className="mt-2 text-sm font-semibold">
-                      {tripInfo.startTime}
-                    </p>
-                  </div>
-
-                  <div className="mt-6">
-                    <p className="text-xs text-gray-500">
-                      {tripInfo.endAddress}
-                    </p>
-                    <p className="mt-2 text-sm font-semibold">
-                      {tripInfo.endTime}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <p className="mt-4 text-sm text-gray-600">
-                Travelled safer than other drivers with{" "}
-                <span className="font-bold text-[#5B4CAA]">
-                  {tripInfo.efficiency}%
-                </span>{" "}
-                efficiency
               </p>
             </div>
           </div>
+
+          <div className="flex gap-4 mt-6 flex-1">
+            <div className="flex flex-col items-center">
+              <span className="w-3 h-3 rounded-full bg-[#6A56F1]" />
+              <div className="flex-1 border-l-2 border-dashed border-gray-300 my-2" />
+              <span className="w-3 h-3 rounded-full bg-[#6A56F1]" />
+            </div>
+            <div className="flex-1 flex flex-col justify-between">
+              <div>
+                <p className="text-sm text-gray-600">{tripInfo.startAddress}</p>
+                <p className="mt-1 text-sm font-semibold text-gray-800">
+                  {tripInfo.startTime}
+                </p>
+              </div>
+              <div className="mt-6 sm:mt-8">
+                <p className="text-sm text-gray-600">{tripInfo.endAddress}</p>
+                <p className="mt-1 text-sm font-semibold text-gray-800">
+                  {tripInfo.endTime}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+              Travelled safer than other drivers with{" "}
+              <span className="font-bold text-[#5B4CAA]">
+                {tripInfo.efficiency}%
+              </span>{" "}
+              efficiency
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-md p-3">
-          <div className="w-full h-72 rounded-lg overflow-hidden">
+        {/* Map */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col">
+          <div className="flex-1 rounded-lg overflow-hidden">
             <MapContainer
               center={[18.56, 73.79]}
               zoom={13}
@@ -452,22 +450,19 @@ const TripDetails: React.FC = () => {
             </MapContainer>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-md p-6">
+        {/* Driving Trips Daily */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col">
           <h3 className="text-base font-semibold text-gray-700 mb-4">
             Driving Trips Daily
           </h3>
-
-          <div style={{ height: 300 }} className="w-full">
+          <div className="flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData}>
                 <PolarGrid />
                 <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} />
                 <Radar
-                  name="Score"
                   dataKey="A"
                   stroke="#6A56F1"
                   fill="#6A56F1"
@@ -477,55 +472,49 @@ const TripDetails: React.FC = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-6 text-sm text-gray-600">
+          <div className="grid grid-cols-3 gap-4 mt-4 text-sm text-gray-600">
             {radarData.map((r) => (
-              <div key={r.subject} className="flex flex-col items-start w-full">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-[#333]">
-                    {r.A}
-                  </span>
+              <div key={r.subject} className="w-full">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-[#333]">{r.A}</span>
                   <span className="text-xs text-gray-500">{r.subject}</span>
                 </div>
-
-                <div className="w-50 h-2 bg-gray-200 rounded-full mt-2">
+                <div className="w-full h-2 bg-gray-200 rounded-full mt-1">
                   <div
                     className="h-2 bg-blue-800 rounded-full"
                     style={{ width: `${r.A}%` }}
-                  ></div>
+                  />
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-white rounded-2xl shadow-md p-6">
+
+        {/* Speeding Analysis */}
+        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col">
           <h3 className="text-base font-semibold text-gray-700 mb-4">
             Speeding Analysis
           </h3>
-
-          <div style={{ height: 450, width: "100%" }}>
+          <div className="flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={barData}
                 layout="vertical"
-                margin={{ top: 20, right: 30, left: 0, bottom: 40 }}
+                margin={{ top: 20, right: 20, left: 10, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-
                 <XAxis type="number" tick={{ fontSize: 12 }} />
-
                 <YAxis
                   dataKey="speed"
                   type="category"
                   tick={{ fontSize: 12 }}
                   width={60}
                 />
-
                 <Tooltip />
-
                 <Bar dataKey="value" barSize={32} radius={[6, 6, 6, 6]}>
-                  {barData.map((entry, idx) => (
+                  {barData.map((_, idx) => (
                     <Cell
-                      key={`cell-${idx}`}
+                      key={idx}
                       fill={BAR_COLORS[idx % BAR_COLORS.length]}
                     />
                   ))}

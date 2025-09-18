@@ -130,7 +130,7 @@
 // Trips.tsx
 import React, { useMemo, useState } from "react";
 import { FaDownload, FaSearch, FaUserAlt } from "react-icons/fa";
-import { Link } from "react-router-dom"; // ✅ add this
+import { Link } from "react-router-dom"; 
 
 const Trips: React.FC = () => {
   const [trips] = useState([
@@ -240,7 +240,6 @@ const Trips: React.FC = () => {
 
   return (
     <div className="p-6 lg:p-8">
-      {/* Header row */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <h2 className="text-lg font-semibold text-gray-800">Trips</h2>
 
@@ -258,7 +257,6 @@ const Trips: React.FC = () => {
         </div>
       </div>
 
-      {/* Search */}
       <div className="relative mb-4">
         <FaSearch className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
         <input
@@ -269,7 +267,6 @@ const Trips: React.FC = () => {
         />
       </div>
 
-      {/* Table container */}
       <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
         <table
           className="min-w-full text-sm text-left text-gray-700 border-separate"
@@ -296,14 +293,12 @@ const Trips: React.FC = () => {
                 <tr key={trip.id} className="align-middle">
                   <td className="px-3 py-1.5 text-center font-medium">{idx + 1}</td>
 
-                  {/* 🔗 Clickable Device ID */}
                   <td className="px-3 py-1.5 text-center font-medium text-indigo-600 underline">
                     <Link to={`/trips/${trip.deviceId}`}>
                       {trip.deviceId}
                     </Link>
                   </td>
 
-                  {/* Name with icon */}
                   <td className="px-3 py-1.5">
                     <div className="flex items-center justify-center gap-2">
                       <span className="w-7 h-7 rounded-full bg-[#EFEAFB] text-[#6A56F1] flex items-center justify-center text-[10px] shadow-sm">
