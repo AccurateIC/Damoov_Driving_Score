@@ -7,11 +7,6 @@ from .utils.helpers import normalize_timestamp, optimize_columns, get_time_range
 from .utils.helpers import normalize_timestamp, optimize_columns, get_time_range
 
 db_cfg = CONFIG.get("database", {})
-
-main_table  = db_cfg.get("main_table")
-start_table = db_cfg.get("start_table")
-stop_table  = db_cfg.get("stop_table")
-
 main_table  = db_cfg.get("main_table")
 start_table = db_cfg.get("start_table")
 stop_table  = db_cfg.get("stop_table")
@@ -419,13 +414,11 @@ def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") 
     """
 
     params = {"start_date": start_date.strftime("%Y-%m-%d")}
-
     if user_id:
         sql += " AND n.user_id = :user_id"
         params["user_id"] = user_id
 
     sql += " GROUP BY u.name"
-
     df = pd.read_sql(text(sql), con=engine, params=params)
 
     if df.empty:
@@ -439,5 +432,21 @@ def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") 
     }
     trips = int(row["trips"] or 0)
     user_name = row["user_name"]
-
     return agg, trips, user_name
+
+def get_user_by_email(conn, users_table, email):
+    return conn.execute(
+        text(f"SELECT id, name, email, password_hash FROM {users_table} WHERE email = :email"),
+        {"email": email}
+    ).fetchone()
+
+def insert_user(conn, users_table, name, email, password_hash):
+    conn.execute(
+        text(f"INSERT INTO {users_table} (name, email, password_hash) VALUES ( :name, :email, :password_hash)"),
+        {"name": name, "email": email, "password_hash": password_hash}
+    )
+    # fetch the last inserted id
+    result = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+    conn.commit()
+    return result
+
