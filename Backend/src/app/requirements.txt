@@ -10,4 +10,7 @@ sqlalchemy
 pydantic
 pyyaml
 pymysql
+werkzeug
+jwt
+
 
