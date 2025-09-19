@@ -18,6 +18,7 @@ def get_engine():
 def signup():
     data = request.get_json()
     email = data.get("email")
+    name = data.get("name")
     password = data.get("password")
     confirm_password = data.get("confirm_password")
     remember_me = data.get("remember_me", False)
@@ -35,7 +36,7 @@ def signup():
             return jsonify({"error": "Email already registered"}), 409
 
         hashed_pw = generate_password_hash(password)
-        user_id = insert_user(conn, users_table, email, hashed_pw)
+        user_id = insert_user(conn, users_table, name, email, hashed_pw)
         conn.commit()
 
     token_expiry = datetime.timedelta(days=30 if remember_me else 1)
@@ -48,7 +49,8 @@ def signup():
     return jsonify({
         "message": "Signup successful",
         "user_id": user_id,
-        "token": token
+        "token": token,
+        "name": name
     }), 201
 
 
@@ -56,17 +58,18 @@ def signup():
 @auth_bp.route("/signin", methods=["POST"])
 def signin():
     data = request.get_json()
+    name = data.get("name")
     email = data.get("email")
     password = data.get("password")
 
     if not email or not password:
-        return jsonify({"error": "Missing email or password"}), 400
+        return jsonify({"error": "Missing email or password or name"}), 400
 
     engine = get_engine()
     with engine.connect() as conn:
         user = get_user_by_email(conn, users_table, email)
 
-        if not user or not check_password_hash(user.password, password):
+        if not user or not check_password_hash(user.password_hash, password):
             return jsonify({"error": "Invalid email or password"}), 401
 
     token = jwt.encode(
@@ -78,6 +81,7 @@ def signin():
     return jsonify({
         "message": "Signin successful",
         "user_id": user.id,
+        "name": user.name, 
         "token": token
     })
 

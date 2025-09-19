@@ -436,19 +436,17 @@ def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") 
 
 def get_user_by_email(conn, users_table, email):
     return conn.execute(
-        text(f"SELECT id, email, password FROM {users_table} WHERE email = :email"),
+        text(f"SELECT id, name, email, password_hash FROM {users_table} WHERE email = :email"),
         {"email": email}
     ).fetchone()
 
-def insert_user(conn, users_table, email, hashed_pw):
-    result = conn.execute(
-        text(f"""
-            INSERT INTO {users_table} (email, password)
-            VALUES (:email, :password)
-            RETURNING id
-        """),
-        {"email": email, "password": hashed_pw}
+def insert_user(conn, users_table, name, email, password_hash):
+    conn.execute(
+        text(f"INSERT INTO {users_table} (name, email, password_hash) VALUES ( :name, :email, :password_hash)"),
+        {"name": name, "email": email, "password_hash": password_hash}
     )
-    return result.fetchone()[0]
-
+    # fetch the last inserted id
+    result = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+    conn.commit()
+    return result
 
