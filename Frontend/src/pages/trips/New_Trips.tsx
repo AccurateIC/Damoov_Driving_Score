@@ -1,7 +1,7 @@
 // Trips.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { FiSearch, FiDownload } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link  as RouterLink  } from "react-router-dom";
 
 interface Trip {
   device_id: string;
@@ -30,72 +30,38 @@ const parseDateTime = (s?: string | null): Date | null => {
 };
 
 const Trips: React.FC = () => {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [timeDuration, setTimeDuration] = useState<string>("all"); // all | last_1_week | last_2_weeks | last_1_month | last_2_months
 
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:5000/trips");
-        const data = await res.json();
-        setTrips(data);
-      } catch (error) {
-        console.error("Error fetching trips:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTrips();
-  }, []);
+ const users = [
+    {
+      user_id: "U001",
+      name: "Ankita Mahajan",
+      safety_score: 92.45,
+      trip_count: 15,
+      status: 1,
+    },
+    {
+      user_id: "U002",
+      name: "Rahul Sharma",
+      safety_score: 78.33,
+      trip_count: 8,
+      status: 0,
+    },
+    {
+      user_id: "U003",
+      name: "Priya Verma",
+      safety_score: 85.12,
+      trip_count: 12,
+      status: 1,
+    },
+  ];
 
-  // compute start date for time filter
-  const getFromDate = (duration: string): Date | null => {
-    if (!duration || duration === "all") return null;
-    const now = new Date();
-    const daysMap: Record<string, number> = {
-      last_1_week: 7,
-      last_2_weeks: 14,
-      last_1_month: 30,
-      last_2_months: 60,
-    };
-    const days = daysMap[duration] ?? 0;
-    if (!days) return null;
-    const from = new Date(now);
-    from.setDate(now.getDate() - days);
-    return from;
-  };
 
-  // Search + Time filter combined
-  const filteredTrips = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    const fromDate = getFromDate(timeDuration);
-    const now = new Date();
-
-    return trips.filter((t) => {
-      // 1) Search filter (device_id or unique_id)
-      if (q) {
-        const matchesSearch =
-          t.device_id?.toLowerCase().includes(q) ||
-          t.unique_id?.toString().toLowerCase().includes(q);
-        if (!matchesSearch) return false;
-      }
-
-      // 2) Time filter (compare start_time)
-      if (fromDate) {
-        const start = parseDateTime(t.start_time);
-        if (!start) return false; // exclude if start_time malformed/missing
-        // include only trips whose start_time is between fromDate and now
-        if (start < fromDate || start > now) return false;
-      }
-
-      return true;
-    });
-  }, [searchTerm, trips, timeDuration]);
 
   return (
-    <div className="flex flex-col gap-6 2xl:px-8 min-h-screen">
+    <div className="flex flex-col gap-6 2xl:px-8 ">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="text-4xl font-bold">Trips</div>
@@ -132,78 +98,55 @@ const Trips: React.FC = () => {
       </div>
 
       {/* Table with scroll */}
-      <div className="p-4  rounded-2xl shadow mb-4">
-        {loading ? (
-          <div className="text-center text-gray-500">Loading trips...</div>
-        ) : (
-          <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg">
-            <table
-              className="min-w-full text-sm text-left text-gray-700 border-separate"
-              style={{ borderSpacing: "8px 4px" }}
-            >
-              <thead className="sticky top-0 bg-[#B5B6D5] z-10">
-                <tr>
-                  {[
-                    "#",
-                    "Device ID",
-                    "Start Time",
-                    "End Time",
-                    "Trip Distance",
-                    "Unique ID",
-                  ].map((el, index) => (
-                    <th
-                      key={index}
-                      className="px-4 py-3 text-center font-semibold text-gray-700"
-                    >
-                      {el}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTrips.length > 0 ? (
-                  filteredTrips.map((trip, idx) => (
-                    <tr
-                      key={trip.unique_id}
-                      className="align-middle hover:bg-gray-100"
-                    >
-                      <td className="px-3 py-1.5 text-center font-medium">
-                        {idx + 1}
-                      </td>
-                      <td className="px-3 py-1.5 text-center font-medium text-indigo-600 underline">
-                        <Link to={`/trips/${trip.device_id}`}>
-                          {trip.device_id}
-                        </Link>
-                      </td>
-                      <td className="px-3 py-1.5 font-medium text-center">
-                        {trip.start_time}
-                      </td>
-                      <td className="px-3 py-1.5 font-medium text-center">
-                        {trip.end_time}
-                      </td>
-                      <td className="px-3 py-1.5 font-medium text-center">
-                        {trip.trip_distance_used ?? "N/A"}
-                      </td>
-                      <td className="px-3 py-1.5 font-medium text-center">
-                        {trip.unique_id}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-6 text-center text-gray-500"
-                    >
-                      No results found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+       <div className="p-6 mb-4">
+      <table className="w-full border-collapse bg-white rounded-2xl shadow">
+        <thead>
+          <tr className="text-gray-700 text-sm bg-[#B5B6D5]">
+            <th className="text-center rounded-tl-lg">User ID</th>
+            <th className="px-4 py-3 text-center">Name</th>
+            <th className="text-center">Safety Score</th>
+            <th className="text-center">Trip Count</th>
+            <th className="px-4 py-3 text-center">Status</th>
+            <th className="px-4 py-3 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.user_id} className="border-b last:border-none">
+              <td className="text-center">
+                <RouterLink
+                  to={`/users/${user.user_id}`}
+                  className="text-indigo-600 hover:underline"
+                >
+                  {user.user_id}
+                </RouterLink>
+              </td>
+              <td className="text-center">{user.name}</td>
+              <td className="px-4 py-3 text-center">
+                {user.safety_score.toFixed(2)}
+              </td>
+              <td className="px-4 py-3 text-center">{user.trip_count}</td>
+              <td className="px-4 py-3 text-center">
+                <div className="px-4 py-3 flex items-center justify-center gap-2 text-center">
+                  <span
+                    className={`h-3 w-3 rounded-full ${
+                      user.status === 1 ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  ></span>
+                  {user.status === 1 ? "Active" : "Inactive"}
+                </div>
+              </td>
+              <td className="px-4 py-3 text-center">
+                <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
     </div>
   );
 };
