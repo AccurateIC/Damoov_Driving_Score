@@ -7,12 +7,16 @@ import UsersList from "./pages/Users/New_Users";
 import User_Details from "./pages/Users/User_Details";
 import Profiles from "./pages/Users/Profiles";
 import TripsList from "./pages/trips/TripsList";
+import Trips from "./pages/trips/New_Trips";  
 import TripDetails from "./pages/trips/TripDetails";
+import New_Trips_Detailed from "./pages/trips/New_Trips_Detailed";
+import New_Trips from "./pages/trips/New_Trips";
 import Management from "./pages/Management";
 import Billing from "./pages/Billing";
 import DataTool from "./pages/DataTool";
 import UserGuide from "./pages/UserGuide";
 import ReportBug from "./pages/ReportBug";
+import { elements } from "chart.js";
 
 export const routes = [
   {
@@ -22,7 +26,6 @@ export const routes = [
   {
     path: "dashboard/summary_New",
     element: <Summary />,
-   
   },
   {
     path: "dashboard/sdk",
@@ -32,7 +35,6 @@ export const routes = [
   {
     path: "dashboard/safety",
     element: <Safety />,
-    
   },
   {
     path: "users/list",
@@ -47,9 +49,18 @@ export const routes = [
     element: <User_Details />,
     hideHeader: true,
   },
-  {
+    {
     path: "trips/list",
-    element: <TripsList />,
+    element: <Trips />,
+  },
+  // {
+  //   path: "trips/list",
+  //   element: <TripsList />,
+  // },
+  {
+    path: "trips/:tripId",
+    element: <New_Trips_Detailed />,
+    hideHeader: true,
   },
   {
     path: "trips/details",

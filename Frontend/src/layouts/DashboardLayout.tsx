@@ -7,6 +7,7 @@ const DashboardLayout = () => {
   const location = useLocation();
 
   const currentRoute = routes.find(route => {
+      if (!route.path) return false; // guard clause
     if (route.path.includes(":")) {
       const basePath = route.path.split("/:")[0];
       return location.pathname.startsWith("/" + basePath);
