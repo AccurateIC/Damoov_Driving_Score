@@ -74,7 +74,7 @@ const UsersList = () => {
 
   return (
     <div className="2xl:px-8 min-h-screen text-sm gap-6 flex flex-col ">
-      <div className="flex justify-between items-center ">
+      <div className="flex justify-between items-center">
         <div className=" text-4xl font-bold ">Users </div>
         <div className="flex  2xl:min-w-[350px] gap-4 ">
           <button className="flex items-center bg-green-600 text-white h-[50px] px-10  rounded-md hover:bg-green-700">

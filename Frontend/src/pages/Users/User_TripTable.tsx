@@ -101,7 +101,7 @@ const TripsTable = ({ userId, statusFilter }: TripsTableProps) => {
             ) : (
               <tr>
                 <td colSpan={7} className="text-center py-4">
-                  No trips available.
+                  Loading.
                 </td>
               </tr>
             )}

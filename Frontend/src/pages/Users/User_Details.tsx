@@ -379,7 +379,7 @@ function UserDetailsWithTabs() {
   if (loading)
     return <div className=" flex items-center justify-center">Loading...</div>;
   if (!safetySummary)
-    return <div className="text-center text-gray-700">No Data Found</div>;
+    return <div className="text-center text-gray-700 py-50">Loading...</div>;
 
   const cards = [
     {
