@@ -8,7 +8,7 @@ frontend/node_modules/
 
 # ---- Python ----
 # Virtual environment
-venv/
-
-# Environment variables
-.env
+Backend/src/venv/
+Backend/src/__pycache__
+Backend/csv
+Backend/src/app/__pycache__
