@@ -2,3 +2,13 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# frontend node modules
+frontend/node_modules/
+
+# ---- Python ----
+# Virtual environment
+venv/
+
+# Environment variables
+.env
