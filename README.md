@@ -31,18 +31,15 @@ cd Damoov_Driving_Score
 The frontend is built with **React + JavaScript**.  
 
 ## Navigate to frontend
-```bash
+
 cd Frontend
-```
 
 ### Install dependencies
-```bash
-npm install
-```
 
-```bash
+npm install
+
+
 npm i 
-```
 
 ### Start frontend development server
 ```bash

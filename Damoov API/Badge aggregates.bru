@@ -1,0 +1,20 @@
+meta {
+  name: Badge aggregates
+  type: http
+  seq: 15
+}
+
+get {
+  url: http://127.0.0.1:5000/badge_aggregates?user_id=11&filter=last_1_month
+  body: none
+  auth: inherit
+}
+
+params:query {
+  user_id: 11
+  filter: last_1_month
+}
+
+settings {
+  encodeUrl: true
+}
