@@ -53,7 +53,7 @@ Frontend will start at:
 ### Navigate to backend
 ```bash
 cd Backend/src
-```
+
 
 ### Activate virtual environment
 ```bash
