@@ -4,7 +4,7 @@ __pycache__/
 *.pyd
 
 # frontend node modules
-frontend/node_modules/
+Frontend/node_modules/
 
 # ---- Python ----
 # Virtual environment
