@@ -22,11 +22,12 @@ A project for analyzing and visualizing driving behavior, safety trends, and tri
 git clone https://github.com/AccurateIC/Damoov_Driving_Score.git
 cd Damoov_Driving_Score
 
-🚀 Quick Start
-
 ---
 
+🚀 Quick Start
+
 ## 🖥️ Frontend Setup  
+
 
 The frontend is built with **React + JavaScript**.  
 
@@ -36,18 +37,14 @@ cd Frontend
 
 ### Install dependencies
 
-npm install
-
-
 npm i 
 
 ### Start frontend development server
-```bash
+
 npm run dev
-```
 
 Frontend will start at:  
-👉 http://localhost:3000  
+👉 http://localhost:5173/  
 
 ---
 
@@ -69,14 +66,18 @@ or
 ### Install dependencies
 ```bash
 
-python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
-npm install
+python -m venv venv 
+source venv/bin/activate 
+pip install -r requirements.txt
 
 ### Run server
+
+cd Backend Folder 
+
 ```bash
-cd ..
 python3 -m src.flask_server
 ```
+
 
 Backend will start at:  
 👉 http://127.0.0.1:5000  
