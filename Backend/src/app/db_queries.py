@@ -94,19 +94,15 @@ def get_eco_driving_rows() -> pd.DataFrame:
 
 def get_trip_points(unique_id: int) -> pd.DataFrame:
     engine = get_engine()
-    sql = text(f"""
-        SELECT s.UNIQUE_ID,
-               s.latitude  AS start_latitude,
-               s.longitude AS start_longitude,
-               s.timeStart AS start_time,
-               e.latitude  AS end_latitude,
-               e.longitude AS end_longitude,
-               e.timeStart AS end_time
-        FROM {start_table} s
-        LEFT JOIN {stop_table} e ON s.UNIQUE_ID = e.UNIQUE_ID
-        WHERE s.UNIQUE_ID = :uid
+    sql = text("""
+        SELECT latitude, longitude, unique_id, timestamp
+        FROM newSampleTable
+        WHERE unique_id = :uid
+          AND latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY timestamp ASC
     """)
-    return pd.read_sql(sql, con=engine, params={"uid": unique_id})
+    # parse_dates tries to return timestamp as datetime64 dtype
+    return pd.read_sql(sql, con=engine, params={"uid": unique_id}, parse_dates=["timestamp"])
 
 def get_trip_points_batch(unique_ids: list[int]) -> pd.DataFrame:
     """

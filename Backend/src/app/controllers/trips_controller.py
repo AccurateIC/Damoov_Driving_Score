@@ -87,22 +87,38 @@ def convert_unix_ms_to_str(unix_ms):
     dt = datetime.fromtimestamp(unix_ms / 1000)
     return dt.strftime("%Y-%m-%d %I:%M %p")
 
+#########################################################
+
+def convert_unix_to_str(unix_ts):
+    # detect ms vs sec based on length
+    if len(str(unix_ts)) > 10:  # milliseconds
+        unix_ts = unix_ts / 1000
+    dt = datetime.fromtimestamp(unix_ts)
+    return dt.strftime("%Y-%m-%d %I:%M %p")
+
 def trip_location(unique_id: int):
     df = get_trip_points(unique_id)
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit = 's', errors='coerce')
     if df.empty:
         return jsonify({"error": "Trip not found"}), 404
-    
-    row = df.iloc[0]
-    
-    from_loc = cached_reverse_geocode(row["start_latitude"], row["start_longitude"])
-    to_loc   = cached_reverse_geocode(row["end_latitude"], row["end_longitude"])
-    
+
+    start_row = df.iloc[0]
+    end_row = df.iloc[-1]
+
+    from_loc = cached_reverse_geocode(start_row["latitude"], start_row["longitude"])
+    to_loc   = cached_reverse_geocode(end_row["latitude"], end_row["longitude"])
+
+    #start_time = unix_to_str(start_row["timestamp"])
+    start_time = start_row["timestamp"]
+    end_time = end_row["timestamp"]
+    #end_time   = unix_to_str(end_row["timestamp"])
+
     return jsonify({
-        "unique_id": unique_id,
-        "from": f"({row['start_latitude']}, {row['start_longitude']}) → {from_loc}",
-        "to":   f"({row['end_latitude']}, {row['end_longitude']}) → {to_loc}",
-        "start_time": convert_unix_ms_to_str(int(row["start_time"])),
-        "end_time": convert_unix_ms_to_str(int(row["end_time"]))
+        "unique_id": str(unique_id),
+        "from": f"({start_row['latitude']}, {start_row['longitude']}) → {from_loc}",
+        "to":   f"({end_row['latitude']}, {end_row['longitude']}) → {to_loc}",
+        "start_time": start_time,
+        "end_time": end_time
     })
 
 
