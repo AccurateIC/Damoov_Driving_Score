@@ -25,9 +25,41 @@ A project for analyzing and visualizing driving behavior, safety trends, and tri
 ```bash
 git clone https://github.com/AccurateIC/Damoov_Driving_Score.git
 cd Damoov_Driving_Score
-```
 
-## ⚡ One-Step Setup
+---
+
+🚀 Quick Start
+
+## 🖥️ Frontend Setup  
+
+
+The frontend is built with **React + JavaScript**.  
+
+## Navigate to frontend
+
+cd Frontend
+
+### Install dependencies
+
+npm i 
+
+### Start frontend development server
+
+npm run dev
+
+Frontend will start at:  
+👉 http://localhost:5173/  
+
+---
+
+## 🖥️ Backend Setup  
+
+### Navigate to backend
+```bash
+cd Backend/src
+
+
+### Activate virtual environment
 ```bash
 # We provide a setup script to install everything at once.
 # This will install both frontend & backend environments automatically.
