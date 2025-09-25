@@ -34,7 +34,7 @@ cd Damoov_Driving_Score
 
 cd scripts
 
-#run this command if you are doing setup first time 
+# Run this command if you are doing setup first time 
 chmod +x install.sh
 
 ./install.sh
