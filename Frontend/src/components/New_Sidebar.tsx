@@ -99,7 +99,7 @@ const Sidebar = () => {
 
             <NavLink
               // to="/trips/list"
-              to="/trips/details"
+              to="trips/list"
               className={({ isActive }) =>
                 `flex items-center gap-2 font-semibold text-xl py-6 ${
                   isActive
