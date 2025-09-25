@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import DashboardLayout from "./layouts/DashboardLayout";
+// import DashboardLayout from "./layouts/DashboardLayout";
+import LoginPage from "./pages/Login";
 import { routes } from "./routes";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<DashboardLayout />}>
+        <Route path="/" element={<LoginPage />}>
           {routes.map((route, idx) => (
             <Route key={idx} path={route.path} element={route.element} />
           ))}
