@@ -1,1 +1,24 @@
 2025-06-09 12:51:19,153 - ERROR - Error in drift detection: unable to open database file
+2025-09-25 15:21:35,510 - INFO - package: mysql.connector.plugins
+2025-09-25 15:21:35,511 - INFO - plugin_name: caching_sha2_password
+2025-09-25 15:21:35,511 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-25 15:25:40,349 - INFO - package: mysql.connector.plugins
+2025-09-25 15:25:40,350 - INFO - plugin_name: caching_sha2_password
+2025-09-25 15:25:40,350 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-25 15:25:41,966 - INFO - Drift Detected: False
+2025-09-25 15:25:41,967 - INFO - ✅ No significant drift detected.
+2025-09-25 15:26:35,961 - INFO - package: mysql.connector.plugins
+2025-09-25 15:26:35,962 - INFO - plugin_name: caching_sha2_password
+2025-09-25 15:26:35,962 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-25 15:26:37,361 - INFO - Drift Detected: False
+2025-09-25 15:26:37,363 - INFO - ✅ No significant drift detected.
+2025-09-25 15:33:49,000 - INFO - package: mysql.connector.plugins
+2025-09-25 15:33:49,000 - INFO - plugin_name: caching_sha2_password
+2025-09-25 15:33:49,001 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-25 15:33:50,309 - INFO - Drift Detected: False
+2025-09-25 15:33:50,310 - INFO - ✅ No significant drift detected.
+2025-09-25 15:43:45,389 - INFO - package: mysql.connector.plugins
+2025-09-25 15:43:45,390 - INFO - plugin_name: caching_sha2_password
+2025-09-25 15:43:45,390 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-25 15:43:46,814 - INFO - Drift Detected: False
+2025-09-25 15:43:46,815 - INFO - ✅ No significant drift detected.

@@ -271,9 +271,45 @@ def run_score_pipeline(db_conf, config):
 
     # Append new scores into DriftTable
     drift_table = "DriftTable"
-    drift_df.to_sql(drift_table, conn, if_exists="append", index=False)
+    
+    cursor = conn.cursor()
 
+# Ensure table exists
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS {drift_table} (
+    unique_id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255),
+    safe_score FLOAT,
+    risk_factor FLOAT,
+    total_penalty FLOAT,
+    star_rating INT
+    )
+    """)
+    conn.commit()
+
+# Insert rows safely using ON DUPLICATE KEY UPDATE
+    for _, row in drift_df.iterrows():
+        cursor.execute(f"""
+    INSERT INTO {drift_table} (unique_id, user_id, safe_score, risk_factor, total_penalty, star_rating)
+    VALUES (%s, %s, %s, %s, %s, %s)
+    ON DUPLICATE KEY UPDATE
+        safe_score=VALUES(safe_score),
+        risk_factor=VALUES(risk_factor),
+        total_penalty=VALUES(total_penalty),
+        star_rating=VALUES(star_rating)
+    """, (
+        row['unique_id'],
+        row['user_id'],
+        row['safe_score'],
+        row['risk_factor'],
+        row['total_penalty'],
+        row['star_rating']
+    ))
+    conn.commit()
     conn.close()
+
+
+   
 
     print("✅ DriftTable updated with new scores.")
 

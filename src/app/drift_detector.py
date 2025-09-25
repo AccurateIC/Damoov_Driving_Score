@@ -8,6 +8,9 @@ import pandas as pd
 import mysql.connector
 from dataclasses import dataclass
 from river.drift import ADWIN
+from pathlib import Path
+import yaml
+
 
 from model import XGBoostModelTrainer, XGBConfig
 from score_pipeline import run_score_pipeline
@@ -32,7 +35,15 @@ class DriftConfig:
     config_path: str = "config.yaml"
 
 
-def load_config(path="config.yaml"):
+"""def load_config(path="config.yaml"):
+    with open(path, "r") as f:
+        return yaml.safe_load(f)"""
+
+def load_config(path=None):
+    if path is None:
+        # Go two levels up from src/app to project root
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        path = base_dir / "config.yaml"
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
@@ -78,8 +89,7 @@ class ADWINDriftMonitor:
 
         drift_detected = False
         for val in today_df[self.drift_config.target_column].dropna():
-            self.detector.update(val)
-            if self.detector.change_detected:
+            if self.detector.update(val):  # update returns True if drift detected
                 drift_detected = True
 
         logger.info(f"Drift Detected: {drift_detected}")
@@ -87,7 +97,6 @@ class ADWINDriftMonitor:
             "drift_detected": drift_detected,
             "today_rows": len(today_df)
         }
-
 
 # ========== MAIN ==========
 if __name__ == "__main__":
