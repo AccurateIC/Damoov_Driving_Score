@@ -29,12 +29,12 @@ cd Damoov_Driving_Score
 
 ## ⚡ One-Step Setup
 ```bash
-We provide a setup script to install everything at once.
-This will install both frontend & backend environments automatically.
+# We provide a setup script to install everything at once.
+# This will install both frontend & backend environments automatically.
 
 cd scripts
 
-run this command if you are doing setup first time 
+#run this command if you are doing setup first time 
 chmod +x install.sh
 
 ./install.sh
@@ -43,7 +43,7 @@ chmod +x install.sh
 ## 🖥️ Run in Development Mode
 
 ```bash
-To start both backend and frontend in dev mode:
+# To start both backend and frontend in dev mode:
 
 cd scripts
 
