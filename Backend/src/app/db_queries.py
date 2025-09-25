@@ -94,19 +94,15 @@ def get_eco_driving_rows() -> pd.DataFrame:
 
 def get_trip_points(unique_id: int) -> pd.DataFrame:
     engine = get_engine()
-    sql = text(f"""
-        SELECT s.UNIQUE_ID,
-               s.latitude  AS start_latitude,
-               s.longitude AS start_longitude,
-               s.timeStart AS start_time,
-               e.latitude  AS end_latitude,
-               e.longitude AS end_longitude,
-               e.timeStart AS end_time
-        FROM {start_table} s
-        LEFT JOIN {stop_table} e ON s.UNIQUE_ID = e.UNIQUE_ID
-        WHERE s.UNIQUE_ID = :uid
+    sql = text("""
+        SELECT latitude, longitude, unique_id, timestamp
+        FROM newSampleTable
+        WHERE unique_id = :uid
+          AND latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY timestamp ASC
     """)
-    return pd.read_sql(sql, con=engine, params={"uid": unique_id})
+    # parse_dates tries to return timestamp as datetime64 dtype
+    return pd.read_sql(sql, con=engine, params={"uid": unique_id}, parse_dates=["timestamp"])
 
 def get_trip_points_batch(unique_ids: list[int]) -> pd.DataFrame:
     """
@@ -434,15 +430,15 @@ def get_badge_aggregates(user_id: int = None, filter_val: str = "last_1_month") 
     user_name = row["user_name"]
     return agg, trips, user_name
 
-def get_user_by_email(conn, users_table, email):
+def get_user_by_email(conn, admin_table, email):
     return conn.execute(
-        text(f"SELECT id, name, email, password_hash FROM {users_table} WHERE email = :email"),
+        text(f"SELECT id, name, email, password_hash FROM {admin_table} WHERE email = :email"),
         {"email": email}
     ).fetchone()
 
-def insert_user(conn, users_table, name, email, password_hash):
+def insert_user(conn, admin_table, name, email, password_hash):
     conn.execute(
-        text(f"INSERT INTO {users_table} (name, email, password_hash) VALUES ( :name, :email, :password_hash)"),
+        text(f"INSERT INTO {admin_table} (name, email, password_hash) VALUES ( :name, :email, :password_hash)"),
         {"name": name, "email": email, "password_hash": password_hash}
     )
     # fetch the last inserted id

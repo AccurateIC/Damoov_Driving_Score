@@ -7,7 +7,7 @@ from src.app.utils.db import setup_database, CONFIG
 
 auth_bp = Blueprint("auth", __name__)
 db_cfg = CONFIG.get("database", {})
-users_table = db_cfg.get("users_table", "users")
+admin_table = db_cfg.get("admin_table", "admin")
 SECRET_KEY = "your_secret_key"  # keep in env var
 
 def get_engine():
@@ -31,12 +31,12 @@ def signup():
 
     engine = get_engine()
     with engine.connect() as conn:
-        existing = get_user_by_email(conn, users_table, email)
+        existing = get_user_by_email(conn, admin_table, email)
         if existing:
             return jsonify({"error": "Email already registered"}), 409
 
         hashed_pw = generate_password_hash(password)
-        user_id = insert_user(conn, users_table, name, email, hashed_pw)
+        user_id = insert_user(conn, admin_table, name, email, hashed_pw)
         conn.commit()
 
     token_expiry = datetime.timedelta(days=30 if remember_me else 1)
@@ -67,7 +67,7 @@ def signin():
 
     engine = get_engine()
     with engine.connect() as conn:
-        user = get_user_by_email(conn, users_table, email)
+        user = get_user_by_email(conn, admin_table, email)
 
         if not user or not check_password_hash(user.password_hash, password):
             return jsonify({"error": "Invalid email or password"}), 401
@@ -82,7 +82,6 @@ def signin():
         "message": "Signin successful",
         "user_id": user.id,
         "name": user.name, 
-        "token": token
     })
 
 
@@ -97,7 +96,7 @@ def forgot_password():
 
     engine = get_engine()
     with engine.connect() as conn:
-        user = get_user_by_email(conn, users_table, email)
+        user = get_user_by_email(conn, admin_table, email)
         if not user:
             return jsonify({"error": "Email not registered"}), 404
 
