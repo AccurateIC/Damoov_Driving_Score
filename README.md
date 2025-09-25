@@ -1,6 +1,10 @@
-***Damoov_Diving_Score***
+<div align="center">
+  <a href="https://github-readme-tech-stack.vercel.app">
+    <img src="https://github-readme-tech-stack.vercel.app/api/cards?title=My+Tech+Stacks&align=center&titleAlign=center&fontSize=20&lineHeight=10&lineCount=2&theme=ayu&width=500&bg=%25230B0E14&titleColor=%231c9eff&line1=python%2Cpython%2Cauto%3Bflask%2Cflask%2Cauto%3Bnode.js%2Cnode.js%2Cauto%3B&line2=tailwindcss%2Ctailwind%2Cauto%3Breact%2Creact%2Cauto%3Bbruno%2Cbruno%2Cauto%3Bicons%2Cicons%2Cauto%3B" alt="My Tech Stacks" />
+  </a>
+</div>
 
-# Damoov Driving Score
+# 🚗 Damoov Driving Score
 
 A project for analyzing and visualizing driving behavior, safety trends, and trip data.
 
@@ -11,7 +15,7 @@ A project for analyzing and visualizing driving behavior, safety trends, and tri
 - **Python 3.10+**
 - **pip / virtualenv**
 - **npm** (comes with Node.js)
-- **Node.js (v18 or above)** (for frontend)
+- **Node.js v18+**
 - **MySQL**
 
 ---
@@ -21,115 +25,57 @@ A project for analyzing and visualizing driving behavior, safety trends, and tri
 ```bash
 git clone https://github.com/AccurateIC/Damoov_Driving_Score.git
 cd Damoov_Driving_Score
-
----
-
-🚀 Quick Start
-
-## 🖥️ Frontend Setup  
-
-
-The frontend is built with **React + JavaScript**.  
-
-## Navigate to frontend
-
-cd Frontend
-
-### Install dependencies
-
-npm i 
-
-### Start frontend development server
-
-npm run dev
-
-Frontend will start at:  
-👉 http://localhost:5173/  
-
----
-
-## 🖥️ Backend Setup  
-
-### Navigate to backend
-```bash
-cd Backend/src
 ```
 
-### Activate virtual environment
+## ⚡ One-Step Setup
 ```bash
- Navigate to src for activating environment.
+We provide a setup script to install everything at once.
+This will install both frontend & backend environments automatically.
 
-source venv/bin/activate
-```
-or 
+cd scripts
 
-### Install dependencies
-```bash
+run this command if you are doing setup first time 
+chmod +x install.sh
 
-python -m venv venv 
-source venv/bin/activate 
-pip install -r requirements.txt
-
-### Run server
-
-cd Backend Folder 
-
-```bash
-python3 -m src.flask_server
+./install.sh
 ```
 
+## 🖥️ Run in Development Mode
 
-Backend will start at:  
-👉 http://127.0.0.1:5000  
+```bash
+To start both backend and frontend in dev mode:
 
----
+cd scripts
 
-## 🚀 Quick Start (Full Project)
+chmod +x dev.sh
 
-1. Clone the repo  
-2. Checkout to the **dev** branch  
-   ```bash
-   git checkout dev
-   ```
-3. Setup **Backend** (instructions above)  
-4. Setup **Frontend** (instructions above)  
-5. Run both frontend & backend  
+./dev.sh
 
----
+```
 
 ## 📂 Project Structure
 
-```
+```bash
 Damoov_Driving_Score/
 │── Backend/
 │   ├── src/
-│   │   ├── app/    # API & controllers
-            ├── controllers
-            ├── routes
-            ├── utils   # Utilities
-                   
-│   │           
-│   │   └── flask_server.py  #main sevrer file
+│   │   ├── app/            # API & controllers
+│   │   │   ├── controllers
+│   │   │   ├── routes
+│   │   │   ├── utils       # Utilities
+│   │   └── flask_server.py # Main server file
 │   └── requirements.txt
 │
-│── Frontend/              # React app
-│   ├── src/               # Components & pages
+│── Frontend/               # React app
+│   ├── src/                # Components & pages
 │   ├── package.json
-│   └── vite.config.js     # (if using Vite)
+│   └── vite.config.js
+│
+│── scripts/                # Automation scripts
+│   ├── install.sh
+│   └── dev.sh
 │
 └── README.md
 ```
 
----
-
-## 👨‍💻 Contributing
-
-1. Create a feature branch:  
-   ```bash
-   git checkout -b feature/Your-Feature
-   ```
-2. Commit changes and push  
-3. Open a pull request  
-
----
 
