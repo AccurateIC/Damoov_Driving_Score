@@ -3,7 +3,7 @@ import { FiSearch, FiDownload } from "react-icons/fi";
 import NoData from "../../assets/no-user-data.png";
 import { Link as RouterLink } from "react-router-dom";
 
-const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
+const baseURL = import.meta.env.VITE_BASE_URL ;
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);

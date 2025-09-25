@@ -15,6 +15,8 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 
+const baseURL = import.meta.env.VITE_BASE_URL ;
+
 const TripDetails = () => {
   // const [searchParams] = useSearchParams();
   // const userId = searchParams.get("user") || "";
@@ -38,9 +40,8 @@ const TripDetails = () => {
   // }, [userId]);
 
   const handleSearch = () => {
-    // Load trips on component mount
-    // http://127.0.0.1:5000/trips/location/15610303
-    fetch(`http://127.0.0.1:5000/trips/location/${searchId}`)
+   
+    fetch(`${baseURL}/trips/location/${searchId}`)
       .then((response) => response.json())
       .then((data) => {
         setTripDetails(data);

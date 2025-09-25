@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { FiSearch, FiDownload } from "react-icons/fi";
 import { Link as RouterLink } from "react-router-dom";
 
+const baseURL = import.meta.env.VITE_BASE_URL ;
 interface Trip {
   device_id: string;
   start_time: string;
@@ -25,8 +26,8 @@ const Trips: React.FC = () => {
         setLoading(true);
         const url =
           timeDuration === "all"
-            ? "http://127.0.0.1:5000/trips_list"
-            : `http://127.0.0.1:5000/trips_list?filter=${timeDuration}`;
+            ? `${baseURL}/trips_list`
+            : `${baseURL}/trips_list?filter=${timeDuration}`;
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch trips");

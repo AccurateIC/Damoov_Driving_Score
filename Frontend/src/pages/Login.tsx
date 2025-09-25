@@ -4,6 +4,8 @@ import logo from "../assets/logo.png";
 import tempo from "../assets/tempo.png";
 import gradientBox from "../assets/rectangle.svg";
 
+const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:3344";
+
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("signin");
   const [formData, setFormData] = useState({
@@ -37,7 +39,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const API_BASE = "http://127.0.0.1:5000";
+    // const API_BASE = "http://127.0.0.1:5000";
     setLoading(true);
 
     try {
@@ -54,7 +56,7 @@ export default function LoginPage() {
           return;
         }
 
-        response = await fetch(`${API_BASE}/signup`, {
+        response = await fetch(`${baseURL}/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -65,7 +67,7 @@ export default function LoginPage() {
           }),
         });
       } else {
-        response = await fetch(`${API_BASE}/signin`, {
+        response = await fetch(`${baseURL}/signin`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
