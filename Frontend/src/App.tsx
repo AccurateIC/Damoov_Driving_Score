@@ -1,15 +1,23 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// import DashboardLayout from "./layouts/DashboardLayout";
 import LoginPage from "./pages/Login";
+import DashboardLayout from "./layouts/DashboardLayout";
 import { routes } from "./routes";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />}>
+        {/* Public route */}
+        <Route path="/" element={<LoginPage />} />
+
+        {/* Dashboard routes with layout */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
           {routes.map((route, idx) => (
-            <Route key={idx} path={route.path} element={route.element} />
+            <Route
+              key={idx}
+              path={route.path.replace("dashboard/", "")} // make child paths
+              element={route.element}
+            />
           ))}
         </Route>
       </Routes>
@@ -18,6 +26,28 @@ function App() {
 }
 
 export default App;
+
+
+// import { BrowserRouter, Routes, Route } from "react-router-dom";
+// // import DashboardLayout from "./layouts/DashboardLayout";
+// import LoginPage from "./pages/Login";
+// import { routes } from "./routes";
+
+// function App() {
+//   return (
+//     <BrowserRouter>
+//       <Routes>
+//         <Route path="/" element={<LoginPage />}>
+//           {routes.map((route, idx) => (
+//             <Route key={idx} path={route.path} element={route.element} />
+//           ))}
+//         </Route>
+//       </Routes>
+//     </BrowserRouter>
+//   );
+// }
+
+// export default App;
 
 
 
