@@ -28,6 +28,18 @@ interface ChartData {
   value: number;
 }
 
+interface Driver {
+  avg_score: number;
+  device_id: string;
+  name: string;
+  total_distance: number;
+}
+
+interface TopDriversResponse {
+  aggressive_drivers: Driver[];
+  safe_drivers: Driver[];
+}
+
 const performanceData: ChartData[] = [
   { name: "Jan", value: 25 },
   { name: "Feb", value: 30 },
@@ -49,11 +61,12 @@ const Summary: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"performance" | "safe" | "eco">(
     "performance"
   );
+
   const [selectedDays, setSelectedDays] = useState(14);
-  const [top10Aggresive, setTop10Aggresive] = useState<string>(
-    "Top 10 Aggresive Drivers"
-  );
-  const [top10Safe, setTop10Safe] = useState<string>("Top 10 Safe Drivers");
+
+  const [top10Aggresive, setTop10Aggresive] = useState<Driver[]>([]);
+  const [top10Safe, setTop10Safe] = useState<Driver[]>([]);
+
   const getFilterValue = (days: number) => {
     switch (days) {
       case 7:
@@ -72,73 +85,167 @@ const Summary: React.FC = () => {
   const [performanceData, setPerformanceData] = useState<
     { metric: string; value: string }[]
   >([]);
+  // useEffect(() => {
+  //   const filterValue = getFilterValue(selectedDays);
+  //   fetch(`${baseURL}/performance_summary?filter=${filterValue}`)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       // Build array dynamically only with API data:
+  //       setPerformanceData([
+  //         { metric: "New Drivers", value: data.new_drivers.toString() },
+  //         { metric: "Active Drivers", value: data.active_drivers.toString() },
+  //         { metric: "Trip Numbers", value: data.trips_number.toString() },
+  //         { metric: "Mileage", value: data.mileage.toString() },
+  //         { metric: "Time of Driving", value: data.time_of_driving.toString() },
+  //       ]);
+  //     })
+  //     .catch((err) => console.error(err));
+  // }, [selectedDays]);
+
+  const fetchPerformanceSummary = async (filterValue: string) => {
+    try {
+      const res = await fetch(
+        `${baseURL}/performance_summary?filter=${filterValue}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch performance summary");
+      const data = await res.json();
+      return [
+        { metric: "New Drivers", value: data.new_drivers.toString() },
+        { metric: "Active Drivers", value: data.active_drivers.toString() },
+        { metric: "Trip Numbers", value: data.trips_number.toString() },
+        { metric: "Mileage", value: data.mileage.toString() },
+        { metric: "Time of Driving", value: data.time_of_driving.toString() },
+      ];
+    } catch (err) {
+      console.error("Error fetching performance data:", err);
+      return []; // safe fallback
+    }
+  };
+
+  const fetchSafeDrivingSummary = async (filter: string) => {
+    const res = await fetch(`${baseURL}/safe_driving_summary?filter=${filter}`);
+    if (!res.ok) throw new Error("Failed to fetch safe driving summary");
+    const data = await res.json();
+
+    // 🔹 Transform API response into UI-ready format here
+    return [
+      { metric: "Safety Score", value: data.safety_score.toString() },
+      {
+        metric: "Acceleration Score",
+        value: data.acceleration_score.toString(),
+      },
+      { metric: "Braking Score", value: data.braking_score.toString() },
+      { metric: "Cornering Score", value: data.cornering_score.toString() },
+      { metric: "Speeding Score", value: data.speeding_score.toString() },
+      { metric: "Phone Usage Score", value: data.phone_usage_score.toString() },
+      { metric: "Trip Count", value: data.trip_count.toString() },
+    ];
+  };
+
   useEffect(() => {
     const filterValue = getFilterValue(selectedDays);
-    fetch(`${baseURL}/performance_summary?filter=${filterValue}`)
-      .then((res) => res.json())
-      .then((data) => {
-        // Build array dynamically only with API data:
-        setPerformanceData([
-          { metric: "New Drivers", value: data.new_drivers.toString() },
-          { metric: "Active Drivers", value: data.active_drivers.toString() },
-          { metric: "Trip Numbers", value: data.trips_number.toString() },
-          { metric: "Mileage", value: data.mileage.toString() },
-          { metric: "Time of Driving", value: data.time_of_driving.toString() },
-        ]);
-      })
-      .catch((err) => console.error(err));
+    const load = async () => {
+      const result = await fetchPerformanceSummary(filterValue);
+      setPerformanceData(result);
+    };
+
+    fetchSafeDrivingSummary(filterValue)
+      .then((safeData) => setSafeDrivingData(safeData))
+      .catch((err) => console.error("Error fetching safe driving data:", err));
+
+    fetchEcoDrivingSummary(filterValue)
+      .then((ecoData) => setEcoDrivingData(ecoData))
+      .catch((err) => console.error("Error fetching eco driving data:", err));
+
+    load();
+
+    fetchTopDrivers();
   }, [selectedDays]);
 
   const [safeDrivingData, setSafeDrivingData] = useState<
     { metric: string; value: string }[]
   >([]);
 
-  useEffect(() => {
-    console.log("selectedDays", selectedDays);
-    const filterValue = getFilterValue(selectedDays);
-    fetch(`${baseURL}/safe_driving_summary?filter=${filterValue}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setSafeDrivingData([
-          { metric: "Safety Score", value: data.safety_score.toString() },
-          {
-            metric: "Acceleration Score",
-            value: data.acceleration_score.toString(),
-          },
-          { metric: "Braking Score", value: data.braking_score.toString() },
-          { metric: "Cornering Score", value: data.cornering_score.toString() },
-          { metric: "Speeding Score", value: data.speeding_score.toString() },
-          {
-            metric: "Phone Usage Score",
-            value: data.phone_usage_score.toString(),
-          },
-          { metric: "Trip Count", value: data.trip_count.toString() },
-        ]);
-      })
-      .catch((err) => console.error("Error fetching safe driving data:", err));
-  }, [selectedDays]);
+  // useEffect(() => {
+  //   console.log("selectedDays", selectedDays);
+  //   const filterValue = getFilterValue(selectedDays);
+  //   fetch(`${baseURL}/safe_driving_summary?filter=${filterValue}`)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       setSafeDrivingData([
+  //         { metric: "Safety Score", value: data.safety_score.toString() },
+  //         {
+  //           metric: "Acceleration Score",
+  //           value: data.acceleration_score.toString(),
+  //         },
+  //         { metric: "Braking Score", value: data.braking_score.toString() },
+  //         { metric: "Cornering Score", value: data.cornering_score.toString() },
+  //         { metric: "Speeding Score", value: data.speeding_score.toString() },
+  //         {
+  //           metric: "Phone Usage Score",
+  //           value: data.phone_usage_score.toString(),
+  //         },
+  //         { metric: "Trip Count", value: data.trip_count.toString() },
+  //       ]);
+  //     })
+  //     .catch((err) => console.error("Error fetching safe driving data:", err));
+  // }, [selectedDays]);
 
   const [ecoDrivingData, setEcoDrivingData] = useState<
     { metric: string; value: string }[]
   >([]);
 
-  useEffect(() => {
-    const filterValue = getFilterValue(selectedDays);
+  const fetchTopDrivers = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5000/fetch_top_drivers");
+      const data: TopDriversResponse = await res.json();
 
-    fetch(`${baseURL}/eco_driving_summary?filter=${filterValue}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setEcoDrivingData([
-          { metric: "Eco Score", value: data.eco_score.toString() },
-          { metric: "Brakes Score", value: data.brakes_score.toString() },
-          { metric: "Tyres Score", value: data.tires_score.toString() },
-          { metric: "Fuel Score", value: data.fuel_score.toString() },
-          { metric: "Trip Count", value: data.trip_count.toString() },
-        ]);
-      })
+      setTop10Aggresive(data.aggressive_drivers);
+      setTop10Safe(data.safe_drivers);
+    } catch (error) {
+      console.error("Failed to fetch top drivers:", error);
+    }
+  };
 
-      .catch((err) => console.error("Error fetching eco driving data:", err));
-  }, [selectedDays]);
+  // useEffect(() => {
+  //   const filterValue = getFilterValue(selectedDays);
+
+  //   fetch(`${baseURL}/eco_driving_summary?filter=${filterValue}`)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       setEcoDrivingData([
+  //         { metric: "Eco Score", value: data.eco_score.toString() },
+  //         { metric: "Brakes Score", value: data.brakes_score.toString() },
+  //         { metric: "Tyres Score", value: data.tires_score.toString() },
+  //         { metric: "Fuel Score", value: data.fuel_score.toString() },
+  //         { metric: "Trip Count", value: data.trip_count.toString() },
+  //       ]);
+  //     })
+
+  //     .catch((err) => console.error("Error fetching eco driving data:", err));
+  // }, [selectedDays]);
+  const fetchEcoDrivingSummary = async (filter: string) => {
+    try {
+      const res = await fetch(
+        `${baseURL}/eco_driving_summary?filter=${filter}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch eco driving summary");
+
+      const data = await res.json();
+
+      // Transform into UI-ready format
+      return [
+        { metric: "Eco Score", value: data.eco_score.toString() },
+        { metric: "Brakes Score", value: data.brakes_score.toString() },
+        { metric: "Tyres Score", value: data.tires_score.toString() },
+        { metric: "Fuel Score", value: data.fuel_score.toString() },
+        { metric: "Trip Count", value: data.trip_count.toString() },
+      ];
+    } catch (err) {
+      console.error("Error fetching eco driving data:", err);
+      return [];
+    }
+  };
 
   const getCurrentTabData = () => {
     if (activeTab === "safe") return safeDrivingData;
@@ -270,11 +377,14 @@ const Summary: React.FC = () => {
           </div>
 
           <div className=" mt-[32px]">
-            <TopDriversTable top10Aggresive={top10Aggresive} />
+            <TopDriversTable
+              title="Top 10 Aggresive Drivers"
+              drivers={top10Aggresive}
+            />
           </div>
 
           <div className=" mt-[32px]">
-            <TopDriversTable top10Aggresive={top10Safe} />
+            <TopDriversTable title="Top 10 Safe Drivers" drivers={top10Safe} />
           </div>
         </div>
       </div>
