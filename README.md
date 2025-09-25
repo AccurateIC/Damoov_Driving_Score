@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github-readme-tech-stack.vercel.app">
-    <img src="https://github-readme-tech-stack.vercel.app/api/cards?title=My+Tech+Stacks&align=center&titleAlign=center&fontSize=20&lineHeight=10&lineCount=2&theme=ayu&width=500&bg=%25230B0E14&titleColor=%231c9eff&line1=python%2Cpython%2Cauto%3Bflask%2Cflask%2Cauto%3Bnode.js%2Cnode.js%2Cauto%3B&line2=tailwindcss%2Ctailwind%2Cauto%3Breact%2Creact%2Cauto%3Bbruno%2Cbruno%2Cauto%3Bicons%2Cicons%2Cauto%3B" alt="My Tech Stacks" />
+    <img src="https://github-readme-tech-stack.vercel.app/api/cards?title=My+Tech+Stacks&align=center&titleAlign=center&fontSize=20&lineHeight=10&lineCount=2&theme=ayu&width=500&bg=%25230B0E14&titleColor=%231c9eff&line1=python%2Cpython%2Cauto%3Bflask%2Cflask%2Cauto%3Bnode.js%2Cnode.js%2Cauto%3B&line2=tailwindcss%2Ctailwind%2Cauto%3Breact%2Creact%2Cauto%3Bbruno%2Cbruno%2Cauto%3Bicons%2Cicons%2Cauto%3B" alt="Damoove Tech Stacks" />
   </a>
 </div>
 
