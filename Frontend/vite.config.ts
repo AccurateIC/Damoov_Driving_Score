@@ -9,9 +9,9 @@ export default defineConfig({
   ],
   server: {
     host: "0.0.0.0",  
-    port: 5174        
+    port: 7001        
   }
 });
 
 // config.ts
-export const API_BASE_URL = process.env.REACT_APP_BASE_URL || "http://127.0.0.1:5000";
+export const API_BASE_URL = process.env.REACT_APP_BASE_URL ;
