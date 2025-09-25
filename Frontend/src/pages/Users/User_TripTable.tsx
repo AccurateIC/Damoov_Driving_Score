@@ -23,7 +23,7 @@ type Trip = {
   unique_id: number;
 };
 
-const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:5000";
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 const TripsTable = ({ userId, statusFilter }: TripsTableProps) => {
   const [userTrips, setUserTrips] = useState<any[]>([]);
@@ -41,7 +41,7 @@ const TripsTable = ({ userId, statusFilter }: TripsTableProps) => {
         "with filter:",
         statusFilter
       );
-      // ​http://127.0.0.1:5000/user_trips1?user_id=13&filter=last_2_months
+      
       const res = await fetch(
         `${baseURL}/user_trips1?user_id=${userId}&filter=${statusFilter}`
       );

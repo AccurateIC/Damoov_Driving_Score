@@ -15,6 +15,8 @@ import TopDriversTable from "../../components/TopDrivers";
 import Dashboard from "../../components/DriverDistribution";
 import { Bell, User } from "lucide-react";
 
+
+
 interface StatCard {
   label: string;
   value: string | number;
@@ -55,7 +57,7 @@ const performanceData: ChartData[] = [
   { name: "Dec", value: 28 },
 ];
 
-const baseURL = import.meta.env.VITE_BASE_URL || "http://1270.0.1:5000";
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 const Summary: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"performance" | "safe" | "eco">(
@@ -197,7 +199,7 @@ const Summary: React.FC = () => {
 
   const fetchTopDrivers = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:5000/fetch_top_drivers");
+      const res = await fetch(`${baseURL}/fetch_top_drivers`);
       const data: TopDriversResponse = await res.json();
 
       setTop10Aggresive(data.aggressive_drivers);

@@ -7,7 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Star, AlertCircle } from "lucide-react";
 import TripsTable from "./User_TripTable";
 
-const baseURL = import.meta.env.VITE_BASE_URL |;
+const baseURL = import.meta.env.VITE_BASE_URL ;
 
 interface BadgeResponse {
   agg: {

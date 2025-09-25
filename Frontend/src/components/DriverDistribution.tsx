@@ -14,6 +14,8 @@ import {
   PolarRadiusAxis,
 } from "recharts";
 
+const baseURL = import.meta.env.VITE_BASE_URL;
+
 export default function Dashboard({ selectedDays }: { selectedDays: number }) {
   const [distributionChart, setDistributionChart] = useState<any>(null);
 
@@ -28,7 +30,7 @@ export default function Dashboard({ selectedDays }: { selectedDays: number }) {
   const [driverData, setDriverData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/driver_distribution", {
+    fetch(`${baseURL}/driver_distribution`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filter_val: filterMap[selectedDays], }),
@@ -71,7 +73,7 @@ console.log("selectedDays",selectedDays);
   const [safetyData, setSafetyData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/safety_params", {
+    fetch(`${baseURL}/safety_params`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filter_val: filterMap[selectedDays], }),

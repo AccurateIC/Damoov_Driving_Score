@@ -84,7 +84,7 @@ const Sidebar = () => {
           {/* Other Sections */}
           <nav className="flex flex-col gap-6 w-full px-8 mt-8 ">
             <NavLink
-              to="/users/list"
+              to="users/list"
               className={({ isActive }) =>
                 `flex items-center gap-2 font-semibold text-xl  ${
                   isActive

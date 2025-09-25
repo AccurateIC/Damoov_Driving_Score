@@ -11,6 +11,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
+const baseURL = import.meta.env.VITE_BASE_URL;
 interface ChartDataset {
   labels: string[];
   datasets: {
@@ -46,7 +47,7 @@ const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
   };
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/summary_graph", {
+    fetch(`${baseURL}/summary_graph`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

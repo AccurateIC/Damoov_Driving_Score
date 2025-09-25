@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { tripsMockData } from "../../data/mockTrips";
 import { FiSearch, FiDownload } from "react-icons/fi";
 
+const baseURL = import.meta.env.VITE_BASE_URL ;
+
 const TripsList = () => {
   // const [searchId, setSearchId] = useState('');
   const navigate = useNavigate();
@@ -11,7 +13,7 @@ const TripsList = () => {
 
   const handleSearch = () => {
     // Load trips on component mount
-    fetch(`http://127.0.0.1:5000/trips/${searchId}`)
+    fetch(`${baseURL}/trips/${searchId}`)
       .then((response) => response.json())
       .then((data) => {
         setTripDetails(data);
@@ -29,7 +31,7 @@ const TripsList = () => {
   const loadTrips = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/trips");
+      const response = await fetch(`${baseURL}/trips`);
       const data = await response.json();
       setTrips(data);
     } catch (error) {
