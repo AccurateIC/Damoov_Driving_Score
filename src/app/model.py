@@ -10,6 +10,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from xgboost import XGBRegressor
 import sys
 import os
+import mysql.connector
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src", "app"))
 
@@ -20,11 +21,15 @@ from onnxmltools.convert import convert_xgboost
 
 @dataclass
 class XGBConfig:
-    db_path: str
-    table_name: str
+    db_path: str = None
+    host: str = None
+    port: int = None
+    user: str = None
+    password: str = None
+    name: str = None
+    table_name: str = "newSampleTable"
     target_column: str = "safe_score"
     onnx_export_path: str = "XGBoost.onnx"
-
 
 class XGBoostModelTrainer:
     def __init__(self, config: XGBConfig):
@@ -39,7 +44,16 @@ class XGBoostModelTrainer:
         self.scaler = StandardScaler()
 
     def load_data(self):
-        conn = sqlite3.connect(self.config.db_path)
+        if self.config.db_path:  # SQLite fallback
+            conn = sqlite3.connect(self.config.db_path)
+        else:
+            conn = mysql.connector.connect(
+                host=self.config.host,
+                port=self.config.port,
+                user=self.config.user,
+                password=self.config.password,
+                database=self.config.name
+            )
         df = pd.read_sql_query(f"SELECT * FROM {self.config.table_name}", conn)
         conn.close()
 

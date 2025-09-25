@@ -66,3 +66,8 @@
 2025-06-13 16:56:09,275 - ERROR - Error fetching trip score: 404: Trip not found
 2025-06-13 16:56:10,155 - ERROR - Error fetching trip score: 404: Trip not found
 2025-06-13 16:56:11,708 - ERROR - Error fetching trip score: 404: Trip not found
+2025-09-25 11:37:23,473 - INFO - package: mysql.connector.plugins
+2025-09-25 11:37:23,475 - INFO - plugin_name: caching_sha2_password
+2025-09-25 11:37:23,476 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-25 11:37:24,630 - WARNING - No trips found for today — skipping drift detection
+2025-09-25 11:37:24,632 - INFO - ✅ No significant drift detected.
