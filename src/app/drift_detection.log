@@ -22,3 +22,8 @@
 2025-09-25 15:43:45,390 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
 2025-09-25 15:43:46,814 - INFO - Drift Detected: False
 2025-09-25 15:43:46,815 - INFO - ✅ No significant drift detected.
+2025-09-26 12:13:10,946 - INFO - package: mysql.connector.plugins
+2025-09-26 12:13:10,946 - INFO - plugin_name: caching_sha2_password
+2025-09-26 12:13:10,947 - INFO - AUTHENTICATION_PLUGIN_CLASS: MySQLCachingSHA2PasswordAuthPlugin
+2025-09-26 12:13:12,561 - WARNING - No trips found for today — skipping drift detection
+2025-09-26 12:13:12,562 - INFO - ✅ No significant drift detected.
