@@ -41,7 +41,7 @@ const TripsTable = ({ userId, statusFilter }: TripsTableProps) => {
         "with filter:",
         statusFilter
       );
-// ​http://127.0.0.1:5000/user_trips1?user_id=13&filter=last_2_months
+      // ​http://127.0.0.1:5000/user_trips1?user_id=13&filter=last_2_months
       const res = await fetch(
         `${baseURL}/user_trips1?user_id=${userId}&filter=${statusFilter}`
       );
@@ -62,14 +62,8 @@ const TripsTable = ({ userId, statusFilter }: TripsTableProps) => {
   };
 
   useEffect(() => {
-    if (userId && statusFilter) {
-      fetchTrips();
-    }
+    fetchTrips();
   }, [userId, statusFilter]);
-
-  useEffect(() => {
-    console.log("userTrips updated:", userTrips);
-  }, [userTrips]);
 
   return (
     <div className="m-2 md:w-full mb-4 ">
@@ -107,7 +101,7 @@ const TripsTable = ({ userId, statusFilter }: TripsTableProps) => {
             ) : (
               <tr>
                 <td colSpan={7} className="text-center py-4">
-                  No trips available.
+                  Loading.
                 </td>
               </tr>
             )}
