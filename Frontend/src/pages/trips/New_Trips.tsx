@@ -115,7 +115,7 @@ const Trips: React.FC = () => {
                   >
                     <td className="text-center">
                       <RouterLink
-                        to={`/trips/${trip.unique_id}`}
+                        to={`/dashboard/trips/${trip.unique_id}`}
                         // to={`/users/${user.user_id}`}
                         className="text-indigo-600 hover:underline"
                       >
