@@ -646,7 +646,7 @@ const Dashboard = () => {
       <div className="flex flex-wrap  2xl:max-w-[1830px] mb-8 gap-10 mt-7 ">
         {/* Chart 1 */}
         <div className="flex-1 min-w-[300px] h-[400px] pt-2 bg-white pb-10 pl-8 rounded-lg">
-          <span className="block mb-2 font-medium">Driving Trips Daily</span>
+          <span className="block mb-2 font-medium">Driving Time Daily</span>
           <Line
             data={drivingTimeData}
             options={{
