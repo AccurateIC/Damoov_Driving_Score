@@ -11,7 +11,7 @@ const Header = () => {
     xl:h-[120px]
     2xl:h-[102px]
     max-w-[1081px] 
-    xl:max-w-[1200px] 2xl:max-w-[1830px]  
+    xl:max-w-[1200px] 2xl:max-w-[1490px]  
     md:mt-[40px] md:mx-[32px] md:my-[24px] md:py-[12px]
     mx-auto bg-gray-800 border-rounded-lg 
     2xl:mx-[32px] 2xl:my-[20px] md:py-[12px] rounded-full 

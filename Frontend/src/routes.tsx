@@ -13,6 +13,8 @@ import Billing from "./pages/Billing";
 import DataTool from "./pages/DataTool";
 import UserGuide from "./pages/UserGuide";
 import ReportBug from "./pages/ReportBug";
+import ActiveUsers from "./pages/Dashboard/ActiveUsers";
+import New_Drivers from "./pages/Dashboard/New_Drivers";
 
 export const routes = [
   {
@@ -22,6 +24,14 @@ export const routes = [
   {
     path: "summary_New",
     element: <Summary />,
+  },
+   {
+    path: "active-drivers",
+    element: <ActiveUsers />,
+  },
+   {
+    path: "new-drivers",
+    element: <New_Drivers />,
   },
   {
     path: "sdk",

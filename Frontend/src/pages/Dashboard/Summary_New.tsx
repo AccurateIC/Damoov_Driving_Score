@@ -14,8 +14,8 @@ import BarChartGraph from "../../components/BarchartGraph";
 import TopDriversTable from "../../components/TopDrivers";
 import Dashboard from "../../components/DriverDistribution";
 import { Bell, User } from "lucide-react";
-
-
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react"; // or any icon library you use
 
 interface StatCard {
   label: string;
@@ -256,12 +256,12 @@ const Summary: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen  px-4 pt-1  ">
+    <div className="min-h-screen pt-1  ">
       <div>
         {/* Breadcrumb */}
         <div
           className="  2xl:mx-[32px] xl:mx-[32px] 
-       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px]
+       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 
        "
         >
           <p className="md:w-[204px]  md:h-[30px] font-medium text-gray-400 mb-[23px]">
@@ -273,8 +273,8 @@ const Summary: React.FC = () => {
         <div
           className="flex flex-col 
         // 2xl:max-h-[478px]
-        //  max-w-[1080px]   xl:max-w-[1200px]  2xl:max-w-[1530px] 
-        max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] 
+          max-w-[1080px]   xl:max-w-[1200px]  2xl:max-w-[1430px] 
+      2xl:mx-[32px] 
         gap-8  "
         >
           <div className=" flex  justify-between  ">
@@ -297,17 +297,7 @@ const Summary: React.FC = () => {
                 </button>
               ))}
             </div>
-            {/* <select
-              value={selectedDays}
-              onChange={(e) => setSelectedDays(Number(e.target.value))}
-              className="border shrink-0 md:w-[115px] md:h-[42px] 2xl:w-[145px] 2xl:h-[42px] bg-white  px-2 2xl:mx-[10px]   
-              rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value={7}>Last 7 Days</option>
-              <option value={14}>Last 14 Days</option>
-              <option value={30}>Last 30 Days</option>
-              <option value={60}>Last 60 Days</option>
-            </select> */}
+          
             <div className="relative">
               <select
                 value={selectedDays}
@@ -334,7 +324,7 @@ const Summary: React.FC = () => {
             </div>
           </div>
           {/* Stats Cards */}
-          <div className="grid  grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">
+          {/* <div className="grid  grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">
             {getCurrentTabData().map((stat) => (
               <div
                 key={stat.metric}
@@ -355,16 +345,49 @@ const Summary: React.FC = () => {
                 </p>
               </div>
             ))}
-          </div>
+          </div> */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6 mb-8">
+  {getCurrentTabData().map((stat) => (
+    <div
+      key={stat.metric}
+      className="flex flex-col bg-white mb-4 gap-4 2xl:max-w-[209px] 2xl:max-h-[192px] rounded-xl shadow-sm p-8 hover:shadow-md transition-shadow relative"
+    >
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-gray-400">{stat.metric}</p>
+
+        {/* Only show arrow for New Drivers & Active Drivers */}
+        {(stat.metric === "New Drivers" || stat.metric === "Active Drivers") && (
+          <Link
+            to={
+              stat.metric === "New Drivers"
+                ? "/dashboard/new-drivers"
+                : "/dashboard/active-drivers"
+            }
+            className="text-gray-400 hover:text-indigo-500 transition-colors"
+          >
+            <ArrowRight size={16} />
+          </Link>
+        )}
+      </div>
+
+      <p className="text-4xl font-bold text-gray-800">{stat.value}</p>
+
+      <p className="font-normal text-sm flex gap-3">
+        Last Month{" "}
+        <span className="font-medium text-xs text-green-500 border-1 px-2 border-gray-700 p-1 rounded-xl">
+          25%
+        </span>
+      </p>
+    </div>
+  ))}
+</div>
         </div>
 
         {/* Chart + Tables Section */}
 
         <div
-          className="
-       
-       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] 
-"
+          className="    
+       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] "
         >
           <div className=" text-base font-medium py-4">
             {" "}
