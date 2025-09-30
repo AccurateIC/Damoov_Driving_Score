@@ -1,26 +1,23 @@
 #!/bin/bash
 
+# Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-FRONTEND_PORT=7001
-BACKEND_PORT=6001
-
-# Start frontend (detached)
+# Start Frontend with Vite
 (
   cd "$SCRIPT_DIR/../Frontend"
-  echo "🚀 Starting Frontend on port $FRONTEND_PORT..."
-  nohup node node_modules/vite/bin/vite.js --port $FRONTEND_PORT > vite.log 2>&1 &
-)
+  echo "🚀 Starting Frontend with Vite..."
+  node node_modules/vite/bin/vite.js
+) &
 
-# Start backend (detached)
+# Start Backend inside venv
 (
   cd "$SCRIPT_DIR/../Backend"
-  echo "⚡ Starting Backend on port $BACKEND_PORT..."
+  echo "⚡ Starting Backend (Flask Server)..."
   source venv/bin/activate
-  nohup python3 -m src.flask_server --port $BACKEND_PORT > flask.log 2>&1 &
+  python3 -m src.flask_server
   deactivate
-)
+) &
 
-echo "✅ New servers started!"
-echo "   Frontend → http://localhost:$FRONTEND_PORT"
-echo "   Backend  → http://localhost:$BACKEND_PORT"
+# Wait for both processes
+wait
