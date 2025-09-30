@@ -93,7 +93,7 @@ export default function LoginPage() {
         localStorage.removeItem("rememberedEmail");
       }
 
-      alert(data.message);
+      // alert(data.message);
   navigate("/dashboard/summary_New"); // ✅ Redirect after success
     } catch (error) {
       alert(error.message);
