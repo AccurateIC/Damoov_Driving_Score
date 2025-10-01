@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FiSearch, FiDownload } from "react-icons/fi";
 import NoData from "../../assets/no-user-data.png";
 import { Link as RouterLink } from "react-router-dom";
+import Breadcrumbs from "../Dashboard/Breadcrumbs";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -85,7 +86,10 @@ const UsersList = () => {
   return (
     <div className="2xl:px-8 min-h-screen text-sm gap-6 flex flex-col">
       <div className="flex justify-between items-center">
-        <div className="text-4xl font-bold">Users</div>
+        <span>
+           {/* <Breadcrumbs/>   */}
+        </span>
+        {/* <div className="text-4xl font-bold">Users</div> */}
         <div className="flex 2xl:min-w-[350px] gap-4">
           <button className="flex items-center bg-green-600 text-white h-[50px] px-10 rounded-md hover:bg-green-700">
             <FiDownload className="mr-2" /> Export

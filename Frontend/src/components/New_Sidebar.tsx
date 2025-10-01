@@ -51,7 +51,8 @@ const Sidebar = () => {
             {openDashboard && (
               <div className="mt-4 flex flex-col  pl-8 gap-4 ml-6">
                 <NavLink
-                  to="/dashboard/summary_New"
+                  to="/dashboard"
+                  //  to="/dashboard/summary"
                   className={({ isActive }) =>
                     `flex items-center gap-2   h-[57px] font-semibold text-xl pt-4 pr-12 pb-4 pl-12px ${
                       isActive

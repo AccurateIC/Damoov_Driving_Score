@@ -94,7 +94,7 @@ export default function LoginPage() {
       }
 
       // alert(data.message);
-  navigate("/dashboard/summary_New"); // ✅ Redirect after success
+  navigate("/dashboard/summary"); // ✅ Redirect after success
     } catch (error) {
       alert(error.message);
     } finally {

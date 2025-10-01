@@ -16,6 +16,7 @@ import Dashboard from "../../components/DriverDistribution";
 import { Bell, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react"; // or any icon library you use
+import Breadcrumbs from "./Breadcrumbs";
 
 interface StatCard {
   label: string;
@@ -87,22 +88,6 @@ const Summary: React.FC = () => {
   const [performanceData, setPerformanceData] = useState<
     { metric: string; value: string }[]
   >([]);
-  // useEffect(() => {
-  //   const filterValue = getFilterValue(selectedDays);
-  //   fetch(`${baseURL}/performance_summary?filter=${filterValue}`)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       // Build array dynamically only with API data:
-  //       setPerformanceData([
-  //         { metric: "New Drivers", value: data.new_drivers.toString() },
-  //         { metric: "Active Drivers", value: data.active_drivers.toString() },
-  //         { metric: "Trip Numbers", value: data.trips_number.toString() },
-  //         { metric: "Mileage", value: data.mileage.toString() },
-  //         { metric: "Time of Driving", value: data.time_of_driving.toString() },
-  //       ]);
-  //     })
-  //     .catch((err) => console.error(err));
-  // }, [selectedDays]);
 
   const fetchPerformanceSummary = async (filterValue: string) => {
     try {
@@ -168,31 +153,6 @@ const Summary: React.FC = () => {
     { metric: string; value: string }[]
   >([]);
 
-  // useEffect(() => {
-  //   console.log("selectedDays", selectedDays);
-  //   const filterValue = getFilterValue(selectedDays);
-  //   fetch(`${baseURL}/safe_driving_summary?filter=${filterValue}`)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       setSafeDrivingData([
-  //         { metric: "Safety Score", value: data.safety_score.toString() },
-  //         {
-  //           metric: "Acceleration Score",
-  //           value: data.acceleration_score.toString(),
-  //         },
-  //         { metric: "Braking Score", value: data.braking_score.toString() },
-  //         { metric: "Cornering Score", value: data.cornering_score.toString() },
-  //         { metric: "Speeding Score", value: data.speeding_score.toString() },
-  //         {
-  //           metric: "Phone Usage Score",
-  //           value: data.phone_usage_score.toString(),
-  //         },
-  //         { metric: "Trip Count", value: data.trip_count.toString() },
-  //       ]);
-  //     })
-  //     .catch((err) => console.error("Error fetching safe driving data:", err));
-  // }, [selectedDays]);
-
   const [ecoDrivingData, setEcoDrivingData] = useState<
     { metric: string; value: string }[]
   >([]);
@@ -209,23 +169,6 @@ const Summary: React.FC = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const filterValue = getFilterValue(selectedDays);
-
-  //   fetch(`${baseURL}/eco_driving_summary?filter=${filterValue}`)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       setEcoDrivingData([
-  //         { metric: "Eco Score", value: data.eco_score.toString() },
-  //         { metric: "Brakes Score", value: data.brakes_score.toString() },
-  //         { metric: "Tyres Score", value: data.tires_score.toString() },
-  //         { metric: "Fuel Score", value: data.fuel_score.toString() },
-  //         { metric: "Trip Count", value: data.trip_count.toString() },
-  //       ]);
-  //     })
-
-  //     .catch((err) => console.error("Error fetching eco driving data:", err));
-  // }, [selectedDays]);
   const fetchEcoDrivingSummary = async (filter: string) => {
     try {
       const res = await fetch(
@@ -264,10 +207,7 @@ const Summary: React.FC = () => {
        max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 
        "
         >
-          <p className="md:w-[204px]  md:h-[30px] font-medium text-gray-400 mb-[23px]">
-            Dashboard &gt;{" "}
-            <span className="font-bold text-xl  text-gray-800">Summary</span>
-          </p>
+          <Breadcrumbs />
         </div>
         {/* Tabs + Filter */}
         <div
@@ -297,7 +237,7 @@ const Summary: React.FC = () => {
                 </button>
               ))}
             </div>
-          
+
             <div className="relative">
               <select
                 value={selectedDays}
@@ -323,64 +263,45 @@ const Summary: React.FC = () => {
               </div>
             </div>
           </div>
-          {/* Stats Cards */}
-          {/* <div className="grid  grid-cols-1 sm:grid-cols-2  gap-4 md:grid-cols-5 2xl:grid-cols-6   mb-8">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6 mb-8">
             {getCurrentTabData().map((stat) => (
               <div
                 key={stat.metric}
-                className="flex flex-col bg-white mb-4 gap-4 2xl:max-w-[209px] 2xl:max-h-[192px] rounded-xl shadow-sm p-8  hover:shadow-md transition-shadow"
+                className="flex flex-col bg-white mb-4 gap-4 2xl:max-w-[209px] 2xl:max-h-[192px] rounded-xl shadow-sm p-8 hover:shadow-md transition-shadow relative"
               >
-                <p className="text-sm font-medium  text-gray-400  ">
-                  {stat.metric}
-                </p>
-                <p className="text-4xl  font-bold text-gray-800">
-                  {stat.value}
-                </p>
-                <p className=" font-normal text-sm -2 flex gap-3 ">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-400">
+                    {stat.metric}
+                  </p>
+
+                  {/* Only show arrow for New Drivers & Active Drivers */}
+                  {(stat.metric === "New Drivers" ||
+                    stat.metric === "Active Drivers") && (
+                    <Link
+                      to={
+                        stat.metric === "New Drivers"
+                          ? "/dashboard/summary/new-drivers"
+                          : "/dashboard/summary/active-drivers"
+                      }
+                      className="text-gray-400 hover:text-indigo-500 transition-colors"
+                    >
+                      <ArrowRight size={16} />
+                    </Link>
+                  )}
+                </div>
+
+                <p className="text-4xl font-bold text-gray-800">{stat.value}</p>
+
+                <p className="font-normal text-sm flex gap-3">
                   Last Month{" "}
                   <span className="font-medium text-xs text-green-500 border-1 px-2 border-gray-700 p-1 rounded-xl">
-                    {" "}
                     25%
                   </span>
                 </p>
               </div>
             ))}
-          </div> */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:grid-cols-5 2xl:grid-cols-6 mb-8">
-  {getCurrentTabData().map((stat) => (
-    <div
-      key={stat.metric}
-      className="flex flex-col bg-white mb-4 gap-4 2xl:max-w-[209px] 2xl:max-h-[192px] rounded-xl shadow-sm p-8 hover:shadow-md transition-shadow relative"
-    >
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-400">{stat.metric}</p>
-
-        {/* Only show arrow for New Drivers & Active Drivers */}
-        {(stat.metric === "New Drivers" || stat.metric === "Active Drivers") && (
-          <Link
-            to={
-              stat.metric === "New Drivers"
-                ? "/dashboard/new-drivers"
-                : "/dashboard/active-drivers"
-            }
-            className="text-gray-400 hover:text-indigo-500 transition-colors"
-          >
-            <ArrowRight size={16} />
-          </Link>
-        )}
-      </div>
-
-      <p className="text-4xl font-bold text-gray-800">{stat.value}</p>
-
-      <p className="font-normal text-sm flex gap-3">
-        Last Month{" "}
-        <span className="font-medium text-xs text-green-500 border-1 px-2 border-gray-700 p-1 rounded-xl">
-          25%
-        </span>
-      </p>
-    </div>
-  ))}
-</div>
+          </div>
         </div>
 
         {/* Chart + Tables Section */}

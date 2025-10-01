@@ -1,5 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import Breadcrumbs from "./Breadcrumbs";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -28,6 +29,11 @@ const ActiveUsers = () => {
 
   return (
     <div className="p-6">
+        <div className="p-6">
+      <Breadcrumbs />
+      <h2 className="text-xl font-semibold mb-4">Active Drivers</h2>
+      {/* your table code here */}
+    </div>
       <h2 className="text-xl font-bold mb-4 p-4">Active Drivers </h2>
       <table className="w-full border-collapse bg-white rounded-2xl shadow">
         <thead className="">

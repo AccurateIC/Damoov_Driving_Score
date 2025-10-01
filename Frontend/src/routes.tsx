@@ -19,18 +19,18 @@ import New_Drivers from "./pages/Dashboard/New_Drivers";
 export const routes = [
   {
     path: "",
-    element: <Navigate to="summary_New" replace />, // default dashboard redirect
+    element: <Navigate to="summary" replace />, // default dashboard redirect
   },
   {
-    path: "summary_New",
+    path: "summary",
     element: <Summary />,
   },
    {
-    path: "active-drivers",
+    path: "summary/active-drivers",
     element: <ActiveUsers />,
   },
    {
-    path: "new-drivers",
+    path: "summary/new-drivers",
     element: <New_Drivers />,
   },
   {

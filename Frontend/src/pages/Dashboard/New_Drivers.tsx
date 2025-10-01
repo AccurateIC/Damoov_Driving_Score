@@ -1,6 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 const baseURL = import.meta.env.VITE_BASE_URL;
+import Breadcrumbs from "./Breadcrumbs";
 
 // API fetch function
 const fetchActiveUsers = async () => {
@@ -25,7 +26,8 @@ const New_Drivers = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4 p-4">Active Drivers </h2>
+      <span>  <Breadcrumbs /></span>
+      <h2 className="text-xl font-bold mb-4 p-4">New Drivers </h2>
       <table className="w-full border-collapse bg-white rounded-2xl shadow">
         <thead className="">
           <tr className="text-gray-700 text-sm bg-[#B5B6D5]">
