@@ -16,17 +16,6 @@ function App() {
           {/* Public route */}
           <Route path="/" element={<LoginPage />} />
 
-<<<<<<< HEAD
-          {/* Dashboard routes with layout */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            {routes.map((route, idx) => (
-              <Route key={idx} path={route.path} element={route.element} />
-            ))}
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
-=======
         {/* Dashboard routes with layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           {routes.map((route, idx) => (
@@ -42,7 +31,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
->>>>>>> 51048e773 (ALL TESTED)
+    </QueryClientProvider>
   );
 }
 
