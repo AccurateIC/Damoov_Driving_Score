@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import LoginPage from "./pages/Login";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { routes } from "./routes";
+import TripDetails from "./pages/trips/TripDetails";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient();
@@ -15,21 +16,21 @@ function App() {
           {/* Public route */}
           <Route path="/" element={<LoginPage />} />
 
-        {/* Dashboard routes with layout */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          {routes.map((route, idx) => (
-            <Route
-              key={idx}
-              path={route.path.replace("dashboard/", "")} // make child paths
-              element={route.element}
-            />
-          ))}
+          {/* Dashboard routes with layout */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            {routes.map((route, idx) => (
+              <Route
+                key={idx}
+                path={route.path.replace("dashboard/", "")} // make child paths
+                element={route.element}
+              />
+            ))}
 
-          {/* TripDetails route */}
-          <Route path="tripdetails/:unique_id" element={<TripDetails />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+            {/* TripDetails route */}
+            <Route path="tripdetails/:unique_id" element={<TripDetails />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
@@ -65,7 +66,6 @@ export default App;
 
 // export default App;
 
-
 // // import { BrowserRouter, Routes, Route } from "react-router-dom";
 // // // import DashboardLayout from "./layouts/DashboardLayout";
 // // import LoginPage from "./pages/Login";
@@ -86,8 +86,6 @@ export default App;
 // // }
 
 // // export default App;
-
-
 
 // // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // // import DashboardLayout from "./layouts/DashboardLayout";
