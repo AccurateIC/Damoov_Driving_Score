@@ -18,7 +18,6 @@ function App() {
               path={route.path.replace("dashboard/", "")} // make child paths
               element={route.element}
             />
-            
           ))}
         </Route>
       </Routes>
@@ -27,7 +26,6 @@ function App() {
 }
 
 export default App;
-
 
 // import { BrowserRouter, Routes, Route } from "react-router-dom";
 // // import DashboardLayout from "./layouts/DashboardLayout";
@@ -49,8 +47,6 @@ export default App;
 // }
 
 // export default App;
-
-
 
 // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // import DashboardLayout from "./layouts/DashboardLayout";
@@ -91,7 +87,6 @@ export default App;
 //           <Route path="dashboard/summary_New" element={<Summary />} />
 //           <Route path="dashboard/sdk" element={<SDK />} />
 //           <Route path="dashboard/safety" element={<Safety />} />
-         
 
 //           <Route path="users/list" element={<UsersList />} />
 //           <Route path="users/profiles" element={<Profiles />} />
