@@ -1,53 +1,44 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch } from "react-icons/fi";
+import { tripsMockData } from "../../data/mockTrips";
+import { FiSearch, FiDownload } from "react-icons/fi";
 
-const baseURL = import.meta.env.VITE_BASE_URL;
+const baseURL = import.meta.env.VITE_BASE_URL ;
 
-const TripsList: React.FC = () => {
+const TripsList = () => {
+  // const [searchId, setSearchId] = useState('');
   const navigate = useNavigate();
   const [searchId, setSearchId] = useState("");
-  const [trips, setTrips] = useState<any[]>([]);
-  const [searchResult, setSearchResult] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [tripDetails, setTripDetails] = useState([]);
 
-  // Load all trips on mount
-  useEffect(() => {
+  const handleSearch = () => {
+    // Load trips on component mount
+    fetch(`${baseURL}/trips/${searchId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setTripDetails(data);
+      })
+      .catch((error) => console.error("Error fetching trips:", error));
+    console.log("tripDetails", tripDetails);
+    // console.log("searchId djh", searchId);
     loadTrips();
-  }, []);
+  };
+
+  const resetSearch = () => setSearchId("");
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const loadTrips = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}/trips`);
-      const data = await res.json();
+      const response = await fetch(`${baseURL}/trips`);
+      const data = await response.json();
       setTrips(data);
-    } catch (err) {
-      console.error("Error fetching trips:", err);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSearch = async () => {
-    if (!searchId) return;
-    setSearchLoading(true);
-    try {
-      const res = await fetch(`${baseURL}/trips/${searchId}`);
-      const data = await res.json();
-      setSearchResult(data ? [data] : []);
-    } catch (err) {
-      console.error("Error searching trip:", err);
-      setSearchResult([]);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const resetSearch = () => {
-    setSearchId("");
-    setSearchResult([]);
   };
 
   return (
@@ -56,18 +47,18 @@ const TripsList: React.FC = () => {
         {/* Load Trips Button */}
         <button
           onClick={loadTrips}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           {loading ? "Loading..." : "Trips List"}
         </button>
 
-        {/* Search Row */}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
+        {/* Search Row (Moved Below Button) */}
+        <div className="flex flex-wrap items-center gap-3 mb-4 mt-4">
           <div className="flex items-center bg-white border rounded-md px-3 py-2 w-full md:flex-1">
             <FiSearch className="mr-2 text-gray-500" />
             <input
               type="text"
-              placeholder="Search trips by Unique ID"
+              placeholder="Search trips by ID"
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -78,90 +69,58 @@ const TripsList: React.FC = () => {
             onClick={handleSearch}
             className="bg-blue-600 text-white px-4 py-2 rounded-md"
           >
-            {searchLoading ? "Searching..." : "Search"}
+            Search
           </button>
-          <button
-            onClick={resetSearch}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
-          >
-            Reset
-          </button>
+          {tripDetails && Object.keys(tripDetails).length > 0 && (
+            <table className="mt-4 border border-gray-300 w-full">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="border p-2">Device ID</th>
+                  <th className="border p-2">Start Time</th>
+                  <th className="border p-2">End Time</th>
+                  <th className="border p-2">Unique ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[tripDetails].map((trip, index) => (
+                  <tr key={index}>
+                    <td className="border p-2">{trip.device_id}</td>
+                    <td className="border p-2">{trip.start_time}</td>
+                    <td className="border p-2">{trip.end_time}</td>
+                    <td className="border p-2">{trip.unique_id}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        {/* Search Result Table */}
-        {searchResult.length > 0 && (
-          <div className="mb-4">
-            <h2 className="font-semibold text-gray-700 mb-2">Search Result</h2>
-            <table className="w-full border border-gray-300">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="border p-2">Unique ID</th>
-                  <th className="border p-2">Device ID</th>
-                  <th className="border p-2">Start Time</th>
-                  <th className="border p-2">End Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {searchResult.map((trip) => (
-                  <tr key={trip.unique_id}>
-                    <td
-                      className="border p-2 text-blue-600 cursor-pointer hover:underline text-center"
-                      onClick={() =>
-                        navigate(`/dashboard/tripdetails/${trip.unique_id}`)
-                      }
-                    >
-                      {trip.unique_id}
-                    </td>
-                    <td className="border p-2 text-center">{trip.device_id}</td>
-                    <td className="border p-2 text-center">{trip.start_time}</td>
-                    <td className="border p-2 text-center">{trip.end_time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* All Trips Table */}
+        {/* Trips Table */}
         {trips.length > 0 && (
-          <div>
-            <h2 className="font-semibold text-gray-700 mb-2">All Trips</h2>
-            <table className="w-full border border-gray-300">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="border p-2">Unique ID</th>
-                  <th className="border p-2">Device ID</th>
-                  <th className="border p-2">Start Time</th>
-                  <th className="border p-2">End Time</th>
-                  <th className="border p-2">Trip Distance</th>
+          <table className="mt-4 border border-gray-300 w-full">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="border p-2">Unique ID</th>
+                <th className="border p-2">Device ID</th>
+                <th className="border p-2">Start Time</th>
+                <th className="border p-2">End Time</th>
+                <th className="border p-2">Trip Distance Used</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trips.map((trip, index) => (
+                <tr key={index}>
+                  <td className="border p-2 text-center">{trip.unique_id}</td>
+                  <td className="border p-2 text-center">{trip.device_id}</td>
+                  <td className="border p-2 text-center">{trip.start_time}</td>
+                  <td className="border p-2 text-center">{trip.end_time}</td>
+                  <td className="border text-center p-2">
+                    {trip.trip_distance_used ?? "N/A"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {trips.map((trip) => (
-                  <tr key={trip.unique_id}>
-                    <td
-                      className="border p-2 text-blue-600 cursor-pointer hover:underline text-center"
-                      onClick={() =>
-                        navigate(`/dashboard/tripdetails/${trip.unique_id}`)
-                      }
-                    >
-                      {trip.unique_id}
-                    </td>
-                    <td className="border p-2 text-center">{trip.device_id}</td>
-                    <td className="border p-2 text-center">{trip.start_time}</td>
-                    <td className="border p-2 text-center">{trip.end_time}</td>
-                    <td className="border p-2 text-center">
-                      {trip.trip_distance_used ?? "N/A"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {trips.length === 0 && !loading && (
-          <div className="text-gray-500 mt-4 text-center">No trips found.</div>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   RadarChart,
@@ -17,6 +17,32 @@ import {
 } from "recharts";
 import { MapContainer, TileLayer, Polygon, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+
+const polygonCoords: [number, number][] = [
+  [18.559, 73.789],
+  [18.563, 73.801],
+  [18.552, 73.808],
+  [18.545, 73.793],
+];
+
+const radarData = [
+  { subject: "Acceleration", A: 85 },
+  { subject: "Phone Usage", A: 70 },
+  { subject: "Speeding", A: 60 },
+  { subject: "Cornering", A: 75 },
+  { subject: "Braking", A: 90 },
+  { subject: "Handling", A: 80 },
+];
+
+const barData = [
+  { time: "10:30", speed: "20", value: 2 },
+  { time: "10:30", speed: "40", value: 5 },
+  { time: "11:30", speed: "60", value: 3 },
+  { time: "12:30", speed: "80", value: 6 },
+  { time: "13:30", speed: "100+", value: 4 },
+  { time: "14:30", speed: "50", value: 7 },
+  { time: "15:30", speed: "30", value: 5 },
+];
 
 const BAR_COLORS = [
   "#8884d8",
@@ -38,82 +64,40 @@ function FitBounds({ coords }: { coords: [number, number][] }) {
 }
 
 const TripDetails: React.FC = () => {
-  const { unique_id } = useParams<{ unique_id: string }>();
-  const [trip, setTrip] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { deviceId } = useParams<{ deviceId?: string }>();
 
-  const baseURL = import.meta.env.VITE_BASE_URL;
-
-  useEffect(() => {
-    const fetchTrip = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${baseURL}/trips/${unique_id}`);
-        if (!res.ok) throw new Error("Trip not found");
-        const data = await res.json();
-        setTrip(data);
-      } catch (err: any) {
-        setError(err.message || "Error fetching trip");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTrip();
-  }, [unique_id]);
-
-  if (loading) return <div className="p-6">Loading trip details...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
-  if (!trip) return <div className="p-6">No trip data available</div>;
-
-  // Example static data for charts (replace with dynamic if available)
-  const radarData = [
-    { subject: "Acceleration", A: 85 },
-    { subject: "Phone Usage", A: 70 },
-    { subject: "Speeding", A: 60 },
-    { subject: "Cornering", A: 75 },
-    { subject: "Braking", A: 90 },
-    { subject: "Handling", A: 80 },
-  ];
-
-  const barData = [
-    { time: "10:30", speed: "20", value: 2 },
-    { time: "10:30", speed: "40", value: 5 },
-    { time: "11:30", speed: "60", value: 3 },
-    { time: "12:30", speed: "80", value: 6 },
-    { time: "13:30", speed: "100+", value: 4 },
-    { time: "14:30", speed: "50", value: 7 },
-    { time: "15:30", speed: "30", value: 5 },
-  ];
-
-  // Example polygon coordinates (can be dynamic from API if available)
-  const polygonCoords: [number, number][] = [
-    [18.559, 73.789],
-    [18.563, 73.801],
-    [18.552, 73.808],
-    [18.545, 73.793],
-  ];
+  const tripInfo = {
+    name: "Atharva D",
+    tripId: deviceId ?? "77007700770077",
+    startAddress: "Bhujbal Chowk, Mahalunge, Mulshi, Pune, Maharashtra, 411057",
+    endAddress:
+      "Hirai Sital Mandir, Sakhare Vasti, Hinjawadi, Pune, Maharashtra, 411057",
+    startTime: "10.30 am",
+    endTime: "5.30 pm",
+    efficiency: 90,
+  };
 
   return (
     <div className="p-6 lg:p-8 h-screen overflow-hidden">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">
-        Trip Details –{" "}
-        <span className="font-bold text-gray-900">{trip.unique_id}</span>
+        Trips Details –{" "}
+        <span className="font-bold text-gray-900">{tripInfo.tripId}</span>
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr h-[calc(100%-3rem)]">
+
         {/* Trip Info */}
         <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col justify-between h-full">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-[#EDEAFE] flex items-center justify-center text-[#5B4CAA] font-bold text-lg">
-              {trip.device_id?.charAt(0) ?? "D"}
+              {tripInfo.name.charAt(0)}
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
-                Device: {trip.device_id}
+                {tripInfo.name}
               </h3>
               <p className="text-sm text-gray-500">
-                Trip Id: <span className="font-medium">{trip.unique_id}</span>
+                Trip Id: <span className="font-medium">{tripInfo.tripId}</span>
               </p>
             </div>
           </div>
@@ -126,18 +110,28 @@ const TripDetails: React.FC = () => {
             </div>
             <div className="flex-1 flex flex-col justify-between">
               <div>
-                <p className="text-sm text-gray-600">{trip.start_time}</p>
+                <p className="text-sm text-gray-600">{tripInfo.startAddress}</p>
                 <p className="mt-1 text-sm font-semibold text-gray-800">
-                  Start Time
+                  {tripInfo.startTime}
                 </p>
               </div>
               <div className="mt-6 sm:mt-8">
-                <p className="text-sm text-gray-600">{trip.end_time}</p>
+                <p className="text-sm text-gray-600">{tripInfo.endAddress}</p>
                 <p className="mt-1 text-sm font-semibold text-gray-800">
-                  End Time
+                  {tripInfo.endTime}
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+              Travelled safer than other drivers with{" "}
+              <span className="font-bold text-[#5B4CAA]">
+                {tripInfo.efficiency}%
+              </span>{" "}
+              efficiency
+            </p>
           </div>
         </div>
 
@@ -187,6 +181,24 @@ const TripDetails: React.FC = () => {
                 />
               </RadarChart>
             </ResponsiveContainer>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 mt-4 text-sm text-gray-600">
+            {radarData.map((r) => (
+              <div key={r.subject} className="w-full">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-[#333]">{r.A}</span>
+                  <span className="text-xs text-gray-500">{r.subject}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full mt-1">
+                  <div
+                    className="h-2 bg-blue-800 rounded-full"
+                   style={{ width: `${r.A}%` }}
+
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
