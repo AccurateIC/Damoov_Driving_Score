@@ -18,6 +18,7 @@ function App() {
               path={route.path.replace("dashboard/", "")} // make child paths
               element={route.element}
             />
+            
           ))}
         </Route>
       </Routes>

@@ -5,7 +5,7 @@ import Safety from "./pages/Dashboard/New_Safety";
 import UsersList from "./pages/Users/New_Users";
 import User_Details from "./pages/Users/User_Details";
 import Profiles from "./pages/Users/Profiles";
-import Trips from "./pages/trips/New_Trips";  
+import Trips from "./pages/trips/New_Trips";
 import New_Trips_Detailed from "./pages/trips/New_Trips_Detailed";
 import TripDetails from "./pages/trips/TripDetails";
 import Management from "./pages/Management";
@@ -13,6 +13,7 @@ import Billing from "./pages/Billing";
 import DataTool from "./pages/DataTool";
 import UserGuide from "./pages/UserGuide";
 import ReportBug from "./pages/ReportBug";
+import TripMap from "./pages/trips/TripMap";
 
 export const routes = [
   {
@@ -50,10 +51,16 @@ export const routes = [
     element: <Trips />,
   },
   {
-    path: "trips/:tripId",
+    path: "trips/details/:unique_id",
     element: <New_Trips_Detailed />,
     hideHeader: true,
   },
+
+{
+  path: "trips/details/:track_id",
+  element: <TripDetails />,
+  hideHeader: true,
+},
   {
     path: "trips/details",
     element: <TripDetails />,
@@ -80,7 +87,6 @@ export const routes = [
   },
 ];
 
-
 // // src/routes.ts
 // import { Navigate } from "react-router-dom";
 // import Summary from "./pages/Dashboard/Summary_New";
@@ -90,7 +96,7 @@ export const routes = [
 // import User_Details from "./pages/Users/User_Details";
 // import Profiles from "./pages/Users/Profiles";
 // import TripsList from "./pages/trips/TripsList";
-// import Trips from "./pages/trips/New_Trips";  
+// import Trips from "./pages/trips/New_Trips";
 // import TripDetails from "./pages/trips/TripDetails";
 // import New_Trips_Detailed from "./pages/trips/New_Trips_Detailed";
 // import New_Trips from "./pages/trips/New_Trips";
