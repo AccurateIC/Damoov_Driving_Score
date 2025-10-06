@@ -15,14 +15,21 @@ function App() {
           {/* Public route */}
           <Route path="/" element={<LoginPage />} />
 
-          {/* Dashboard routes with layout */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            {routes.map((route, idx) => (
-              <Route key={idx} path={route.path} element={route.element} />
-            ))}
-          </Route>
-        </Routes>
-      </BrowserRouter>
+        {/* Dashboard routes with layout */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          {routes.map((route, idx) => (
+            <Route
+              key={idx}
+              path={route.path.replace("dashboard/", "")} // make child paths
+              element={route.element}
+            />
+          ))}
+
+          {/* TripDetails route */}
+          <Route path="tripdetails/:unique_id" element={<TripDetails />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
     </QueryClientProvider>
   );
 }
