@@ -1,35 +1,19 @@
 #!/bin/bash
+set -e
 
-# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRONTEND_PORT=7001
+BACKEND_PORT=6001
 
-# ------------------ Frontend ------------------
-(
-  cd "$SCRIPT_DIR/../Frontend" || exit
-  echo "🚀 Installing frontend dependencies..."
-  npm install
-  echo "🚀 Starting frontend with Vite..."
-  node node_modules/vite/bin/vite.js --host 0.0.0.0 --port 7001
-) &
+echo "🚀 Starting Frontend..."
+cd "$SCRIPT_DIR/../Frontend"
+nohup node node_modules/vite/bin/vite.js --port $FRONTEND_PORT --host 0.0.0.0 > "$SCRIPT_DIR/frontend.log" 2>&1 &
+sleep 5
 
-# ------------------ Backend ------------------
-(
-  cd "$SCRIPT_DIR/../Backend" || exit
-  echo "⚡ Setting up backend virtualenv..."
-  if [ ! -d "venv" ]; then
-      python3 -m venv venv
-  fi
+echo "⚡ Starting Backend..."
+cd "$SCRIPT_DIR/../Backend"
+"$SCRIPT_DIR/../Backend/venv/bin/python3" -m src.flask_server --port $BACKEND_PORT > "$SCRIPT_DIR/backend.log" 2>&1 &
 
-  if [ -f "requirements.txt" ]; then
-      . venv/bin/activate
-      echo "⚡ Installing backend dependencies..."
-      pip install -r requirements.txt
-      echo "⚡ Starting Flask server..."
-      python3 -m src.flask_server --host 0.0.0.0 --port 6001
-      deactivate
-  else
-      echo "⚠️ requirements.txt not found in Backend!"
-  fi
-) &
-
-wait
+echo "✅ Servers started. Check logs:"
+echo "   Frontend → $SCRIPT_DIR/frontend.log"
+echo "   Backend  → $SCRIPT_DIR/backend.log"
