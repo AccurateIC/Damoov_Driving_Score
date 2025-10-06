@@ -1,26 +1,36 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Default ports if not provided
-FRONTEND_PORT=${FRONTEND_PORT:-7001}
-BACKEND_PORT=${BACKEND_PORT:-6001}
+# Default ports (or take from arguments)
+FRONTEND_PORT=${1:-7001}
+BACKEND_PORT=${2:-6001}
 
-# Start Frontend (Vite) in background
+# Log files
+FRONTEND_LOG="$SCRIPT_DIR/../Frontend/vite.log"
+BACKEND_LOG="$SCRIPT_DIR/../Backend/flask.log"
+
+# Kill existing processes
+fuser -k ${FRONTEND_PORT}/tcp || true
+fuser -k ${BACKEND_PORT}/tcp || true
+
+echo "🚀 Starting Frontend on port ${FRONTEND_PORT}..."
 (
   cd "$SCRIPT_DIR/../Frontend"
-  echo "🚀 Starting Frontend on port $FRONTEND_PORT..."
-  nohup node node_modules/vite/bin/vite.js --port $FRONTEND_PORT > vite.log 2>&1 &
+  nohup node node_modules/vite/bin/vite.js --port ${FRONTEND_PORT} > "$FRONTEND_LOG" 2>&1 &
 )
 
-# Start Backend (Flask) in background
+echo "⚡ Starting Backend on port ${BACKEND_PORT}..."
 (
   cd "$SCRIPT_DIR/../Backend"
-  echo "⚡ Starting Backend on port $BACKEND_PORT..."
   source venv/bin/activate
-  nohup python3 -m src.flask_server --port $BACKEND_PORT > flask.log 2>&1 &
+  nohup python3 -m src.flask_server --port ${BACKEND_PORT} > "$BACKEND_LOG" 2>&1 &
   deactivate
 )
 
-echo "✅ Both servers started. Frontend: $FRONTEND_PORT, Backend: $BACKEND_PORT"
+sleep 5
+echo "✅ Frontend (port ${FRONTEND_PORT}) and Backend (port ${BACKEND_PORT}) are up and running!"
