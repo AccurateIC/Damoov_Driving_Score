@@ -1,51 +1,36 @@
 #!/bin/bash
-set -e
 
-# Script directory
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOST_IP="192.168.10.41"
-FRONTEND_DIR="$SCRIPT_DIR/../Frontend"
-BACKEND_DIR="$SCRIPT_DIR/../Backend"
+cd "$SCRIPT_DIR/.."
 
-# -----------------------------
-# Install & Build Frontend
-# -----------------------------
-cd "$FRONTEND_DIR"
-echo "📦 Installing frontend dependencies..."
-npm install
+# Explicit frontend/backend host & ports
+FRONTEND_HOST="192.168.10.41"
+FRONTEND_PORT=7001
 
-echo "🏗️ Building frontend for production..."
-npm run build
+BACKEND_HOST="192.168.10.41"
+BACKEND_PORT=6001
 
-# Update .env to backend LAN IP
-sed -i "s#VITE_BASE_URL=.*#VITE_BASE_URL=http://$HOST_IP:6001#" .env
+echo "Stopping any previously running frontend/backend..."
 
-# -----------------------------
-# Setup Backend
-# -----------------------------
-cd "$BACKEND_DIR"
-if [ ! -d "venv" ]; then
-    echo "🐍 Creating Python virtual environment..."
-    python3 -m venv venv
-fi
+pkill -f "python3 -m src.flask_server" 2>/dev/null || echo "No backend running"
+pkill -f "vite" 2>/dev/null || echo "No frontend running"
+sleep 2  # wait for ports to free
 
+# Start Frontend
+cd Frontend
+echo "🚀 Starting Frontend with Vite..."
+nohup node node_modules/vite/bin/vite.js --host $FRONTEND_HOST --port $FRONTEND_PORT > ../frontend.log 2>&1 &
+cd ..
+
+# Start Backend
+cd Backend
+echo "⚡ Starting Backend (Flask Server)..."
 source venv/bin/activate
-pip install -r src/app/requirements.txt
+nohup python3 -m src.flask_server --host $BACKEND_HOST --port $BACKEND_PORT > ../backend.log 2>&1 &
 deactivate
+cd ..
 
-# -----------------------------
-# Stop previous servers
-# -----------------------------
-pkill -f "python3 -m src.flask_server" || echo "No backend running"
-echo "🛑 Previous backend stopped."
-
-# -----------------------------
-# Start backend (Flask) serving frontend
-# -----------------------------
-echo "⚡ Starting backend on $HOST_IP:6001..."
-source venv/bin/activate
-nohup python3 -m src.flask_server > "$SCRIPT_DIR/backend.log" 2>&1 &
-deactivate
-
-echo "✅ Backend started. Logs: $SCRIPT_DIR/backend.log"
-echo "🌐 Access frontend via: http://$HOST_IP:7001 (if dev) or served by backend at http://$HOST_IP:6001"
+echo "✅ Dev servers started!"
+echo "Frontend: http://$FRONTEND_HOST:$FRONTEND_PORT"
+echo "Backend: http://$BACKEND_HOST:$BACKEND_PORT"
