@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 import tempo from "../assets/tempo.png";
 import gradientBox from "../assets/rectangle.svg";
 
-const baseURL = import.meta.env.VITE_BASE_URL || "http://127.0.0.1:3344";
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("signin");
@@ -93,8 +93,8 @@ export default function LoginPage() {
         localStorage.removeItem("rememberedEmail");
       }
 
-      alert(data.message);
-  navigate("/dashboard/summary_New"); // ✅ Redirect after success
+      // alert(data.message);
+  navigate("/dashboard/summary"); // ✅ Redirect after success
     } catch (error) {
       alert(error.message);
     } finally {

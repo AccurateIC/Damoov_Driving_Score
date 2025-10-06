@@ -112,7 +112,7 @@ const BarChartGraph = ({ selectedDays }: { selectedDays: number }) => {
   //  2xl:max-h-[830px]
     2xl:bg-white
     2xl:min-h-[500px]
-     2xl:min-w-[1530px]   2xl:max-w-[1830px]  xl:max-w-[1200px] 2xl:max-h-[990px]  
+      2xl:max-w-[1630px]  xl:max-w-[1200px] 2xl:max-h-[990px]  
     rounded-xl  shadow-sm "
     >
       {/* Header */}

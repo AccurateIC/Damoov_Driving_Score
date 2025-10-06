@@ -14,15 +14,25 @@ import DataTool from "./pages/DataTool";
 import UserGuide from "./pages/UserGuide";
 import ReportBug from "./pages/ReportBug";
 import TripMap from "./pages/trips/TripMap";
+import ActiveUsers from "./pages/Dashboard/ActiveUsers";
+import New_Drivers from "./pages/Dashboard/New_Drivers";
 
 export const routes = [
   {
     path: "",
-    element: <Navigate to="summary_New" replace />, // default dashboard redirect
+    element: <Navigate to="summary" replace />, // default dashboard redirect
   },
   {
-    path: "summary_New",
+    path: "summary",
     element: <Summary />,
+  },
+   {
+    path: "summary/active-drivers",
+    element: <ActiveUsers />,
+  },
+   {
+    path: "summary/new-drivers",
+    element: <New_Drivers />,
   },
   {
     path: "sdk",

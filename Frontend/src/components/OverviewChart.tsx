@@ -11,6 +11,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
+const baseURL = import.meta.env.VITE_BASE_URL;
 
 const performanceTableData = [
   {
@@ -175,7 +176,7 @@ const OverviewChart = ({ selectedDays }: { selectedDays: string }) => {
 };
  useEffect(() => {
     console.log("Fetching chart with selectedDays:", selectedDays, "and metric:", selectedParam);
-    fetch("http://127.0.0.1:5000/summary_graph", {
+    fetch(`${baseURL}/summary_graph`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
