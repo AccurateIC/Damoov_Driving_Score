@@ -209,23 +209,7 @@ const Summary: React.FC = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const filterValue = getFilterValue(selectedDays);
-
-  //   fetch(`${baseURL}/eco_driving_summary?filter=${filterValue}`)
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       setEcoDrivingData([
-  //         { metric: "Eco Score", value: data.eco_score.toString() },
-  //         { metric: "Brakes Score", value: data.brakes_score.toString() },
-  //         { metric: "Tyres Score", value: data.tires_score.toString() },
-  //         { metric: "Fuel Score", value: data.fuel_score.toString() },
-  //         { metric: "Trip Count", value: data.trip_count.toString() },
-  //       ]);
-  //     })
-
-  //     .catch((err) => console.error("Error fetching eco driving data:", err));
-  // }, [selectedDays]);
+  
   const fetchEcoDrivingSummary = async (filter: string) => {
     try {
       const res = await fetch(
