@@ -88,7 +88,6 @@ const Trips: React.FC = () => {
       </div>
 
       {/* Table */}
-      {/* Table */}
       <div className="p-6 mb-4">
         {loading ? (
           <div className="text-center py-6 text-gray-500">Loading trips...</div>
@@ -115,7 +114,7 @@ const Trips: React.FC = () => {
                   >
                     <td className="text-center">
                       <RouterLink
-                        to={`/trips/${trip.unique_id}`}
+                        to={`/dashboard/trips/details/${trip.unique_id}`}
                         // to={`/users/${user.user_id}`}
                         className="text-indigo-600 hover:underline"
                       >
