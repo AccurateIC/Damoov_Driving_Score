@@ -1,11 +1,11 @@
 meta {
-  name: overall analytics summary
+  name: Mileage Daily
   type: http
-  seq: 10
+  seq: 5
 }
 
 post {
-  url: http://127.0.0.1:5000/overall_analytics_summary
+  url: {{BASE_URL}}/mileage_daily
   body: json
   auth: inherit
 }

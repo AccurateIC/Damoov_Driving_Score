@@ -1,17 +1,16 @@
 meta {
-  name: Badge aggregates
+  name: Safe_Driving_Summary
   type: http
-  seq: 15
+  seq: 7
 }
 
 get {
-  url: http://127.0.0.1:5000/badge_aggregates?user_id=11&filter=last_1_month
+  url: {{BASE_URL}}/safe_driving_summary?filter=last_1_month
   body: none
   auth: inherit
 }
 
 params:query {
-  user_id: 11
   filter: last_1_month
 }
 
