@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
 from src.app.utils.db import setup_database
 from src.app.routes.register import register_routes
@@ -7,17 +7,12 @@ from src.app.routes.register import register_routes
 app = Flask(__name__)
 CORS(app)
 
-# Database setup
+# DB
 engine = setup_database()
 
-# Register existing routes
+# Routes
 register_routes(app)
 
-# ✅ Add health endpoint
-@app.route('/api/health')
-def health():
-    return jsonify({"status": "ok"}), 200
-
 if __name__ == "__main__":
-    # Running on all interfaces, port 6001, debug mode enabled
+    # host/port identical to your original
     app.run(host="0.0.0.0", port=6001, debug=True)
