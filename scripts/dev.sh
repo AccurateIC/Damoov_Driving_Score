@@ -48,7 +48,7 @@ echo "🌐 Starting Frontend (Vite)..."
 cd Frontend
 
 # Set backend API URL for frontend
-echo "VITE_API_BASE_URL=http://$BACKEND_HOST:$BACKEND_PORT" > .env.local
+echo "VITE_API_BASE_URL=http://$BACKEND_HOST:$BACKEND_PORT" > .env
 
 # Start frontend in detached mode
 nohup setsid node node_modules/vite/bin/vite.js --host "$FRONTEND_HOST" --port "$FRONTEND_PORT" > ../frontend.log 2>&1 &
