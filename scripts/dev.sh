@@ -17,6 +17,10 @@ pkill -f "python3 -m src.flask_server" 2>/dev/null || echo "No backend running"
 pkill -f "vite" 2>/dev/null || echo "No frontend running"
 sleep 2  # wait for ports to free
 
+# Ensure logs exist and are writable
+touch frontend.log backend.log
+chmod 664 frontend.log backend.log
+
 # Start Frontend
 cd Frontend
 echo "🚀 Starting Frontend with Vite..."
