@@ -5,14 +5,13 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(),
+    tailwindcss(),  
   ],
   server: {
-    host: "0.0.0.0",   // Allow access from other machines
-    port: 7001
+    host: "0.0.0.0",  
+    port: 7001        
   }
 });
 
 // config.ts
-// Use the actual server IP from .env, fallback to your server IP
-export const API_BASE_URL = process.env.VITE_API_BASE_URL || "http://192.168.10.41:7001";
+export const API_BASE_URL = process.env.REACT_APP_BASE_URL ;
