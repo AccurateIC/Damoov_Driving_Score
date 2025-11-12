@@ -15,8 +15,6 @@ import TopDriversTable from "../../components/TopDrivers";
 import Dashboard from "../../components/DriverDistribution";
 import { Bell, User } from "lucide-react";
 
-
-
 interface StatCard {
   label: string;
   value: string | number;
@@ -256,7 +254,7 @@ const Summary: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen  px-4 pt-1  ">
+    <div className="min-h-screen  px-4 pt-1 bg-gray-200 ">
       <div>
         {/* Breadcrumb */}
         <div
@@ -363,7 +361,7 @@ const Summary: React.FC = () => {
         <div
           className="
        
-       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] 
+       max-w-[1081px]  xl:max-w-[1200px] 2xl:max-w-[1830px] 2xl:mx-[32px] bg-gray-200
 "
         >
           <div className=" text-base font-medium py-4">

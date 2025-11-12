@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import jwt, datetime
+import jwt, datetime, requests
 from sqlalchemy import text
+from requests.auth import HTTPBasicAuth
 from src.app.db_queries import get_user_by_email, insert_user, get_engine
 from src.app.utils.db import setup_database, CONFIG
 
@@ -110,3 +111,44 @@ def forgot_password():
         "message": "Password reset link sent to email",
         "reset_token": reset_token  # in real-world send via email
     })
+
+
+@auth_bp.route("/jenkins/build-number", methods=["GET"])
+def get_build_number():
+    """
+    Fetches the latest Jenkins build number for the Damoov project.
+    """
+    JENKINS_URL = "http://192.168.10.41:8080/job/Damoov_Driving_Score/lastBuild/api/json"
+    USERNAME = "Admin"
+    API_TOKEN = "11d1b3ba6d8b6eb6ab53e0d85c477d99c9"
+
+    try:
+        response = requests.get(JENKINS_URL, auth=HTTPBasicAuth(USERNAME, API_TOKEN))
+        response.raise_for_status()
+        data = response.json()
+        build_number = data.get("number")
+
+        if build_number is None:
+            return jsonify({
+                "status": "error",
+                "message": "Build number not found in Jenkins response."
+            }), 404
+
+        return jsonify({
+            "status": "success",
+            "message": "Jenkins build number fetched successfully.",
+            "project": "Damoov",
+            "build_number": build_number
+        }), 200
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Jenkins request failed: {str(e)}"
+        }), 500
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500

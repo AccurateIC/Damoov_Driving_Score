@@ -536,10 +536,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="px-12  min-h-screen">
+    <div className="px-12  min-h-screen  bg-gray-200">
       {/* Header */}
       <div className="flex  justify-between items-center mb-6">
-        <p className="md:w-[204px] md:h-[30px] font-medium text-gray-400 mb-[23px]">
+        <p className="md:w-[204px] md:h-[30px] font-medium text-gray-400 mb-[23px] ">
           Dashboard &gt;{" "}
           <span className="font-bold text-xl text-gray-800">Safety</span>
         </p>
@@ -643,7 +643,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap  2xl:max-w-[1830px] mb-8 gap-10 mt-7 ">
+      <div className="flex flex-wrap gap-10 2xl:max-w-[1830px] mb-8  mt-7 ">
         {/* Chart 1 */}
         <div className="flex-1 min-w-[300px] h-[400px] pt-2 bg-white pb-10 pl-8 rounded-lg">
           <span className="block mb-2 font-medium">Driving Time Daily</span>
@@ -656,7 +656,7 @@ const Dashboard = () => {
             }}
           />
         </div>
-        <div className=" flex-1 max-w-[735px] h-[400px] pt-2 bg-white">
+        <div className=" flex-1 min-w-[735px] h-[400px] pt-2 bg-white rounded-lg">
           <span className="font-medium p-2"> Safety Parameters</span>
           <Radar data={safetyData} options={radarOptions} />
         </div>

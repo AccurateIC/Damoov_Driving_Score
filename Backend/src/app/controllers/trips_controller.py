@@ -68,19 +68,6 @@ def trip_stats(unique_id: int):
     return jsonify(resp)
 
 # ---------- /trips/location/<id> (GET) ----------
-"""def trip_location(unique_id: int):
-    df = get_trip_points(unique_id)
-    if df.empty:
-        return jsonify({"error": "Trip not found"}), 404
-    row = df.iloc[0]
-    from_loc = cached_reverse_geocode(row["start_latitude"], row["start_longitude"])
-    to_loc   = cached_reverse_geocode(row["end_latitude"],   row["end_longitude"])
-    return jsonify({
-        "unique_id": unique_id,
-        "from": f"({row['start_latitude']}, {row['start_longitude']}) → {from_loc}",
-        "to":   f"({row['end_latitude']}, {row['end_longitude']}) → {to_loc}"
-    })"""
-
 from datetime import datetime
 
 def convert_unix_ms_to_str(unix_ms):

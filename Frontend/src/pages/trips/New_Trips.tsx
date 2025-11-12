@@ -51,7 +51,7 @@ const Trips: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col gap-6 2xl:px-8 ">
+    <div className="flex flex-col gap-6 2xl:px-8  bg-gray-200">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="text-4xl font-bold">Trips</div>
