@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import tempo from "../assets/tempo.png";
 import gradientBox from "../assets/rectangle.svg";
-import { CloudCog } from "lucide-react";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
-
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("signin");
-  const [buildNumber, setbuildnumber] = useState(null);
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,14 +18,22 @@ export default function LoginPage() {
   const [resetEmail, setResetEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [buildNumber, setBuildNumber] = useState(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const response = fetch(`${baseURL}/build_number`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-    console.log("response", response);
+    fetch("http://127.0.0.1:6001/jenkins/build-number")
+      .then((res) => res.json())
+      .then((data) => {
+        setBuildNumber(data.build_number);
+      })
+      .catch((err) => {
+        console.error("Error fetching build number:", err);
+      });
+  }, []);
+
+  useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     if (savedEmail) {
       setFormData((prev) => ({ ...prev, email: savedEmail, remember: true }));
@@ -46,8 +50,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // const API_BASE = "http://127.0.0.1:5000";
     setLoading(true);
 
     try {
@@ -90,11 +92,9 @@ export default function LoginPage() {
         throw new Error(data.message || "Something went wrong!");
       }
 
-      // ✅ Save token and user in localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
 
-      // ✅ Remember email if checked
       if (formData.remember) {
         localStorage.setItem("rememberedEmail", formData.email);
       } else {
@@ -102,7 +102,7 @@ export default function LoginPage() {
       }
 
       alert(data.message);
-      navigate("/dashboard/summary_New"); // ✅ Redirect after success
+      navigate("/dashboard/summary_New");
     } catch (error) {
       alert(error.message);
     } finally {
@@ -255,8 +255,8 @@ export default function LoginPage() {
         </div>
 
         {/* Right Section */}
-        <div className="flex flex-col justify-center items-center bg-gray-100 p-6">
-          <div className="relative w-full flex justify-center ">
+        <div className="relative flex flex-col justify-center items-center bg-gray-100 p-6">
+          <div className="relative w-full flex justify-center">
             <img
               src={gradientBox}
               alt="Gradient Background"
@@ -273,8 +273,9 @@ export default function LoginPage() {
           <p className="mt-6 text-gray-500 text-sm text-center px-4">
             “Track your fleet is easy with Damoov”
           </p>
-
-          <p className="absolute bottom-4 right-4 text-gray-700">Hello</p>
+          <p className="absolute bottom-4 right-4 text-gray-700 text-sm">
+            Build Numer : {buildNumber ?? ".."}
+          </p>
         </div>
       </div>
 
