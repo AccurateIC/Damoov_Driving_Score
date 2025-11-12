@@ -3,7 +3,7 @@ import { Bell, User } from "lucide-react";
 
 const Header = () => {
   return (
-    <header className="xl:bg-gray-150 flex 2xl:py-[12px]   ">
+    <header className="bg-gray-200 flex 2xl:py-[12px]   ">
       <div
         className="
          mb-4 grid   w-full h-[80px]

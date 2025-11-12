@@ -21,7 +21,7 @@ def safe_driving_summary():
     filtered = df[df["timestamp"] >= start]
     if filtered.empty:
         return jsonify({"error": "No data"}), 404
-
+    
     summary = {
         "trip_count": int(filtered["unique_id"].nunique()),
         "safety_score": round(filtered["safe_score"].mean(), 2),

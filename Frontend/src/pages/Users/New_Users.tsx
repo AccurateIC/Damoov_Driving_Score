@@ -84,7 +84,7 @@ const UsersList = () => {
   }
 
   return (
-    <div className="2xl:px-8 min-h-screen text-sm gap-6 flex flex-col">
+    <div className="2xl:px-8 min-h-screen text-sm gap-6 flex flex-col bg-gray-200 ">
       <div className="flex justify-between items-center">
         <span>
            {/* <Breadcrumbs/>   */}

@@ -171,7 +171,7 @@ const New_Trips_Detailed: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-8 h-screen overflow-hidden bg-gray-200">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">
         Trips Details –{" "}
         <span className="font-bold text-gray-900">
@@ -179,7 +179,8 @@ const New_Trips_Detailed: React.FC = () => {
         </span>
       </h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr h-[calc(100%-3rem)] bg-gray-200 ">
+
         {/* Trip Info */}
         <div className="bg-white rounded-2xl shadow-md h-[400px] p-6 flex flex-col justify-between">
           {loading ? (
