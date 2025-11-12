@@ -1,23 +1,38 @@
+
 #!/bin/bash
 
-# Get the directory where this script is located
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
-# Start Frontend with Vite
-(
-  cd "$SCRIPT_DIR/../Frontend"
-  echo "🚀 Starting Frontend with Vite..."
-  node node_modules/vite/bin/vite.js
-) &
+# Explicit frontend/backend host & ports
+FRONTEND_HOST="192.168.10.41"
+FRONTEND_PORT=7001
 
-# Start Backend inside venv
-(
-  cd "$SCRIPT_DIR/../Backend"
-  echo "⚡ Starting Backend (Flask Server)..."
-  source venv/bin/activate
-  python3 -m src.flask_server
-  deactivate
-) &
+BACKEND_HOST="192.168.10.41"
+BACKEND_PORT=6001
 
-# Wait for both processes
-wait
+echo "Stopping any previously running frontend/backend..."
+
+pkill -f "python3 -m src.flask_server" 2>/dev/null || echo "No backend running"
+pkill -f "vite" 2>/dev/null || echo "No frontend running"
+sleep 2  # wait for ports to free
+
+# Start Frontend
+cd Frontend
+echo "🚀 Starting Frontend with Vite..."
+nohup node node_modules/vite/bin/vite.js --host $FRONTEND_HOST --port $FRONTEND_PORT > ../frontend.log 2>&1 &
+cd ..
+
+# Start Backend
+cd Backend
+echo "⚡ Starting Backend (Flask Server)..."
+source venv/bin/activate
+nohup python3 -m src.flask_server --host $BACKEND_HOST --port $BACKEND_PORT > ../backend.log 2>&1 &
+deactivate
+cd ..
+
+echo "✅ Dev servers started!"
+echo "Frontend: http://$FRONTEND_HOST:$FRONTEND_PORT"
+echo "Backend: http://$BACKEND_HOST:$BACKEND_PORT"
+
