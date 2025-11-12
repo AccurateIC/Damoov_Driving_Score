@@ -8,3 +8,4 @@ auth_bp.route("/signin", methods=["POST"])(a.signin)
 auth_bp.route("/forgot_password", methods=["POST"])(a.forgot_password)
 auth_bp.route("/jenkins/build-number", methods=["GET"])(a.get_build_number)
 
+
