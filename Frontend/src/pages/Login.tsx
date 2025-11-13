@@ -23,7 +23,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${baseURL}/jenkins/build-number`)
+    fetch( `${baseURL}/jenkins/build-number)
       .then((res) => res.json())
       .then((data) => {
         setBuildNumber(data.build_number);
