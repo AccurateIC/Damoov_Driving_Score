@@ -1,23 +1,22 @@
 #!/bin/bash
+set -e
 
-# Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRONTEND_DIR="$SCRIPT_DIR/../Frontend"
+BACKEND_DIR="$SCRIPT_DIR/../Backend"
 
-# Start Frontend with Vite
+# --- Frontend ---
 (
-  cd "$SCRIPT_DIR/../Frontend"
+  cd "$FRONTEND_DIR"
   echo "🚀 Starting Frontend with Vite..."
-  node node_modules/vite/bin/vite.js
+  sudo -u jenkins npm run dev
 ) &
 
-# Start Backend inside venv
+# --- Backend ---
 (
-  cd "$SCRIPT_DIR/../Backend"
+  cd "$BACKEND_DIR"
   echo "⚡ Starting Backend (Flask Server)..."
-  source venv/bin/activate
-  python3 -m src.flask_server
-  deactivate
+  sudo -u jenkins bash -c "source venv/bin/activate && python3 -m src.flask_server"
 ) &
 
-# Wait for both processes
 wait
