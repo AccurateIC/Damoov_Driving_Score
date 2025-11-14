@@ -23,7 +23,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://192.168.10.41:6001/jenkins/build-number")
+    fetch("http://127.0.0.0:6001/jenkins/build-number")
       .then((res) => res.json())
       .then((data) => {Jenkins H/5	❌ No	Minimum 1 min
 Pipeline loop	✔ Yes	Works inside Jenkins
