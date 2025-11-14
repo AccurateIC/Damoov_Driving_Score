@@ -1,0 +1,19 @@
+meta {
+  name: User trips
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{BASE_URL}}/user_trips?filter=last_2_months
+  body: none
+  auth: inherit
+}
+
+params:query {
+  filter: last_2_months
+}
+
+settings {
+  encodeUrl: true
+}

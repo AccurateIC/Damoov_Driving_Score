@@ -1,0 +1,19 @@
+meta {
+  name: Safety_Graph Trend
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{BASE_URL}}/safety_graph_trend
+  body: json
+  auth: inherit
+}
+
+body:json {
+  { "filter_val": "last_2_months", "metric": "safe_score" }
+}
+
+settings {
+  encodeUrl: true
+}
