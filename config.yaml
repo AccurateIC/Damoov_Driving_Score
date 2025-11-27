@@ -39,11 +39,11 @@ database:
   # SQLite fallback (still supported)
   sqlite_path: "D:/Downloadss/tracking_db/tracking_db.db"
   # MySQL connection
-  host: "192.168.10.41"
+  host: "192.168.11.65"
   port: 3306
-  user: "fleet"
-  password: "fleetpass"
-  name: "accurate_tracking_db"
+  user: "root"
+  password: "password"
+  name: "accurate_tracking_db_271125"
   main_table: "newSampleTable"          # << run pipeline on the CLONE
   start_table: "EventsStartPointTable"
   stop_table: "EventsStopPointTable"
