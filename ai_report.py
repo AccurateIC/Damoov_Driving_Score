@@ -54,7 +54,6 @@ html = f"""<!DOCTYPE html>
   <div class="ai-box">{summary}</div>
 </div>
 </body></html>"""
-
 os.makedirs("reports", exist_ok=True)
 path = f"reports/build_{BUILD_NUM}.html"
 with open(path, "w") as f:
