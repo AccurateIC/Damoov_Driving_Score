@@ -4,7 +4,7 @@ from datetime import datetime
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.10.41:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:latest")
 BUILD_NUM = os.environ.get("BUILD_NUMBER", "0")
-BUILD_STATUS = sys.argv[1] if len(sys.argv) > 1 else "SUCCESS"
+BUILD_STATUS = sys.argv[1] if len(sys.argv) > 1 else "SUCCESS
 
 def ask_ai(prompt):
     payload = json.dumps({"model": OLLAMA_MODEL, "prompt": prompt, "stream": False}).encode()
@@ -12,7 +12,6 @@ def ask_ai(prompt):
         data=payload, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.loads(r.read())["response"]
-
 def get_diff():
     try:
         return subprocess.check_output(
