@@ -48,7 +48,7 @@ html = f"""<!DOCTYPE html>
   <span class="badge">{status_label}</span>
 </div>
 <div class="card">
-  <h3>AI code review</h3>
+  <h3>AI code reviewer</h3>
   <div class="ai-box">{review}</div>
 </div>
 <div class="card">
