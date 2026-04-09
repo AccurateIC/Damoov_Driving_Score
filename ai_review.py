@@ -5,7 +5,6 @@ import sys
 with open('/tmp/code_diff.txt') as f:
     diff = f.read(4000)
 
-
 prompt = f"""Act as a senior DevSecOps engineer.
 
 Analyze this code diff for:
