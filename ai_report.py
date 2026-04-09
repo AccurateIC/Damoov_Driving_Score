@@ -20,7 +20,6 @@ def get_diff():
             stderr=subprocess.DEVNULL).decode()[:3000]
     except:
         return "No diff available"
-
 diff = get_diff()
 review = ask_ai(f"Review this git diff. List bugs, security issues, suggestions. Be concise:\n\n{diff}")
 summary = ask_ai("Write a 2-sentence deployment summary for a Node.js frontend + Python backend app deployed to production.")
