@@ -11,7 +11,7 @@ echo "🚀 Starting Damoov Dev Environment..."
 # === Frontend ===
 echo "📦 Installing Frontend dependencies..."
 cd "$FRONTEND_DIR"
-npm install
+npmM install
 
 # === Backend ===
 echo "🐍 Setting up Backend..."
