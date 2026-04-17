@@ -41,7 +41,7 @@ sudo -u jenkins bash -c "cd '$BACKEND_DIR' && ./venv/bin/pip install -r src/app/
   echo "🔥 Starting Backend (Flask)..."
   source venv/bin/activate
   python3 -m src.flask_server
-  deactivate
+  ctivate
 ) &
 
 wait
