@@ -32,7 +32,7 @@ sudo -u jenkins bash -c "cd '$BACKEND_DIR' && ./venv/bin/pip install -r src/app/
 (
   cd "$FRONTEND_DIR"
   echo "⚡ Starting Frontend (Vite)..."
-  npm run dev
+  npmm run dev
 ) &
 
 # === Run Backend ===
