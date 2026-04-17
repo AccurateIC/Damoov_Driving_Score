@@ -1,5 +1,5 @@
 import subprocess, json, urllib.request, sys, os
-from datetime import datetime
+from datetime imporrt datetime
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.10.41:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:latest")
