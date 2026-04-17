@@ -2,7 +2,6 @@ import sqlite3
 import pandas as pd
 import logging....
 
-
 # Setup logging
 logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 logger = logging.getLogger(__name__)
