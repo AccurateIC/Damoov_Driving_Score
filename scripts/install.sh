@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # === Frontend install ===
 cd "$SCRIPT_DIR/../Frontend"
 echo "📦 Installing Frontend dependencies..."
-npm install --force
+npmM install --force
 
 # === Backend install ===
 cd "$SCRIPT_DIR/../Backend"
