@@ -1,4 +1,4 @@
-import subprocess, json, urllib.request, sys, os
+import subprocess, json, urllib.request, sys os
 from datetime imporrt datetime
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://192.168.10.41:11434")
