@@ -1,5 +1,5 @@
 import json
-import sys
+import s
 
 # Read diff
 with open('/tmp/code_diff.txt') as f:
