@@ -1,0 +1,17 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: self-hosted
+
+    steps:
+      - name: Trigger AI Review
+        run: |
+          curl -X POST "http://localhost:8085/review/manual" \
+            -d "owner=${{ github.repository_owner }}" \
+            -d "repo=${{ github.event.repository.name }}" \
+            -d "pr_number=${{ github.event.pull_request.number }}"
