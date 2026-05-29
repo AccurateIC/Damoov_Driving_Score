@@ -11,7 +11,22 @@ jobs:
     steps:
       - name: Trigger AI Review
         run: |
-          curl -X POST "http://localhost:8085/review/manual" \
-            -d "owner=${{ github.repository_owner }}" \
-            -d "repo=${{ github.event.repository.name }}" \
-            -d "pr_number=${{ github.event.pull_request.number }}"
+          RESPONSE=$(curl -s -o /tmp/review_response.json -w "%{http_code}" \
+            -X POST \
+            "http://localhost:8085/review/manual?owner=${{ github.repository_owner }}&repo=${{ github.event.repository.name }}&pr_number=${{ github.event.pull_request.number }}")
+
+          echo "HTTP Status: $RESPONSE"
+          echo "Response: $(cat /tmp/review_response.json)"
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "❌ Review trigger failed with status $RESPONSE"
+            exit 1
+          fi
+
+          echo "✅ Review triggered successfully"
+
+      - name: Wait and verify
+        run: |
+          echo "Waiting 10s for review to start..."
+          sleep 10
+          curl -s http://localhost:8085/health | python3 -m json.tool
