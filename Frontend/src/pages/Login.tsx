@@ -5,6 +5,7 @@ import tempo from "../assets/tempo.png";
 import gradientBox from "../assets/rectangle.svg";
 
 const baseURL = import.meta.env.VITE_BASE_URL;
+
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("signin");
   const [formData, setFormData] = useState({
@@ -14,16 +15,17 @@ export default function LoginPage() {
     confirmPassword: "",
     remember: false,
   });
+
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [buildNumber, setBuildNumber] = useState(null);
 
   const navigate = useNavigate();
 
+  // Fetch Jenkins Build Number
   useEffect(() => {
-    fetch("http://127.0.0.1:6001/jenkins/build-number")
+    fetch("http://192.168.10.41:6001/jenkins/build-number")
       .then((res) => res.json())
       .then((data) => {
         setBuildNumber(data.build_number);
@@ -33,6 +35,7 @@ export default function LoginPage() {
       });
   }, []);
 
+  // Load remembered email
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail");
     if (savedEmail) {
@@ -54,6 +57,7 @@ export default function LoginPage() {
 
     try {
       let response;
+
       if (activeTab === "signup") {
         if (formData.password.length < 8) {
           alert("Password must be at least 8 characters long.");
@@ -88,9 +92,7 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong!");
-      }
+      if (!response.ok) throw new Error(data.message || "Something went wrong!");
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
@@ -124,27 +126,22 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="w-full h-screen bg-white grid grid-cols-1 md:grid-cols-2">
+
         {/* Left Section */}
         <div className="flex flex-col justify-center items-center px-4 sm:px-8 md:px-10">
           <div className="mb-2 flex flex-col items-center">
-            <img
-              src={logo}
-              alt="logo"
-              className="h-12 sm:h-14 md:h-16 lg:h-20 mb-2 object-contain"
-            />
+            <img src={logo} alt="logo" className="h-16 mb-2 object-contain" />
           </div>
 
-          <h1 className="text-lg sm:text-xl md:text-2xl font-medium mb-2 text-center">
-            Welcome to Accurate!
-          </h1>
-          <p className="text-gray-400 mb-6 text-center text-sm sm:text-base">
+          <h1 className="text-2xl font-medium mb-2 text-center">Welcome to Accurate!</h1>
+          <p className="text-gray-400 mb-6 text-center">
             We are ready to serve you anytime
           </p>
 
-          <div className="flex mb-6 w-full max-w-xs sm:max-w-sm rounded-full border border-gray-200 overflow-hidden">
+          <div className="flex mb-6 w-full max-w-sm rounded-full border border-gray-200 overflow-hidden">
             <button
               onClick={() => setActiveTab("signin")}
-              className={`flex-1 py-2 sm:py-3 font-medium transition ${
+              className={`flex-1 py-3 font-medium ${
                 activeTab === "signin"
                   ? "bg-indigo-600 text-white"
                   : "bg-white text-gray-500"
@@ -154,7 +151,7 @@ export default function LoginPage() {
             </button>
             <button
               onClick={() => setActiveTab("signup")}
-              className={`flex-1 py-2 sm:py-3 font-medium transition ${
+              className={`flex-1 py-3 font-medium ${
                 activeTab === "signup"
                   ? "bg-indigo-600 text-white"
                   : "bg-white text-gray-600"
@@ -164,10 +161,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <form
-            className="w-full max-w-xs sm:max-w-sm space-y-4"
-            onSubmit={handleSubmit}
-          >
+          <form className="w-full max-w-sm space-y-4" onSubmit={handleSubmit}>
             {activeTab === "signup" && (
               <input
                 type="text"
@@ -176,7 +170,7 @@ export default function LoginPage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-full border border-gray-300 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 rounded-full border border-gray-300"
               />
             )}
 
@@ -187,7 +181,7 @@ export default function LoginPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 rounded-full border border-gray-300 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-3 rounded-full border border-gray-300"
             />
 
             <input
@@ -197,7 +191,7 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 rounded-full border border-gray-300 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-3 rounded-full border border-gray-300"
             />
 
             {activeTab === "signup" && (
@@ -209,24 +203,23 @@ export default function LoginPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-full border border-gray-300 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 rounded-full border border-gray-300"
                 />
-                <p className="text-xs sm:text-sm text-gray-500">
-                  The password must be at least 8 characters long and include
-                  special characters such as (*, @, etc.)
+                <p className="text-xs text-gray-500">
+                  Password must be at least 8 characters with special characters.
                 </p>
               </>
             )}
 
             {activeTab === "signin" && (
-              <div className="flex items-center justify-between text-xs sm:text-sm">
+              <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     name="remember"
                     checked={formData.remember}
                     onChange={handleChange}
-                    className="text-indigo-600 focus:ring-indigo-500"
+                    className="text-indigo-600"
                   />
                   Remember Me
                 </label>
@@ -243,7 +236,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-3 rounded-full font-medium hover:bg-indigo-700 transition text-sm sm:text-base"
+              className="w-full bg-indigo-600 text-white py-3 rounded-full font-medium hover:bg-indigo-700"
             >
               {loading
                 ? "Please wait..."
@@ -257,24 +250,21 @@ export default function LoginPage() {
         {/* Right Section */}
         <div className="relative flex flex-col justify-center items-center bg-gray-100 p-6">
           <div className="relative w-full flex justify-center">
-            <img
-              src={gradientBox}
-              alt="Gradient Background"
-              className="w-3/4 sm:w-2/3 md:w-1/2 lg:w-2/5 max-w-md rounded-3xl"
-            />
+            <img src={gradientBox} alt="Gradient" className="w-1/2 rounded-3xl" />
             <img
               src={tempo}
               alt="Tempo"
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-              w-4/5 sm:w-3/4 md:w-2/3 lg:w-1/2 max-w-sm object-contain"
+              w-1/2 object-contain"
             />
           </div>
 
-          <p className="mt-6 text-gray-500 text-sm text-center px-4">
-            “Track your fleet is easy with Damoov”
+          <p className="mt-6 text-gray-500 text-center">
+            “Track your fleet easily with Damoov”
           </p>
+
           <p className="absolute bottom-4 right-4 text-gray-700 text-sm">
-            Build Numer : {buildNumber ?? ".."}
+            Build Number: {buildNumber ?? ".."}
           </p>
         </div>
       </div>
@@ -283,9 +273,7 @@ export default function LoginPage() {
       {showForgotModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 px-4">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">
-              Forgot Password
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Forgot Password</h2>
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <input
                 type="email"
@@ -293,18 +281,15 @@ export default function LoginPage() {
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-full border border-gray-300 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 rounded-full border border-gray-300"
               />
-              <button
-                type="submit"
-                className="w-full bg-indigo-600 text-white py-2 rounded-full hover:bg-indigo-700 transition text-sm sm:text-base"
-              >
+              <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded-full">
                 Send Reset Link
               </button>
               <button
                 type="button"
+                className="w-full bg-gray-300 text-gray-700 py-2 rounded-full"
                 onClick={() => setShowForgotModal(false)}
-                className="w-full bg-gray-300 text-gray-700 py-2 rounded-full hover:bg-gray-400 transition text-sm sm:text-base"
               >
                 Cancel
               </button>

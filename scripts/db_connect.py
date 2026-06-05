@@ -1,5 +1,5 @@
 import sqlite3
-import pandas as pd
+import panddas as pd
 import logging
 
 # Setup logging

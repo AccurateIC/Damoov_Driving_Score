@@ -1,21 +1,26 @@
 #!/bin/bash
+set -e
 
-# Get the directory where this script is located
+
+# Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Install Frontend dependencies
+# === Frontend install ===
 cd "$SCRIPT_DIR/../Frontend"
 echo "📦 Installing Frontend dependencies..."
-npm install
+npm install --force
 
-# Setup Backend venv + install requirements
+# === Backend install ===
 cd "$SCRIPT_DIR/../Backend"
+echo "🐍 Setting up backend virtual environment..."
+
 if [ ! -d "venv" ]; then
-  echo "🐍 Creating Python virtual environment..."
-  python3 -m venv venv || { echo "❌ Failed to create venv. Did you install python3-venv?"; exit 1; }
+    python3 -m venv venv
 fi
 
-echo "📥 Installing Backend dependencies..."
-source venv/bin/activate
-pip install -r src/app/requirements.txt
-deactivate || true
+echo "📥 Installing backend dependencies..."
+./venv/bin/pip install --upgrade pip
+./venv/bin/pip install -r src/app/requirements.txt
+./venv/bin/pip install requests
+
+echo "✅ Backend installation completed"
