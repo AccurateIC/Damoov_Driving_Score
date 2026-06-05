@@ -9,3 +9,5 @@ sqlalchemy
 pydantic
 pyyaml
 pymysql
+werkzeug
+PyJWT

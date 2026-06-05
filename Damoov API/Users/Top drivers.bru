@@ -1,0 +1,15 @@
+meta {
+  name: Top drivers
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{BASE_URL}}/fetch_top_drivers
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
